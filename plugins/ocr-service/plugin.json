@@ -1,0 +1,16 @@
+{
+  "name": "ocr-service",
+  "title": "OCR 识别服务",
+  "description": "内置 OCR 服务，使用 Tesseract.js 提供图片文字识别能力",
+  "version": "1.0.0",
+  "main": "index.html",
+  "logo": "logo.svg",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "ocr",
+      "explain": "图片文字识别",
+      "cmds": ["ocr", "识别文字", "图片识别"]
+    }
+  ]
+}

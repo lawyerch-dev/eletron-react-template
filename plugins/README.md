@@ -7,9 +7,24 @@
 ```
 plugins/
 ├── AGENTS.md           # 插件开发指南（AI Agent 必读）
+├── ocr-service/        # 内置 OCR 服务（为其他插件提供文字识别能力）
 ├── example-plugin/     # 示例插件模板
 └── your-plugin/        # 自定义插件
 ```
+
+## 内置服务插件
+
+### OCR 服务 (`ocr-service`)
+
+内置 OCR 服务，提供统一的文字识别能力，其他插件可直接调用，无需重复实现。
+
+```javascript
+// 其他插件调用 OCR 服务
+const result = await ztools.ocr(image, { lang: 'chi_sim+eng' })
+console.log(result.text)
+```
+
+详见 [ocr-service/README.md](./ocr-service/README.md)
 
 ## 快速开始
 

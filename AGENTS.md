@@ -74,8 +74,8 @@ electron/
       installer/      插件安装（installer/download/market/zpx）
       runtime/        插件运行时（registry/runner/http）
   preload/            Preload 脚本（contextBridge）
-plugins/               内置插件源码（详见 plugins/AGENTS.md）
-resources/lib/         原生模块（.node / .dylib）
+plugins/               内置插件源码（详见 plugins/AGENTS.md）  ocr-service/         内置 OCR 服务（为其他插件提供文字识别能力）
+  example-plugin/      示例插件模板resources/lib/         原生模块（.node / .dylib）
 test/
   e2e/                Playwright E2E
   *.test.ts           Vitest 单元测试

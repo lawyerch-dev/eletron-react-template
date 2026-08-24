@@ -305,7 +305,62 @@ window.ztools?.onPluginEnter((params) => {
 - 文件操作需用户授权
 - 网络请求需明确告知用户
 
-### 构建发布
+## 插件间调用（Provider 机制）
+
+插件可以通过 **Provider 机制** 相互调用服务，避免重复造轮子。
+
+### 注册服务（提供者）
+
+```javascript
+// 插件 A - 在 preload.js 中注册 OCR 服务
+ztools.registerProvider('ocr', async (input) => {
+  const { image, lang } = input
+  // 实现 OCR 逻辑
+  const text = await recognizeText(image, lang)
+  return { text, confidence: 95 }
+})
+```
+
+### 调用服务（消费者）
+
+```javascript
+// 插件 B - 调用 OCR 服务
+const result = await ztools.ocr(image, { lang: 'chi_sim' })
+console.log(result.text)
+
+// 或使用通用 Provider API
+const result = await ztools.providers.invokeProvider('ocr', { image, lang: 'eng' })
+
+// 查询可用的 provider
+const providers = await ztools.providers.getProviders('ocr')
+```
+
+### 内置服务插件
+
+| 插件 | 服务类型 | 调用方式 |
+|------|----------|----------|
+| `ocr-service` | `ocr` | `ztools.ocr(image, options)` |
+
+### 最佳实践
+
+1. **优先调用现有服务** - 开发新功能前，先查询是否有可用的 provider
+2. **声明式注册** - 在 `plugin.json` 的 `providers` 字段声明提供的服务
+3. **统一接口** - 遵循标准的输入输出格式，方便其他插件调用
+4. **错误处理** - 捕获并处理 provider 调用失败的情况
+
+```javascript
+// 查询是否有 OCR 服务
+const ocrProviders = await ztools.providers.getProviders('ocr')
+if (ocrProviders.length > 0) {
+  // 有可用的 OCR 服务，直接调用
+  const result = await ztools.ocr(image)
+} else {
+  // 没有 OCR 服务，提示用户安装
+  ztools.showToast('请先安装 OCR 服务插件')
+}
+```
+
+## 构建发布
 
 1. 开发完成后运行 `npm run build`
 2. 将插件目录或打包为 `.zip`/`.zpx` 文件

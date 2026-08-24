@@ -5,13 +5,226 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>示例插件</title>
   <link rel="stylesheet" href="./src/style.css" />
+  <style>
+    .ocr-section {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    .ocr-section h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #374151;
+    }
+    .drop-zone {
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #ffffff;
+    }
+    .drop-zone:hover {
+      border-color: #0891b2;
+      background: #f0fdff;
+    }
+    .drop-zone.has-image {
+      border-style: solid;
+      border-color: #0891b2;
+    }
+    .drop-zone img {
+      max-width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+    }
+    .ocr-result {
+      margin-top: 12px;
+      padding: 12px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 13px;
+      min-height: 60px;
+      display: none;
+    }
+    .ocr-result.show {
+      display: block;
+    }
+    .ocr-result .confidence {
+      font-size: 11px;
+      color: #059669;
+      margin-bottom: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      margin-top: 12px;
+    }
+    .btn-primary {
+      background: #0891b2;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #0e7490;
+    }
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .status {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+    .status.success {
+      color: #059669;
+    }
+    .status.error {
+      color: #dc2626;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
     <h1>示例插件</h1>
     <p id="greeting">点击按钮查看效果</p>
     <button id="btn">点击我</button>
+
+    <!-- OCR 测试区域 -->
+    <div class="ocr-section">
+      <h2>📷 OCR 识别测试</h2>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
+        此功能演示插件间调用：本插件调用 ocr-service 提供的 OCR 能力
+      </p>
+      
+      <div class="drop-zone" id="dropZone">
+        点击选择图片或拖放到此处
+      </div>
+      
+      <button class="btn btn-primary" id="ocrBtn" disabled onclick="startOcr()">
+        开始识别
+      </button>
+      
+      <div class="status" id="status"></div>
+      
+      <div class="ocr-result" id="ocrResult">
+        <div class="confidence" id="confidence"></div>
+        <div id="resultText"></div>
+      </div>
+    </div>
   </div>
+
   <script src="./src/main.js"></script>
+  <script>
+    let currentImage = null
+
+    // 设置拖放
+    const dropZone = document.getElementById('dropZone')
+    
+    dropZone.addEventListener('click', () => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*'
+      input.onchange = (e) => {
+        const file = e.target.files[0]
+        if (file) loadImage(file)
+      }
+      input.click()
+    })
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault()
+      dropZone.style.borderColor = '#0891b2'
+    })
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = '#d1d5db'
+    })
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault()
+      dropZone.style.borderColor = '#0891b2'
+      const file = e.dataTransfer.files[0]
+      if (file && file.type.startsWith('image/')) {
+        loadImage(file)
+      }
+    })
+
+    function loadImage(file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        currentImage = e.target.result
+        dropZone.classList.add('has-image')
+        dropZone.innerHTML = `<img src="${currentImage}" alt="测试图片">`
+        document.getElementById('ocrBtn').disabled = false
+        document.getElementById('status').textContent = '图片已加载，点击"开始识别"'
+        document.getElementById('status').className = 'status'
+      }
+      reader.readAsDataURL(file)
+    }
+
+    async function startOcr() {
+      if (!currentImage) return
+      
+      const btn = document.getElementById('ocrBtn')
+      const status = document.getElementById('status')
+      const resultDiv = document.getElementById('ocrResult')
+      const resultText = document.getElementById('resultText')
+      const confidence = document.getElementById('confidence')
+      
+      btn.disabled = true
+      btn.innerHTML = '<span class="loading"></span> 识别中...'
+      status.textContent = '正在调用 OCR 服务...'
+      status.className = 'status'
+      resultDiv.classList.remove('show')
+      
+      try {
+        const result = await window.myPluginApi.recognizeImage(currentImage)
+        
+        if (result.success) {
+          resultDiv.classList.add('show')
+          resultText.textContent = result.text || '（未识别到文字）'
+          confidence.textContent = result.confidence 
+            ? `置信度: ${Math.round(result.confidence)}%` 
+            : ''
+          status.textContent = '✅ 识别成功！'
+          status.className = 'status success'
+        } else {
+          status.textContent = `❌ ${result.error}`
+          status.className = 'status error'
+        }
+      } catch (error) {
+        status.textContent = `❌ 错误: ${error.message}`
+        status.className = 'status error'
+      } finally {
+        btn.disabled = false
+        btn.innerHTML = '开始识别'
+      }
+    }
+  </script>
 </body>
 </html>

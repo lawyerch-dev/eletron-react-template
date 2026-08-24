@@ -85,7 +85,9 @@ class Runner {
     win.webContents.on('did-finish-load', () => {
       win.webContents.send('on-plugin-enter', { type: 'text', payload: {}, plugin: runEntry })
     })
-    win.webContents.on('destroyed', () => {
+
+    // 使用 closed 事件而不是 destroyed，确保窗口关闭时状态正确更新
+    win.on('closed', () => {
       this.removeRunning(plugin.path)
     })
 
