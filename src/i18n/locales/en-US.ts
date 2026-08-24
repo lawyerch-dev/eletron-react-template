@@ -102,6 +102,9 @@ const enUS = {
     'An Electron + React + TypeScript desktop app template based on electron-vite-react.',
   'about.stack': 'Tech stack',
   'about.repo': 'GitHub repository',
+  'about.pluginMarket': 'Plugin Market',
+  'about.pluginMarketDesc': 'The plugin system is built on ZTools and compatible with its plugin ecosystem.',
+  'about.ztoolsRepo': 'ZTools Repository',
 
   // Update
   'update.check': 'Check update',

@@ -99,6 +99,9 @@ const zhCN = {
     '基于 electron-vite-react 模板二次开发的 Electron + React + TypeScript 桌面应用模板。',
   'about.stack': '技术栈',
   'about.repo': 'GitHub 仓库',
+  'about.pluginMarket': '插件市场',
+  'about.pluginMarketDesc': '本应用的插件系统基于 ZTools 开发，兼容 ZTools 插件生态。',
+  'about.ztoolsRepo': 'ZTools 开源仓库',
 
   // 更新
   'update.check': '检查更新',
