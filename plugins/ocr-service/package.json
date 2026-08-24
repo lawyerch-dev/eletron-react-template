@@ -5,6 +5,7 @@
   "description": "内置 OCR 服务插件",
   "main": "preload.js",
   "dependencies": {
+    "@napi-rs/system-ocr": "^1.1.0",
     "tesseract.js": "^5.1.1"
   }
 }

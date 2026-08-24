@@ -9,188 +9,79 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #ffffff;
-      color: #1a1a1a;
-      padding: 24px;
-      line-height: 1.6;
+      background: #ffffff; color: #1a1a1a; padding: 24px; line-height: 1.6;
     }
     .container { max-width: 600px; margin: 0 auto; }
-    h1 {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
     h1 svg { width: 32px; height: 32px; color: #0891b2; }
     .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
-    .section {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+    .section { background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .engine-selector { display: flex; flex-direction: column; gap: 16px; }
+    .selector-row { display: flex; align-items: center; gap: 12px; }
+    .selector-label { font-size: 14px; font-weight: 500; color: #374151; min-width: 80px; }
+    .select-wrapper { flex: 1; position: relative; }
+    .engine-select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #374151; background: #ffffff; appearance: none; cursor: pointer; transition: all 0.2s; }
+    .engine-select:hover { border-color: #0891b2; }
+    .engine-select:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1); }
+    .select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; pointer-events: none; }
+    .engine-info-panel { background: #f9fafb; border-radius: 8px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 16px; }
+    .info-item { display: flex; align-items: center; gap: 6px; }
+    .info-label { font-size: 12px; color: #6b7280; }
+    .info-value { font-size: 12px; font-weight: 500; color: #374151; }
+    .info-value.available { color: #059669; }
+    .info-value.unavailable { color: #dc2626; }
     .engine-list { display: flex; flex-direction: column; gap: 12px; }
-    .engine-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-    }
+    .engine-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
     .engine-info { display: flex; flex-direction: column; }
     .engine-name { font-weight: 500; font-size: 14px; }
     .engine-status { font-size: 12px; color: #6b7280; }
     .engine-status.available { color: #059669; }
-    .engine-status.unavailable { color: #dc2626; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 500;
-    }
+    .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 500; }
     .badge-default { background: #e0f2fe; color: #0369a1; }
+    .badge-runtime { background: #f3f4f6; color: #374151; font-size: 11px; }
     .test-cases { margin-bottom: 16px; }
-    .test-case-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    .test-case-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 16px 12px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .test-case-btn:hover {
-      border-color: #0891b2;
-      background: #f0fdff;
-    }
+    .test-case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .test-case-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .test-case-btn:hover { border-color: #0891b2; background: #f0fdff; }
     .test-case-icon { font-size: 24px; }
     .test-case-label { font-size: 12px; font-weight: 500; color: #374151; }
-    .test-area {
-      width: 100%;
-      min-height: 120px;
-      border: 2px dashed #e5e7eb;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #fafafa;
-    }
+    .test-area { width: 100%; min-height: 120px; border: 2px dashed #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; background: #fafafa; }
     .test-area:hover { border-color: #0891b2; background: #f0fdff; }
     .test-area.has-image { border-style: solid; border-color: #0891b2; }
     .test-area img { max-width: 100%; max-height: 200px; object-fit: contain; }
     .test-area-text { color: #9ca3af; font-size: 14px; }
-    .result-area {
-      margin-top: 16px;
-      padding: 16px;
-      background: #f3f4f6;
-      border-radius: 8px;
-      min-height: 80px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-size: 14px;
-      display: none;
-    }
+    .result-area { margin-top: 16px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; min-height: 80px; display: none; }
     .result-area.show { display: block; }
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .result-title { font-weight: 600; font-size: 14px; color: #374151; }
-    .confidence { font-size: 12px; color: #059669; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-    }
+    .result-actions { display: flex; align-items: center; gap: 8px; }
+    .confidence { font-size: 12px; color: #059669; font-weight: 500; }
+    .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: #ffffff; border-radius: 6px; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+    .btn-icon:hover { background: #e5e7eb; color: #374151; }
+    .result-meta { display: flex; gap: 12px; margin-bottom: 12px; font-size: 11px; color: #6b7280; }
+    .result-path { word-break: break-all; cursor: pointer; user-select: all; }
+    .result-engine { padding: 2px 8px; background: #e0f2fe; color: #0369a1; border-radius: 100px; font-weight: 500; }
+    .result-content { white-space: pre-wrap; word-break: break-all; font-size: 14px; line-height: 1.6; color: #1f2937; max-height: 300px; overflow-y: auto; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
     .btn-primary { background: #0891b2; color: white; }
     .btn-primary:hover { background: #0e7490; }
     .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
     .btn-secondary { background: #ffffff; color: #374151; border: 1px solid #e5e7eb; }
     .btn-secondary:hover { background: #f9fafb; }
     .actions { display: flex; gap: 12px; margin-top: 16px; }
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #e5e7eb;
-      border-top-color: #0891b2;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+    .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #0891b2; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .progress {
-      margin-top: 12px;
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 2px;
-      overflow: hidden;
-      display: none;
-    }
+    .progress { margin-top: 12px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; display: none; }
     .progress.show { display: block; }
-    .progress-bar {
-      height: 100%;
-      background: #0891b2;
-      transition: width 0.3s ease;
-      width: 0%;
-    }
-    .status {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 8px;
-      min-height: 18px;
-    }
-    .api-example {
-      background: #1f2937;
-      color: #f9fafb;
-      padding: 16px;
-      border-radius: 8px;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 13px;
-      overflow-x: auto;
-      margin-top: 16px;
-    }
+    .progress-bar { height: 100%; background: #0891b2; transition: width 0.3s ease; width: 0%; }
+    .status { font-size: 12px; color: #6b7280; margin-top: 8px; min-height: 18px; }
+    .api-example { background: #1f2937; color: #f9fafb; padding: 16px; border-radius: 8px; font-family: 'Monaco', 'Menlo', monospace; font-size: 13px; overflow-x: auto; margin-top: 16px; }
     .api-example .comment { color: #6b7280; }
     .api-example .keyword { color: #c084fc; }
     .api-example .string { color: #34d399; }
     .api-example .function { color: #60a5fa; }
-    .asset-note {
-      margin-top: 10px;
-      font-size: 12px;
-      color: #6b7280;
-    }
+    .asset-note { margin-top: 10px; font-size: 12px; color: #6b7280; }
   </style>
 </head>
 <body>
@@ -198,88 +89,90 @@
     <h1>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
+        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
       </svg>
       OCR 识别服务
     </h1>
     <p class="subtitle">内置 OCR 服务，为其他插件提供统一的文字识别能力</p>
 
-    <!-- 引擎状态 -->
     <div class="section">
-      <div class="section-title">可用引擎</div>
-      <div class="engine-list" id="engineList">
-        <div class="engine-item">
-          <div class="engine-info">
-            <span class="engine-name">Tesseract.js</span>
-            <span class="engine-status available">可用</span>
+      <div class="section-title">引擎选择</div>
+      <div class="engine-selector">
+        <div class="selector-row">
+          <label class="selector-label">识别引擎</label>
+          <div class="select-wrapper">
+            <select id="engineSelect" class="engine-select" onchange="switchEngine(this.value)">
+              <option value="tesseract">Tesseract.js (本地)</option>
+            </select>
+            <span class="select-arrow">&#9662;</span>
           </div>
-          <span class="badge badge-default">已加载</span>
+        </div>
+        <div class="selector-row">
+          <label class="selector-label">识别语言</label>
+          <div class="select-wrapper">
+            <select id="langSelect" class="engine-select" multiple>
+              <option value="eng" selected>英文 (English)</option>
+              <option value="chi_sim" selected>简体中文</option>
+              <option value="chi_tra">繁体中文</option>
+              <option value="jpn">日文 (日本語)</option>
+              <option value="kor">韩文 (한국어)</option>
+            </select>
+          </div>
+        </div>
+        <div class="engine-info-panel" id="engineInfoPanel">
+          <div class="info-item"><span class="info-label">运行时:</span><span id="engineRuntime" class="info-value">本地</span></div>
+          <div class="info-item"><span class="info-label">状态:</span><span id="engineStatus" class="info-value available">可用</span></div>
+          <div class="info-item"><span class="info-label">能力:</span><span id="engineCapabilities" class="info-value">文字识别</span></div>
         </div>
       </div>
     </div>
 
-    <!-- 测试区域 -->
     <div class="section">
       <div class="section-title">测试识别</div>
-
       <div class="asset-note">测试图为本地内嵌资源，不依赖网络。</div>
-      
-      <!-- 预置测试用例 -->
       <div class="test-cases">
         <div class="section-title" style="margin-top: 16px;">预置测试用例</div>
         <div class="test-case-grid">
-          <button class="test-case-btn" onclick="loadTestCase('english')">
-            <span class="test-case-icon">📝</span>
-            <span class="test-case-label">英文文本</span>
-          </button>
-          <button class="test-case-btn" onclick="loadTestCase('numbers')">
-            <span class="test-case-icon">🔢</span>
-            <span class="test-case-label">数字识别</span>
-          </button>
-          <button class="test-case-btn" onclick="loadTestCase('mixed')">
-            <span class="test-case-icon">📊</span>
-            <span class="test-case-label">混合内容</span>
-          </button>
+          <button class="test-case-btn" onclick="loadTestCase('english')"><span class="test-case-icon">📝</span><span class="test-case-label">英文文本</span></button>
+          <button class="test-case-btn" onclick="loadTestCase('numbers')"><span class="test-case-icon">🔢</span><span class="test-case-label">数字识别</span></button>
+          <button class="test-case-btn" onclick="loadTestCase('mixed')"><span class="test-case-icon">📊</span><span class="test-case-label">混合内容</span></button>
         </div>
       </div>
-      
       <div style="margin: 16px 0; text-align: center; color: #9ca3af; font-size: 12px;">- 或 -</div>
-      
-      <!-- 自定义图片上传 -->
-      <div class="test-area" id="testArea" onclick="selectImage()">
-        <span class="test-area-text">点击选择图片或拖放图片到此处</span>
-      </div>
-      <div class="progress" id="progress">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+      <div class="test-area" id="testArea" onclick="selectImage()"><span class="test-area-text">点击选择图片或拖放图片到此处</span></div>
+      <div class="progress" id="progress"><div class="progress-bar" id="progressBar"></div></div>
       <div class="status" id="status"></div>
       <div class="actions">
-        <button class="btn btn-primary" id="recognizeBtn" onclick="startRecognize()" disabled>
-          开始识别
-        </button>
-        <button class="btn btn-secondary" onclick="clearResult()">
-          清除结果
-        </button>
+        <button class="btn btn-primary" id="recognizeBtn" onclick="startRecognize()" disabled>开始识别</button>
+        <button class="btn btn-secondary" onclick="clearResult()">清除结果</button>
       </div>
       <div class="result-area" id="resultArea">
         <div class="result-header">
           <span class="result-title">识别结果</span>
-          <span class="confidence" id="confidence"></span>
+          <div class="result-actions">
+            <span class="confidence" id="confidence"></span>
+            <button class="btn-icon" onclick="copyResult()" title="复制结果">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+            <button class="btn-icon" onclick="clearResult()" title="清除结果">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
         </div>
-        <div id="resultText"></div>
+        <div class="result-meta">
+          <div class="result-path" id="resultPath" title="点击复制路径"></div>
+          <div class="result-engine" id="resultEngine"></div>
+        </div>
+        <div class="result-content" id="resultText"></div>
       </div>
     </div>
 
-    <!-- API 示例 -->
     <div class="section">
       <div class="section-title">调用示例</div>
       <div class="api-example">
         <span class="comment">// 其他插件可以通过以下方式调用 OCR 服务</span><br><br>
         <span class="comment">// 方式 1: 使用 Tesseract.js 直接识别</span><br>
-        <span class="keyword">const</span> worker = <span class="keyword">await</span> Tesseract.<span class="function">createWorker</span>(<span class="string">'eng'</span>)<br>
+        <span class="keyword">const</span> worker = <span class="keyword">await</span> Tesseract.<span class="function">createWorker</span>(<span class="string">'eng+chi_sim'</span>)<br>
         <span class="keyword">const</span> { data } = <span class="keyword">await</span> worker.<span class="function">recognize</span>(image)<br>
         <span class="keyword">await</span> worker.<span class="function">terminate</span>()<br><br>
         <span class="comment">// 方式 2: 使用本页面的测试功能</span><br>
@@ -290,36 +183,16 @@
 
   <script>
     let currentImage = null
+    let currentImagePath = ''
     let worker = null
+    let currentProcessorId = 'tesseract'
+    let processors = []
 
     // 预置测试用例（本地内嵌 SVG）
     const testCases = {
-      english: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180">
-          <rect width="640" height="180" fill="white"/>
-          <rect x="20" y="20" width="600" height="140" rx="12" fill="#f8fafc" stroke="#dbeafe"/>
-          <text x="44" y="74" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#111827">Hello World</text>
-          <text x="44" y="118" font-family="Arial, sans-serif" font-size="26" fill="#111827">OCR Test 123</text>
-        </svg>
-      `)}`,
-      numbers: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180">
-          <rect width="640" height="180" fill="white"/>
-          <rect x="20" y="20" width="600" height="140" rx="12" fill="#f8fafc" stroke="#e5e7eb"/>
-          <text x="44" y="78" font-family="Arial, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#111827">12345 67890</text>
-          <text x="44" y="122" font-family="Arial, sans-serif" font-size="28" fill="#111827">¥1,234.56</text>
-        </svg>
-      `)}`,
-      mixed: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="640" height="220" viewBox="0 0 640 220">
-          <rect width="640" height="220" fill="white"/>
-          <rect x="20" y="20" width="600" height="180" rx="12" fill="#f8fafc" stroke="#e5e7eb"/>
-          <text x="44" y="66" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">Invoice #12345</text>
-          <text x="44" y="104" font-family="Arial, sans-serif" font-size="22" fill="#111827">Date: 2026-08-24</text>
-          <text x="44" y="142" font-family="Arial, sans-serif" font-size="22" fill="#111827">Amount: $99.99</text>
-          <text x="44" y="178" font-family="Arial, sans-serif" font-size="18" fill="#6b7280">Test OCR Recognition</text>
-        </svg>
-      `)}`
+      english: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180"><rect width="640" height="180" fill="white"/><rect x="20" y="20" width="600" height="140" rx="12" fill="#f8fafc" stroke="#dbeafe"/><text x="44" y="74" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#111827">Hello World</text><text x="44" y="118" font-family="Arial, sans-serif" font-size="26" fill="#111827">OCR Test 123</text></svg>`)}`,
+      numbers: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180"><rect width="640" height="180" fill="white"/><rect x="20" y="20" width="600" height="140" rx="12" fill="#f8fafc" stroke="#e5e7eb"/><text x="44" y="78" font-family="Arial, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#111827">12345 67890</text><text x="44" y="122" font-family="Arial, sans-serif" font-size="28" fill="#111827">¥1,234.56</text></svg>`)}`,
+      mixed: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="220" viewBox="0 0 640 220"><rect width="640" height="220" fill="white"/><rect x="20" y="20" width="600" height="180" rx="12" fill="#f8fafc" stroke="#e5e7eb"/><text x="44" y="66" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">Invoice #12345</text><text x="44" y="104" font-family="Arial, sans-serif" font-size="22" fill="#111827">Date: 2026-08-24</text><text x="44" y="142" font-family="Arial, sans-serif" font-size="22" fill="#111827">Amount: $99.99</text><text x="44" y="178" font-family="Arial, sans-serif" font-size="18" fill="#6b7280">Test OCR Recognition</text></svg>`)}`
     }
 
     // SVG data URI → canvas PNG（Tesseract 需要位图，不能直接处理 SVG）
@@ -343,34 +216,23 @@
 
     // 准备图片：SVG → PNG，其他格式原样返回
     async function prepareImage(src) {
-      if (src && src.startsWith('data:image/svg+xml')) {
-        return await svgToPng(src)
-      }
+      if (src && src.startsWith('data:image/svg+xml')) return await svgToPng(src)
       return src
     }
 
-    // 初始化 Worker（使用本地文件，不走 CDN）
+    // 初始化 Worker（worker/core 本地，语言数据 CDN 支持中英文）
     async function initWorker() {
       if (!worker) {
         document.getElementById('status').textContent = '正在初始化 Tesseract.js...'
-        if (!window.Tesseract) {
-          throw new Error('Tesseract.js 未加载，请检查本地依赖文件是否存在')
-        }
-
-        // 计算绝对 file:// URL（Worker 里 importScripts 不支持相对路径）
+        if (!window.Tesseract) throw new Error('Tesseract.js 未加载，请检查本地依赖文件是否存在')
         const base = window.location.href.replace(/\/[^/]*$/, '/')
         const workerUrl = new URL('./node_modules/tesseract.js/dist/worker.min.js', base).href
         const coreUrl = new URL('./node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js', base).href
-        const langUrl = new URL('../../', base).href
-
-        worker = await Tesseract.createWorker('eng', 1, {
+        worker = await Tesseract.createWorker('eng+chi_sim', 1, {
           workerPath: workerUrl,
           corePath: coreUrl,
-          langPath: langUrl,
           logger: m => {
-            if (m.status === 'recognizing text') {
-              document.getElementById('status').textContent = `识别中: ${Math.round(m.progress * 100)}%`
-            }
+            if (m.status === 'recognizing text') document.getElementById('status').textContent = `识别中: ${Math.round(m.progress * 100)}%`
           }
         })
         document.getElementById('status').textContent = 'Tesseract.js 初始化完成'
@@ -378,59 +240,130 @@
       return worker
     }
 
-    // 设置拖放
-    const testArea = document.getElementById('testArea')
-    testArea.addEventListener('dragover', (e) => {
-      e.preventDefault()
-      testArea.style.borderColor = '#0891b2'
-    })
-    testArea.addEventListener('dragleave', () => {
-      testArea.style.borderColor = '#e5e7eb'
-    })
-    testArea.addEventListener('drop', (e) => {
-      e.preventDefault()
-      testArea.style.borderColor = '#0891b2'
-      const file = e.dataTransfer.files[0]
-      if (file && file.type.startsWith('image/')) {
-        loadImage(file)
+    // 初始化引擎列表
+    async function initEngineList() {
+      try {
+        if (window.ocrService) {
+          processors = window.ocrService.getProcessors()
+          currentProcessorId = window.ocrService.getDefaultProcessor() || 'tesseract'
+          
+          const select = document.getElementById('engineSelect')
+          select.innerHTML = ''
+          
+          processors.forEach(proc => {
+            const option = document.createElement('option')
+            option.value = proc.id
+            option.textContent = `${proc.name} (${proc.runtime === 'local' ? '本地' : '远程'})`
+            option.disabled = !proc.available
+            select.appendChild(option)
+          })
+          
+          select.value = currentProcessorId
+          updateEngineInfo(currentProcessorId)
+          
+          // 初始化语言选择器
+          initLanguageSelect()
+        }
+      } catch (e) {
+        console.warn('引擎列表初始化失败:', e)
       }
+    }
+
+    // 初始化语言选择器
+    function initLanguageSelect() {
+      const select = document.getElementById('langSelect')
+      const langMap = {
+        'eng': '英文 (English)',
+        'chi_sim': '简体中文',
+        'chi_tra': '繁体中文',
+        'jpn': '日文 (日本語)',
+        'kor': '韩文 (한국어)',
+        'fra': '法文 (Français)',
+        'deu': '德文 (Deutsch)',
+        'spa': '西班牙文 (Español)',
+        'ita': '意大利文 (Italiano)',
+        'por': '葡萄牙文 (Português)',
+        'rus': '俄文 (Русский)'
+      }
+      
+      const currentProc = processors.find(p => p.id === currentProcessorId)
+      const supportedLangs = currentProc?.supportedLanguages || ['eng', 'chi_sim']
+      
+      select.innerHTML = ''
+      supportedLangs.forEach(lang => {
+        const option = document.createElement('option')
+        option.value = lang
+        option.textContent = langMap[lang] || lang
+        option.selected = lang === 'eng' || lang === 'chi_sim'
+        select.appendChild(option)
+      })
+    }
+
+    // 切换引擎
+    function switchEngine(engineId) {
+      currentProcessorId = engineId
+      if (window.ocrService) {
+        window.ocrService.setDefaultProcessor(engineId)
+      }
+      updateEngineInfo(engineId)
+      initLanguageSelect()
+      document.getElementById('status').textContent = `已切换到: ${processors.find(p => p.id === engineId)?.name || engineId}`
+    }
+
+    // 更新引擎信息面板
+    function updateEngineInfo(engineId) {
+      const proc = processors.find(p => p.id === engineId)
+      if (!proc) return
+      
+      document.getElementById('engineRuntime').textContent = proc.runtime === 'local' ? '本地运行' : '远程 API'
+      
+      const statusEl = document.getElementById('engineStatus')
+      statusEl.textContent = proc.available ? '可用' : '不可用'
+      statusEl.className = `info-value ${proc.available ? 'available' : 'unavailable'}`
+      
+      document.getElementById('engineCapabilities').textContent = 
+        proc.capabilities.includes('image_to_text') ? '文字识别' : '文档转换'
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      initEngineList()
     })
 
-    // 选择图片
+    // 拖放
+    const testArea = document.getElementById('testArea')
+    testArea.addEventListener('dragover', e => { e.preventDefault(); testArea.style.borderColor = '#0891b2' })
+    testArea.addEventListener('dragleave', () => { testArea.style.borderColor = '#e5e7eb' })
+    testArea.addEventListener('drop', e => {
+      e.preventDefault(); testArea.style.borderColor = '#0891b2'
+      const file = e.dataTransfer.files[0]
+      if (file && file.type.startsWith('image/')) loadImage(file)
+    })
+
     function selectImage() {
       const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = 'image/*'
-      input.onchange = (e) => {
-        const file = e.target.files && e.target.files[0]
-        if (file) loadImage(file)
-      }
+      input.type = 'file'; input.accept = 'image/*'
+      input.onchange = e => { const f = e.target.files && e.target.files[0]; if (f) loadImage(f) }
       input.click()
     }
 
-    // 加载预置测试用例
     function loadTestCase(type) {
-      const testData = testCases[type]
-      if (!testData) return
-      
-      currentImage = testData
-      const testArea = document.getElementById('testArea')
+      const data = testCases[type]
+      if (!data) return
+      currentImage = data
+      currentImagePath = `内置 SVG 测试图 (${type})`
       testArea.classList.add('has-image')
       testArea.innerHTML = `<img src="${currentImage}" alt="测试图片">`
       document.getElementById('recognizeBtn').disabled = false
       document.getElementById('status').textContent = `已加载测试用例: ${type}`
     }
 
-    // 加载图片
     function loadImage(file) {
+      currentImagePath = file.path || file.name || ''
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = e => {
         currentImage = e.target && e.target.result ? e.target.result : null
-        if (!currentImage) {
-          document.getElementById('status').textContent = '图片读取失败'
-          return
-        }
-        const testArea = document.getElementById('testArea')
+        if (!currentImage) { document.getElementById('status').textContent = '图片读取失败'; return }
         testArea.classList.add('has-image')
         testArea.innerHTML = `<img src="${currentImage}" alt="测试图片">`
         document.getElementById('recognizeBtn').disabled = false
@@ -439,7 +372,13 @@
       reader.readAsDataURL(file)
     }
 
-    // 开始识别
+    // 获取选择的语言
+    function getSelectedLanguages() {
+      const select = document.getElementById('langSelect')
+      const selected = Array.from(select.selectedOptions).map(opt => opt.value)
+      return selected.length > 0 ? selected.join('+') : 'eng+chi_sim'
+    }
+
     async function startRecognize() {
       if (!currentImage) return
       
@@ -447,54 +386,72 @@
       const progress = document.getElementById('progress')
       const progressBar = document.getElementById('progressBar')
       const resultArea = document.getElementById('resultArea')
+      const selectedLang = getSelectedLanguages()
+      const selectedEngine = currentProcessorId
       
-      btn.disabled = true
-      btn.innerHTML = '<span class="loading"></span> 识别中...'
-      progress.classList.add('show')
-      resultArea.classList.remove('show')
+      btn.disabled = true; btn.innerHTML = '<span class="loading"></span> 识别中...'
+      progress.classList.add('show'); resultArea.classList.remove('show')
+      document.getElementById('status').textContent = `使用 ${processors.find(p => p.id === selectedEngine)?.name || selectedEngine} 识别中...`
       
-      // 模拟进度
-      let progressValue = 0
-      const progressInterval = setInterval(() => {
-        progressValue = Math.min(progressValue + Math.random() * 20, 90)
-        progressBar.style.width = progressValue + '%'
-      }, 200)
+      let pv = 0
+      const iv = setInterval(() => { pv = Math.min(pv + Math.random() * 20, 90); progressBar.style.width = pv + '%' }, 200)
       
       try {
-        const w = await initWorker()
-        const imageForOcr = await prepareImage(currentImage)
-        const { data } = await w.recognize(imageForOcr)
+        let result
         
-        clearInterval(progressInterval)
-        progressBar.style.width = '100%'
+        // 使用 ocrService API（多引擎）
+        if (window.ocrService && selectedEngine !== 'tesseract') {
+          const img = await prepareImage(currentImage)
+          result = await window.ocrService.recognize(img, {
+            engine: selectedEngine,
+            lang: selectedLang
+          })
+          result = { text: result.text, confidence: result.confidence }
+        } else {
+          // 回退到直接 Tesseract 调用
+          const w = await initWorker()
+          const img = await prepareImage(currentImage)
+          const { data } = await w.recognize(img)
+          result = { text: data.text, confidence: data.confidence }
+        }
         
+        clearInterval(iv); progressBar.style.width = '100%'
         setTimeout(() => {
           resultArea.classList.add('show')
-          document.getElementById('resultText').textContent = data.text || '（未识别到文字）'
-          document.getElementById('confidence').textContent = 
-            `置信度: ${Math.round(data.confidence || 0)}%`
+          document.getElementById('resultPath').textContent = currentImagePath || '（无路径）'
+          document.getElementById('resultEngine').textContent = processors.find(p => p.id === selectedEngine)?.name || selectedEngine
+          document.getElementById('resultText').textContent = result.text || '（未识别到文字）'
+          document.getElementById('confidence').textContent = `置信度: ${Math.round(result.confidence || 0)}%`
           document.getElementById('status').textContent = '✅ 识别完成'
         }, 300)
-      } catch (error) {
-        clearInterval(progressInterval)
-        resultArea.classList.add('show')
-        document.getElementById('resultText').textContent = `识别失败: ${error.message || String(error)}`
+      } catch (err) {
+        clearInterval(iv); resultArea.classList.add('show')
+        document.getElementById('resultPath').textContent = currentImagePath || '（无路径）'
+        document.getElementById('resultText').textContent = `识别失败: ${err.message || String(err)}`
         document.getElementById('confidence').textContent = ''
         document.getElementById('status').textContent = '❌ 识别失败'
       } finally {
-        btn.disabled = false
-        btn.innerHTML = '开始识别'
-        setTimeout(() => {
-          progress.classList.remove('show')
-          progressBar.style.width = '0%'
-        }, 1000)
+        btn.disabled = false; btn.innerHTML = '开始识别'
+        setTimeout(() => { progress.classList.remove('show'); progressBar.style.width = '0%' }, 1000)
       }
     }
 
-    // 清除结果
+    function copyResult() {
+      const text = document.getElementById('resultText').textContent
+      if (text && window.ztools?.copyText) {
+        window.ztools.copyText(text)
+        document.getElementById('status').textContent = '✅ 已复制到剪贴板'
+        setTimeout(() => {
+          document.getElementById('status').textContent = ''
+        }, 2000)
+      }
+    }
+
     function clearResult() {
       document.getElementById('resultArea').classList.remove('show')
+      document.getElementById('resultPath').textContent = ''
       document.getElementById('resultText').textContent = ''
+      document.getElementById('resultEngine').textContent = ''
       document.getElementById('confidence').textContent = ''
       document.getElementById('status').textContent = ''
     }

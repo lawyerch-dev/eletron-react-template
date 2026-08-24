@@ -1,177 +1,474 @@
 /**
  * OCR 服务插件 - Preload 脚本
  * 提供多引擎 OCR 能力，通过 ztools.registerProvider 注册为系统级服务
+ * 
+ * 架构设计参考 Cherry Studio 的处理器注册表模式
+ * 支持本地引擎 (Tesseract, System OCR) 和远程引擎 (PaddleOCR API)
  */
 
 const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 
 const PLUGIN_DIR = __dirname
+const isMac = process.platform === 'darwin'
+const isWin = process.platform === 'win32'
+const isLinux = process.platform === 'linux'
 
-// OCR 引擎管理器
-class OcrEngineManager {
+// ==================== 引擎注册表 ====================
+
+/**
+ * OCR 引擎注册表 - 插件化架构核心
+ * 每个引擎独立注册，支持懒加载和可用性检测
+ */
+class OcrProcessorRegistry {
   constructor() {
-    this.engines = new Map()
-    this.defaultEngine = null
+    this.processors = new Map()
+    this.defaultProcessorId = null
+    this.cache = new Map()
+    this.cacheTTL = 5 * 60 * 1000 // 5 分钟缓存
   }
 
-  registerEngine(id, engine) {
-    this.engines.set(id, engine)
-    if (!this.defaultEngine) {
-      this.defaultEngine = id
-    }
-    console.log(`[OCR] 引擎已注册: ${id}`)
-  }
-
-  getEngines() {
-    return Array.from(this.engines.entries()).map(([id, engine]) => ({
+  /**
+   * 注册 OCR 处理器
+   * @param {string} id - 处理器唯一标识
+   * @param {Object} processor - 处理器配置对象
+   */
+  register(id, processor) {
+    this.processors.set(id, {
       id,
-      name: engine.name,
-      available: engine.available,
-      languages: engine.supportedLanguages
-    }))
+      name: processor.name,
+      runtime: processor.runtime || 'local', // 'local' | 'remote'
+      isSupported: processor.isSupported || (() => true),
+      capabilities: processor.capabilities || ['image_to_text'],
+      supportedLanguages: processor.supportedLanguages || ['eng'],
+      handler: null, // 懒加载
+      handlerFactory: processor.handlerFactory,
+      _initialized: false
+    })
+
+    // 自动设置默认处理器（优先系统原生，其次 Tesseract）
+    if (!this.defaultProcessorId) {
+      if (isMac || isWin) {
+        this.defaultProcessorId = 'system'
+      } else {
+        this.defaultProcessorId = 'tesseract'
+      }
+    }
+
+    console.log(`[OCR] 处理器已注册: ${id} (${processor.runtime || 'local'})`)
   }
 
-  async recognize(image, options = {}) {
-    const { engine: engineId, lang, signal } = options
-    const targetEngine = engineId || this.defaultEngine
+  /**
+   * 获取所有可用处理器列表
+   */
+  getAvailableProcessors() {
+    const result = []
+    for (const [id, proc] of this.processors) {
+      result.push({
+        id,
+        name: proc.name,
+        runtime: proc.runtime,
+        available: proc.isSupported(),
+        capabilities: proc.capabilities,
+        supportedLanguages: proc.supportedLanguages
+      })
+    }
+    return result
+  }
+
+  /**
+   * 获取指定处理器
+   */
+  getProcessor(id) {
+    return this.processors.get(id)
+  }
+
+  /**
+   * 初始化处理器（懒加载）
+   */
+  async initializeProcessor(id) {
+    const proc = this.processors.get(id)
+    if (!proc) throw new Error(`OCR 处理器 "${id}" 不存在`)
+    if (!proc.isSupported()) throw new Error(`OCR 处理器 "${id}" 在当前平台不可用`)
     
-    const engine = this.engines.get(targetEngine)
-    if (!engine) {
-      throw new Error(`OCR 引擎 "${targetEngine}" 不存在`)
+    if (!proc._initialized && proc.handlerFactory) {
+      proc.handler = await proc.handlerFactory()
+      proc._initialized = true
+    }
+    return proc
+  }
+
+  /**
+   * 设置默认处理器
+   */
+  setDefaultProcessor(id) {
+    if (!this.processors.has(id)) {
+      throw new Error(`处理器 "${id}" 不存在`)
+    }
+    this.defaultProcessorId = id
+    console.log(`[OCR] 默认处理器已切换为: ${id}`)
+  }
+
+  /**
+   * 获取缓存键
+   */
+  _getCacheKey(image, processorId, lang) {
+    const hash = crypto.createHash('md5')
+    if (typeof image === 'string') {
+      hash.update(image.substring(0, 1000))
+    } else if (Buffer.isBuffer(image)) {
+      hash.update(image.slice(0, 1000))
+    }
+    hash.update(processorId)
+    hash.update(lang || '')
+    return hash.digest('hex')
+  }
+
+  /**
+   * 从缓存获取结果
+   */
+  _getFromCache(cacheKey) {
+    const cached = this.cache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+      return cached.result
+    }
+    this.cache.delete(cacheKey)
+    return null
+  }
+
+  /**
+   * 存入缓存
+   */
+  _setCache(cacheKey, result) {
+    this.cache.set(cacheKey, {
+      result,
+      timestamp: Date.now()
+    })
+    // 限制缓存大小
+    if (this.cache.size > 100) {
+      const firstKey = this.cache.keys().next().value
+      this.cache.delete(firstKey)
+    }
+  }
+
+  /**
+   * 执行 OCR 识别
+   * @param {string|Buffer} image - 图片数据（路径、base64 或 Buffer）
+   * @param {Object} options - 识别选项
+   * @returns {Promise<Object>} 识别结果
+   */
+  async recognize(image, options = {}) {
+    const { engine: engineId, lang, signal, useCache = true } = options
+    const targetId = engineId || this.defaultProcessorId
+
+    // 检查缓存
+    if (useCache) {
+      const cacheKey = this._getCacheKey(image, targetId, lang)
+      const cached = this._getFromCache(cacheKey)
+      if (cached) {
+        console.log(`[OCR] 命中缓存: ${targetId}`)
+        return cached
+      }
     }
 
-    if (!engine.available) {
-      throw new Error(`OCR 引擎 "${targetEngine}" 不可用，请先安装依赖`)
+    // 初始化并执行识别
+    const proc = await this.initializeProcessor(targetId)
+    if (!proc.handler) {
+      throw new Error(`处理器 "${targetId}" 未正确初始化`)
     }
 
-    return await engine.recognize(image, { lang, signal })
+    const startTime = Date.now()
+    const result = await proc.handler.recognize(image, { lang, signal })
+    const duration = Date.now() - startTime
+
+    // 添加元数据
+    result._meta = {
+      processor: targetId,
+      duration,
+      timestamp: Date.now()
+    }
+
+    // 存入缓存
+    if (useCache) {
+      const cacheKey = this._getCacheKey(image, targetId, lang)
+      this._setCache(cacheKey, result)
+    }
+
+    console.log(`[OCR] 识别完成: ${targetId} (${duration}ms)`)
+    return result
+  }
+
+  /**
+   * 清除缓存
+   */
+  clearCache() {
+    this.cache.clear()
+    console.log('[OCR] 缓存已清除')
   }
 }
 
-// Tesseract 引擎
-class TesseractEngine {
-  constructor() {
-    this.name = 'Tesseract'
-    this.worker = null
-    this.supportedLanguages = ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor']
-    this._available = false
-    this._initPromise = null
-  }
+// ==================== 创建全局注册表实例 ====================
 
-  get available() {
-    return this._available
-  }
+const registry = new OcrProcessorRegistry()
 
-  async checkAvailability() {
+// ==================== 图片预处理工具 ====================
+
+/**
+ * 图片预处理：统一转换为 Buffer
+ */
+async function preprocessImage(imageInput) {
+  if (typeof imageInput === 'string' && !imageInput.startsWith('data:') && fs.existsSync(imageInput)) {
+    return fs.readFileSync(imageInput)
+  }
+  if (typeof imageInput === 'string' && imageInput.startsWith('data:')) {
+    const base64 = imageInput.split(',')[1]
+    return Buffer.from(base64, 'base64')
+  }
+  if (Buffer.isBuffer(imageInput)) {
+    return imageInput
+  }
+  throw new Error('不支持的图片格式，支持：文件路径、base64、Buffer')
+}
+
+// ==================== Tesseract.js 引擎 ====================
+
+/**
+ * Tesseract.js 处理器 - 全平台支持的本地 OCR 引擎
+ */
+registry.register('tesseract', {
+  name: 'Tesseract.js',
+  runtime: 'local',
+  isSupported: () => {
     try {
-      const tesseractPath = path.join(PLUGIN_DIR, 'node_modules', 'tesseract.js')
-      if (fs.existsSync(tesseractPath)) {
-        this._available = true
-        console.log('[OCR] Tesseract.js 可用')
-      } else {
-        console.log('[OCR] Tesseract.js 未安装，请运行: cd plugins/ocr-service && npm install')
-        this._available = false
-      }
-    } catch (e) {
-      console.log('[OCR] Tesseract 检查失败:', e.message)
-      this._available = false
+      return fs.existsSync(path.join(PLUGIN_DIR, 'node_modules', 'tesseract.js'))
+    } catch {
+      return false
     }
-  }
+  },
+  capabilities: ['image_to_text'],
+  supportedLanguages: ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor', 'fra', 'deu', 'spa'],
+  handlerFactory: async () => {
+    let worker = null
+    let currentLangs = null
 
-  async initialize(langs = ['eng', 'chi_sim']) {
-    if (this._initPromise) {
-      return this._initPromise
-    }
-    this._initPromise = this._doInitialize(langs)
-    return this._initPromise
-  }
-
-  async _doInitialize(langs) {
-    try {
-      if (this.worker) {
-        await this.worker.terminate()
-      }
+    const initWorker = async (langs = ['eng', 'chi_sim']) => {
+      if (worker && currentLangs === langs.join('+')) return worker
+      
+      if (worker) await worker.terminate()
 
       const tesseract = require(path.join(PLUGIN_DIR, 'node_modules', 'tesseract.js'))
-      this.worker = await tesseract.createWorker(langs, 1, {
+      worker = await tesseract.createWorker(langs, 1, {
         workerPath: path.join(PLUGIN_DIR, 'node_modules', 'tesseract.js', 'dist', 'worker.min.js'),
         corePath: path.join(PLUGIN_DIR, 'node_modules', 'tesseract.js-core', 'tesseract-core-simd-lstm.wasm.js'),
         langPath: path.join(PLUGIN_DIR, '..', '..'),
         logger: (progress) => {
           if (progress.status === 'recognizing text') {
-            console.log(`[OCR] 识别进度: ${Math.round(progress.progress * 100)}%`)
+            console.log(`[Tesseract] 识别进度: ${Math.round(progress.progress * 100)}%`)
           }
         }
       })
-      console.log('[OCR] Tesseract 初始化完成')
-    } catch (error) {
-      console.error('[OCR] Tesseract 初始化失败:', error)
-      this._available = false
-      this._initPromise = null
-    }
-  }
-
-  async recognize(image, options = {}) {
-    if (!this.worker) {
-      await this.initialize(options.lang ? [options.lang] : undefined)
+      currentLangs = langs.join('+')
+      return worker
     }
 
-    try {
-      const processedImage = await this._preprocessImage(image)
-      const { data } = await this.worker.recognize(processedImage)
-      
-      return {
-        text: data.text,
-        confidence: data.confidence,
-        lines: data.lines?.map(line => ({
-          text: line.text,
-          confidence: line.confidence,
-          bbox: line.bbox
-        })) || []
+    return {
+      recognize: async (image, options = {}) => {
+        const langs = options.lang ? options.lang.split('+') : ['eng', 'chi_sim']
+        const w = await initWorker(langs)
+        const processedImage = await preprocessImage(image)
+        const { data } = await w.recognize(processedImage)
+        
+        return {
+          text: data.text,
+          confidence: data.confidence,
+          lines: data.lines?.map(line => ({
+            text: line.text,
+            confidence: line.confidence,
+            bbox: line.bbox
+          })) || []
+        }
+      },
+      destroy: async () => {
+        if (worker) {
+          await worker.terminate()
+          worker = null
+        }
       }
-    } catch (error) {
-      console.error('[OCR] Tesseract 识别失败:', error)
-      throw error
     }
   }
+})
 
-  async _preprocessImage(imageInput) {
-    if (typeof imageInput === 'string' && !imageInput.startsWith('data:') && fs.existsSync(imageInput)) {
-      return fs.readFileSync(imageInput)
+// ==================== 系统原生 OCR 引擎 ====================
+
+/**
+ * 系统原生 OCR 处理器
+ * macOS: Vision Framework (VisionKit)
+ * Windows: Windows.Media.Ocr
+ * 同时支持 macOS 和 Windows
+ */
+registry.register('system', {
+  name: isMac ? 'macOS Vision' : isWin ? 'Windows OCR' : '系统 OCR',
+  runtime: 'local',
+  isSupported: () => {
+    if (!isMac && !isWin) return false
+    try {
+      require.resolve('@napi-rs/system-ocr')
+      return true
+    } catch {
+      return false
     }
-    if (typeof imageInput === 'string' && imageInput.startsWith('data:')) {
-      const base64 = imageInput.split(',')[1]
-      return Buffer.from(base64, 'base64')
+  },
+  capabilities: ['image_to_text'],
+  supportedLanguages: isMac 
+    ? ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor', 'fra', 'deu', 'spa', 'ita', 'por', 'rus']
+    : ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor'],
+  handlerFactory: async () => {
+    let systemOcr = null
+    try {
+      systemOcr = require('@napi-rs/system-ocr')
+    } catch (e) {
+      console.warn('[System OCR] 模块加载失败:', e.message)
+      throw new Error('系统 OCR 模块未安装，请运行: npm install @napi-rs/system-ocr')
     }
-    if (Buffer.isBuffer(imageInput)) {
-      return imageInput
+
+    // 语言代码映射：标准代码 -> 系统原生代码
+    const langCodeMap = {
+      'eng': 'en-US',
+      'chi_sim': 'zh-Hans',
+      'chi_tra': 'zh-Hant',
+      'jpn': 'ja-JP',
+      'kor': 'ko-KR',
+      'fra': 'fr-FR',
+      'deu': 'de-DE',
+      'spa': 'es-ES',
+      'ita': 'it-IT',
+      'por': 'pt-BR',
+      'rus': 'ru-RU'
     }
-    throw new Error('不支持的图片格式')
+
+    return {
+      recognize: async (image, options = {}) => {
+        const processedImage = await preprocessImage(image)
+        
+        // 转换语言代码
+        let preferredLangs = ['en-US']
+        if (options.lang) {
+          preferredLangs = options.lang.split('+').map(l => langCodeMap[l] || l)
+        }
+        
+        // macOS Vision / Windows OCR 调用
+        // 参数：image, accuracy, preferredLangs, signal        const result = await systemOcr.recognize(
+          processedImage,
+          systemOcr.OcrAccuracy.Accurate,  // 使用精确模式
+          preferredLangs,
+          options.signal
+        )
+        
+        return {
+          text: result.text || '',
+          confidence: (result.confidence || 1) * 100,  // 转换为百分比
+          lines: []  // 系统 OCR 不返回行级信息
+        }
+      },
+      destroy: async () => {
+        // 系统 OCR 无需清理
+      }
+    }
   }
+})
 
-  async destroy() {
-    if (this.worker) {
-      await this.worker.terminate()
-      this.worker = null
+// ==================== 远程 OCR 引擎接口 ====================
+
+/**
+ * PaddleOCR 远程 API 处理器
+ * 需要配置 API 端点和密钥
+ */
+registry.register('paddleocr', {
+  name: 'PaddleOCR API',
+  runtime: 'remote',
+  isSupported: () => true, // 远程引擎始终可用，实际可用性取决于配置
+  capabilities: ['image_to_text'],
+  supportedLanguages: ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor', 'fra', 'deu'],
+  handlerFactory: async () => {
+    let apiUrl = ''
+    let apiKey = ''
+
+    const loadConfig = () => {
+      try {
+        const configPath = path.join(PLUGIN_DIR, 'config.json')
+        if (fs.existsSync(configPath)) {
+          const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+          apiUrl = config.paddleocr?.apiUrl || ''
+          apiKey = config.paddleocr?.apiKey || ''
+        }
+      } catch (e) {
+        console.warn('[PaddleOCR] 配置加载失败:', e.message)
+      }
     }
-    this._initPromise = null
+
+    return {
+      recognize: async (image, options = {}) => {
+        loadConfig()
+        
+        if (!apiUrl) {
+          throw new Error('PaddleOCR API 未配置，请在 config.json 中设置 paddleocr.apiUrl')
+        }
+
+        const processedImage = await preprocessImage(image)
+        const base64Image = processedImage.toString('base64')
+
+        // 调用远程 API
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            lang: options.lang || 'ch',
+            use_angle_cls: true
+          }),
+          signal: options.signal
+        })
+
+        if (!response.ok) {
+          throw new Error(`PaddleOCR API 错误: ${response.status} ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        
+        return {
+          text: data.text || data.result?.map(r => r.text).join('\n') || '',
+          confidence: data.confidence || 90,
+          lines: data.result?.map(r => ({
+            text: r.text,
+            confidence: r.confidence || 90,
+            bbox: r.bbox || r.box
+          })) || []
+        }
+      },
+      destroy: async () => {
+        // 远程引擎无需清理
+      }
+    }
   }
-}
+})
 
-// 创建引擎管理器实例
-const engineManager = new OcrEngineManager()
+// ==================== 初始化引擎 ====================
 
-// 注册 Tesseract 引擎
-const tesseractEngine = new TesseractEngine()
-engineManager.registerEngine('tesseract', tesseractEngine)
-
-// 初始化检查
 async function initEngines() {
-  await tesseractEngine.checkAvailability()
-  const available = engineManager.getEngines().filter(e => e.available)
-  console.log('[OCR] 可用引擎:', available.length > 0 ? available.map(e => e.name).join(', ') : '无（需要安装依赖）')
+  const available = registry.getAvailableProcessors().filter(p => p.available)
+  console.log('[OCR] 可用处理器:', available.length > 0 ? available.map(p => `${p.name}(${p.runtime})`).join(', ') : '无')
+  
+  // 设置默认处理器
+  if (isMac || isWin) {
+    registry.setDefaultProcessor('system')
+  } else {
+    registry.setDefaultProcessor('tesseract')
+  }
 }
 
 initEngines().catch(err => console.error('[OCR] 初始化失败:', err))
@@ -180,27 +477,83 @@ initEngines().catch(err => console.error('[OCR] 初始化失败:', err))
 
 if (typeof ztools !== 'undefined' && ztools.registerProvider) {
   ztools.registerProvider('ocr', async (input) => {
-    const { image, lang, engine } = input
-    return await engineManager.recognize(image, { engine, lang })
+    const { image, lang, engine, useCache } = input
+    return await registry.recognize(image, { engine, lang, useCache })
   })
 }
 
 // ==================== 暴露插件 API ====================
 
 window.ocrService = {
-  getEngines: () => engineManager.getEngines(),
-  recognize: (image, options) => engineManager.recognize(image, options),
-  setDefaultEngine: (engineId) => {
-    if (engineManager.engines.has(engineId)) {
-      engineManager.defaultEngine = engineId
-      return true
+  /**
+   * 获取所有可用处理器列表
+   */
+  getProcessors: () => registry.getAvailableProcessors(),
+
+  /**
+   * 获取处理器详情
+   */
+  getProcessor: (id) => {
+    const proc = registry.getProcessor(id)
+    if (!proc) return null
+    return {
+      id: proc.id,
+      name: proc.name,
+      runtime: proc.runtime,
+      available: proc.isSupported(),
+      capabilities: proc.capabilities,
+      supportedLanguages: proc.supportedLanguages
     }
-    return false
   },
-  initializeTesseract: (langs) => tesseractEngine.initialize(langs),
-  getSupportedLanguages: () => ({
-    tesseract: tesseractEngine.supportedLanguages
+
+  /**
+   * 执行 OCR 识别
+   */
+  recognize: (image, options) => registry.recognize(image, options),
+
+  /**
+   * 设置默认处理器
+   */
+  setDefaultProcessor: (id) => {
+    try {
+      registry.setDefaultProcessor(id)
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  /**
+   * 获取当前默认处理器
+   */
+  getDefaultProcessor: () => registry.defaultProcessorId,
+
+  /**
+   * 获取所有支持的语言
+   */
+  getSupportedLanguages: () => {
+    const languages = {}
+    for (const [id, proc] of registry.processors) {
+      languages[id] = proc.supportedLanguages
+    }
+    return languages
+  },
+
+  /**
+   * 清除识别缓存
+   */
+  clearCache: () => registry.clearCache(),
+
+  /**
+   * 获取平台信息
+   */
+  getPlatformInfo: () => ({
+    platform: process.platform,
+    isMac,
+    isWin,
+    isLinux,
+    defaultProcessor: registry.defaultProcessorId
   })
 }
 
-console.log('[OCR Service] 插件已加载')
+console.log('[OCR Service] 插件已加载 - 多引擎架构版本')

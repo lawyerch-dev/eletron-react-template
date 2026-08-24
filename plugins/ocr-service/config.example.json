@@ -1,0 +1,11 @@
+{
+  "paddleocr": {
+    "apiUrl": "https://your-paddleocr-api.com/ocr",
+    "apiKey": "your-api-key-here",
+    "timeout": 30000
+  },
+  "defaultEngine": "system",
+  "defaultLanguage": "eng+chi_sim",
+  "cacheEnabled": true,
+  "cacheTTL": 300000
+}
