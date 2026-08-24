@@ -1,4 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext'
+import { Plug } from 'lucide-react'
 
 export function About() {
   const { t } = useLanguage()
@@ -32,14 +33,45 @@ export function About() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           <a
             href="https://github.com/BluerAngala/eletron-react-template"
             target="_blank"
             rel="noreferrer"
-            className="text-sm font-medium text-accent transition-colors hover:opacity-80"
+            className="flex items-center justify-center rounded-xl border border-border-default bg-surface-hover px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
           >
-            {t('about.repo')} →
+            {t('about.repo')}
+          </a>
+          <a
+            href="https://bluerangala.github.io/eletron-react-template/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center rounded-xl border border-border-default bg-surface-hover px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
+          >
+            {t('about.docs')}
+          </a>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border-default bg-surface p-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-subtle">
+            <Plug className="h-5 w-5 text-accent" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{t('about.pluginMarket')}</h3>
+            <p className="text-sm text-foreground-muted">ZTools</p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-foreground-secondary">{t('about.pluginMarketDesc')}</p>
+        <div className="mt-4">
+          <a
+            href="https://github.com/ZToolsCenter/ZTools"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:opacity-80"
+          >
+            {t('about.ztoolsRepo')} →
           </a>
         </div>
       </section>
