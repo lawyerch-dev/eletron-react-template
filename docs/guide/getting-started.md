@@ -14,7 +14,7 @@ description: "环境要求、安装依赖、启动开发的完整流程，三步
 
 ```bash
 # 克隆仓库
-git clone https://github.com/BluerAngala/eletron-react-template.git
+git clone https://github.com/lawyerch-dev/eletron-react-template.git
 cd eletron-react-template
 
 # 安装依赖

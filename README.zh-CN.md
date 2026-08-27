@@ -1,8 +1,8 @@
 # eletron-react-template
 
-[![GitHub stars](https://img.shields.io/github/stars/BluerAngala/eletron-react-template?color=fa6470)](https://github.com/BluerAngala/eletron-react-template/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/BluerAngala/eletron-react-template?color=d8b22d)](https://github.com/BluerAngala/eletron-react-template/issues)
-[![GitHub license](https://img.shields.io/github/license/BluerAngala/eletron-react-template)](https://github.com/BluerAngala/eletron-react-template/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/lawyerch-dev/eletron-react-template?color=fa6470)](https://github.com/lawyerch-dev/eletron-react-template/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/lawyerch-dev/eletron-react-template?color=d8b22d)](https://github.com/lawyerch-dev/eletron-react-template/issues)
+[![GitHub license](https://img.shields.io/github/license/lawyerch-dev/eletron-react-template)](https://github.com/lawyerch-dev/eletron-react-template/blob/main/LICENSE)
 [![Required Node.js >= 20.19.0 || >= 22.12.0](https://img.shields.io/static/v1?label=node&message=%3E=20.19.0%20||%20%3E=22.12.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
 [English](README.md) | 简体中文
@@ -24,7 +24,7 @@
 ## 快速开始
 
 ```sh
-git clone https://github.com/BluerAngala/eletron-react-template.git
+git clone https://github.com/lawyerch-dev/eletron-react-template.git
 cd eletron-react-template
 pnpm install
 pnpm dev
