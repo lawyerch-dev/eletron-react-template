@@ -60,20 +60,9 @@ export function About() {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-foreground">{t('about.pluginMarket')}</h3>
-            <p className="text-sm text-foreground-muted">ZTools</p>
           </div>
         </div>
         <p className="mt-4 text-sm text-foreground-secondary">{t('about.pluginMarketDesc')}</p>
-        <div className="mt-4">
-          <a
-            href="https://github.com/ZToolsCenter/ZTools"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:opacity-80"
-          >
-            {t('about.ztoolsRepo')} →
-          </a>
-        </div>
       </section>
     </div>
   )

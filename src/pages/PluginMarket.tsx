@@ -167,7 +167,7 @@ export function PluginMarket() {
             {t('market.title')}
           </h1>
           <span className="text-sm text-foreground-muted">
-            （{formatT(t('myplugins.count'), { count: installed.length })} / 全部插件{' '}
+            （{formatT(t('myplugins.count'), { count: installed.length })} / 全部解决方案{' '}
             {plugins.length} 个）
           </span>
         </div>
