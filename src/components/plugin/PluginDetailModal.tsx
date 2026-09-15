@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { marked } from 'marked'
 import {
-  Boxes,
   X,
   Download,
   Play,
@@ -14,7 +13,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { logoUrl } from '@/pages/PluginMarket'
+import { PluginLogo } from './PluginLogo'
 
 export interface PluginDetailData {
   name: string
@@ -129,13 +128,11 @@ export function PluginDetailModal({
       <div className="mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-border-default bg-surface shadow-2xl">
         {/* Header with large icon */}
         <div className="flex items-start gap-6 p-8 pb-0">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-surface-hover shadow-[0_4px_12px_-6px_rgba(0,0,0,0.3)]">
-            {plugin.logo ? (
-              <img src={logoUrl(plugin.logo)} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <Boxes className="h-8 w-8 text-foreground-muted" />
-            )}
-          </div>
+          <PluginLogo
+            logo={plugin.logo}
+            size="md"
+            className="shadow-[0_4px_12px_-6px_rgba(0,0,0,0.3)]"
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-4">
               <div>

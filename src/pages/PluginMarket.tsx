@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PluginDetailModal, type PluginDetailData } from '@/components/plugin/PluginDetailModal'
 import { ImportPluginButton } from '@/components/plugin/ImportPluginButton'
+import { PluginLogo } from '@/components/plugin/PluginLogo'
 
 /** 简易插值：t('key', { count: 3 }) → 替换 {count} */
 type Vars = Record<string, string | number>
@@ -280,17 +281,7 @@ export function PluginMarket() {
                   })()}
 
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-hover">
-                      {plugin.logo ? (
-                        <img
-                          src={logoUrl(plugin.logo)}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Boxes className="h-6 w-6 text-foreground-muted" />
-                      )}
-                    </div>
+                    <PluginLogo logo={plugin.logo} size="sm" />
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-semibold text-foreground">
                         {plugin.title || plugin.name}

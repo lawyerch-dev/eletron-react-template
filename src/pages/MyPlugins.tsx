@@ -5,7 +5,8 @@ import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PluginDetailModal, type PluginDetailData } from '@/components/plugin/PluginDetailModal'
 import { ImportPluginButton } from '@/components/plugin/ImportPluginButton'
-import { formatT, logoUrl } from './PluginMarket'
+import { PluginLogo } from '@/components/plugin/PluginLogo'
+import { formatT } from './PluginMarket'
 
 type RunningInfo = { name: string; path: string; running: boolean }
 
@@ -141,17 +142,7 @@ export function MyPlugins() {
                     })
                   }
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-hover">
-                    {plugin.logo ? (
-                      <img
-                        src={logoUrl(plugin.logo)}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Boxes className="h-6 w-6 text-foreground-muted" />
-                    )}
-                  </div>
+                  <PluginLogo logo={plugin.logo} size="sm" />
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

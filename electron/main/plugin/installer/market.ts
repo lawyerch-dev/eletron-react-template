@@ -117,7 +117,9 @@ class PluginMarket {
       const plugins: MarketPlugin[] = rawPlugins
         .map((p) => {
           if (!p?.name) return null
+          // ...p 放前面，避免覆盖后面已解析的 logo / downloadUrl
           const plugin: MarketPlugin = {
+            ...p,
             name: p.name,
             version: p.version || '未知',
             title: p.title,
@@ -127,7 +129,6 @@ class PluginMarket {
             logo: p.logo ? (isAbsoluteUrl(p.logo) ? p.logo : resolveRepoUrl(p.logo)) : undefined,
             // 保留仓库相对路径（plugins/<name>），供安装时定位压缩包内子目录
             downloadUrl: p.downloadUrl || `plugins/${p.name}`,
-            ...p,
           }
           byName.set(plugin.name, plugin)
           return plugin
@@ -190,6 +191,8 @@ class PluginMarket {
 
   clearCache(): void {
     marketCache = null
+    pluginDb.dbRemove('plugin-market-data')
+    pluginDb.dbRemove('plugin-market-categories')
   }
 
   /**
