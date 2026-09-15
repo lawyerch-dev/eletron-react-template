@@ -160,76 +160,79 @@ export function PluginMarket() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-baseline gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {t('market.title')}
-          </h1>
-          <span className="text-sm text-foreground-muted">
-            （{formatT(t('myplugins.count'), { count: installed.length })} / 全部解决方案{' '}
-            {plugins.length} 个）
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ImportPluginButton onSuccess={refreshInstalled} />
-          <button
-            onClick={() => {
-              setPulling(true)
-              window.plugin.marketClearCache().then(() => {
-                void fetchMarket(true).finally(() => setPulling(false))
-              })
-            }}
-            className="inline-flex items-center gap-2 rounded-xl border border-border-default bg-surface px-4 py-2 text-sm font-medium text-foreground-secondary transition-colors hover:border-accent/50 hover:text-accent"
-          >
-            <RefreshCw className={`h-4 w-4 ${pulling ? 'animate-spin' : ''}`} />
-            {t('market.refresh')}
-          </button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative my-4">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground-muted" />
-        <input
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder={t('market.search')}
-          className="w-full rounded-2xl border border-border-default bg-surface py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent/50 focus:outline-none"
-        />
-      </div>
-
-      {/* Categories */}
-      {categories.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              selectedCategory === null
-                ? 'bg-accent text-accent-foreground'
-                : 'bg-surface-hover text-foreground-secondary hover:bg-surface-hover/80'
-            }`}
-          >
-            全部
-          </button>
-          {categories.map((cat) => (
+      {/* 固定头部：标题 / 搜索 / 分类 —— 提高层级，避免下方滚动卡片的 backdrop-blur 盖住 */}
+      <div className="relative z-10 shrink-0 bg-background">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {t('market.title')}
+            </h1>
+            <span className="text-sm text-foreground-muted">
+              （{formatT(t('myplugins.count'), { count: installed.length })} / 全部解决方案{' '}
+              {plugins.length} 个）
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ImportPluginButton onSuccess={refreshInstalled} />
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => {
+                setPulling(true)
+                window.plugin.marketClearCache().then(() => {
+                  void fetchMarket(true).finally(() => setPulling(false))
+                })
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-border-default bg-surface px-4 py-2 text-sm font-medium text-foreground-secondary transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              <RefreshCw className={`h-4 w-4 ${pulling ? 'animate-spin' : ''}`} />
+              {t('market.refresh')}
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative my-4">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground-muted" />
+          <input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder={t('market.search')}
+            className="w-full rounded-2xl border border-border-default bg-surface py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent/50 focus:outline-none"
+          />
+        </div>
+
+        {/* Categories */}
+        {categories.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setSelectedCategory(null)}
               className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                selectedCategory === cat.id
+                selectedCategory === null
                   ? 'bg-accent text-accent-foreground'
                   : 'bg-surface-hover text-foreground-secondary hover:bg-surface-hover/80'
               }`}
             >
-              {cat.title}
+              全部
             </button>
-          ))}
-        </div>
-      )}
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                  selectedCategory === cat.id
+                    ? 'bg-accent text-accent-foreground'
+                    : 'bg-surface-hover text-foreground-secondary hover:bg-surface-hover/80'
+                }`}
+              >
+                {cat.title}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Content — only this area scrolls */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto pt-1">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-foreground-muted">
             <Loader2 className="h-8 w-8 animate-spin" />
