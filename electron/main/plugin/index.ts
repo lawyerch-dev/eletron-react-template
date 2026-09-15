@@ -13,6 +13,30 @@ import { scanBuiltinPlugins } from './builtin'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CHANGED_EVENT = 'plugins-changed'
 
+/** 根据文件头字节推断图片 MIME，兼容扩展名与实际内容不一致的资源 */
+function sniffImageContentType(buffer: Buffer): string {
+  const startsWith = (bytes: number[], offset = 0): boolean =>
+    buffer.length >= offset + bytes.length && bytes.every((b, i) => buffer[offset + i] === b)
+
+  if (startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return 'image/png'
+  if (startsWith([0xff, 0xd8, 0xff])) return 'image/jpeg'
+  if (startsWith([0x47, 0x49, 0x46, 0x38])) return 'image/gif'
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return 'image/webp'
+  }
+  if (startsWith([0x00, 0x00, 0x01, 0x00])) return 'image/x-icon'
+
+  const head = buffer.subarray(0, 512).toString('utf-8').trimStart()
+  if (head.startsWith('<svg') || head.startsWith('<?xml') || head.startsWith('<!DOCTYPE svg')) {
+    return 'image/svg+xml'
+  }
+  return 'application/octet-stream'
+}
+
 /** 仓库内置插件 preload 源文件（随源码一起分发，打包后经 extraResources 置于 resources） */
 function resolveRuntimePreloadSource(): string {
   // 打包后：resources/plugin-preload.js
@@ -63,6 +87,37 @@ export function initPluginSubsystem(
   protocol.handle('plugin-icon', (request) => {
     const filePath = decodeURIComponent(request.url.slice('plugin-icon://'.length))
     return net.fetch('file:///' + filePath)
+  })
+
+  // 注册 market-icon 协议，代理市场远程图标并按文件头修正 MIME。
+  // 部分插件把 SVG 内容存成 logo.png，GitHub raw 会以 text/plain + nosniff 返回导致 <img> 拒绝渲染。
+  protocol.handle('market-icon', async (request) => {
+    const raw = request.url.slice('market-icon://proxy/'.length)
+    let target = raw
+    if (!/^https?:\/\//i.test(target)) {
+      try {
+        target = decodeURIComponent(raw)
+      } catch {
+        return new Response('', { status: 400 })
+      }
+    }
+    if (!/^https?:\/\//i.test(target)) {
+      return new Response('', { status: 400 })
+    }
+    try {
+      const resp = await net.fetch(target)
+      if (!resp.ok) return new Response('', { status: resp.status })
+      const buffer = Buffer.from(await resp.arrayBuffer())
+      return new Response(buffer, {
+        status: 200,
+        headers: {
+          'Content-Type': sniffImageContentType(buffer),
+          'Cache-Control': 'public, max-age=300',
+        },
+      })
+    } catch {
+      return new Response('', { status: 502 })
+    }
   })
 
   const notify = (): void => {

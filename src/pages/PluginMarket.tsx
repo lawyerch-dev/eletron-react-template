@@ -14,10 +14,12 @@ export function formatT(raw: string, vars?: Vars): string {
   return raw.replace(/\{(\w+)\}/g, (_, key) => (vars[key] !== undefined ? String(vars[key]) : ''))
 }
 
-/** 将 file:// logo 转为 plugin-icon:// 协议，解决 http 主窗口下图片显示问题 */
+/** 本地 file:// 走 plugin-icon://；远程 http(s) 走 market-icon:// 代理（修正 content-type） */
 // eslint-disable-next-line react-refresh/only-export-components
 export function logoUrl(url: string | undefined): string {
-  return url ? url.replace(/^file:\/\//, 'plugin-icon://') : ''
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return `market-icon://proxy/${encodeURIComponent(url)}`
+  return url.replace(/^file:\/\//, 'plugin-icon://')
 }
 
 interface PluginItem {
@@ -107,7 +109,10 @@ export function PluginMarket() {
   const install = async (plugin: { name: string; downloadUrl?: string }) => {
     if (installedNames.has(plugin.name)) return
     setDownloads((prev) => ({ ...prev, [plugin.name]: 'downloading' }))
-    const result = await window.plugin.installFromMarket({ name: plugin.name })
+    const result = await window.plugin.installFromMarket({
+      name: plugin.name,
+      downloadUrl: plugin.downloadUrl,
+    })
     if (!result.success) {
       setDownloads((prev) => ({ ...prev, [plugin.name]: 'error' }))
       toast.error(result.error || t('market.error'))

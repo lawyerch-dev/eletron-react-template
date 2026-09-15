@@ -38,6 +38,18 @@ protocol.registerSchemesAsPrivileged([
       stream: false,
     },
   },
+  {
+    // 市场远程图标代理：修正 GitHub raw 等对误命名图片返回的错误 content-type
+    scheme: 'market-icon',
+    privileges: {
+      bypassCSP: true,
+      secure: true,
+      standard: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: false,
+    },
+  },
 ])
 
 // The built directory structure

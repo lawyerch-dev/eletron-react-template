@@ -82,15 +82,21 @@ class Installer {
 
     const tempDir = path.join(app.getPath('temp'), 'plugin-download', taskId)
     const safeName = pluginName.replace(/[\\/]/g, '_')
-    const tempFilePath = path.join(tempDir, `${safeName}.pkg`)
 
     try {
-      const downloadUrl = await pluginMarket.resolveDownloadUrl(plugin)
-      if (!downloadUrl) {
+      const source = await pluginMarket.resolveDownloadSource(plugin)
+      if (!source?.url) {
         return { success: false, error: '无效的下载链接' }
       }
       await mkdir(tempDir, { recursive: true })
-      await downloadFile(downloadUrl, tempFilePath, {
+
+      // 清单模式：下载的是整个仓库归档，需先提取 plugins/<name> 子目录再安装
+      const subDir = source.subDir
+      const packagePath = path.join(tempDir, `${safeName}.pkg`)
+      const archivePath = path.join(tempDir, `${safeName}.archive.zip`)
+      const downloadTarget = subDir ? archivePath : packagePath
+
+      await downloadFile(source.url, downloadTarget, {
         signal: controller.signal,
         onProgress: (progress) => {
           this.emit(pluginName, { status: 'downloading', progress: progress.percent })
@@ -98,7 +104,11 @@ class Installer {
       })
       this.emit(pluginName, { status: 'installing', progress: 100 })
 
-      const result = await this.installFromPath(tempFilePath)
+      if (subDir) {
+        await this.extractSubDirToZip(archivePath, subDir, packagePath)
+      }
+
+      const result = await this.installFromPath(packagePath)
       this.emit(pluginName, {
         status: result.success ? 'success' : 'error',
         progress: result.success ? 100 : null,
@@ -127,6 +137,43 @@ class Installer {
     if (!task) return { success: false, error: '没有找到正在下载的插件' }
     task.controller.abort()
     return { success: true }
+  }
+
+  /**
+   * 从仓库归档（如 cc-ai-tools-plugins-main/）中提取指定子目录，
+   * 打包为根目录含 plugin.json 的 zip，复用 ZIP 安装流程。
+   */
+  private extractSubDirToZip(archivePath: string, subDir: string, destZipPath: string): void {
+    const archive = new AdmZip(archivePath)
+    const normalizedSub = subDir.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+    const subPrefix = `${normalizedSub}/`
+
+    // 归档通常带一层顶层目录前缀（<repo>-<branch>/），动态探测它
+    const entries = archive.getEntries()
+    let basePrefix: string | null = null
+    for (const entry of entries) {
+      const entryName = entry.entryName.replace(/\\/g, '/')
+      const idx = entryName.indexOf(subPrefix)
+      if (idx === -1) continue
+      const prefix = entryName.slice(0, idx)
+      if (basePrefix === null || prefix.length < basePrefix.length) {
+        basePrefix = prefix
+      }
+    }
+    if (basePrefix === null) {
+      throw new Error(`插件目录 ${subDir} 不存在`)
+    }
+
+    const out = new AdmZip()
+    const prefixLength = (basePrefix + subPrefix).length
+    for (const entry of entries) {
+      const entryName = entry.entryName.replace(/\\/g, '/')
+      if (!entryName.startsWith(basePrefix + subPrefix)) continue
+      const rel = entryName.slice(prefixLength)
+      if (!rel || entry.isDirectory) continue
+      out.addFile(rel, entry.getData())
+    }
+    out.writeZip(destZipPath)
   }
 
   /**
