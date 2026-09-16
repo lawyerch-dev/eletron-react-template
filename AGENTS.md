@@ -24,11 +24,11 @@
 
 ### 3. 实现
 
-- 新组件放 `src/components/<Name>/`（或同目录明确命名文件）
-- 类型定义集中放 `src/types/`
+- 新组件放 `apps/desktop/src/components/<Name>/`
+- 类型定义集中放 `apps/desktop/src/types/`
 - IPC 通道命名：`kebab-case`
 - 样式：使用语义化 Token，禁止硬编码颜色
-- 插件相关工具函数放 `src/utils/plugin.ts`，不要定义在页面里再被组件反向 import
+- 插件相关工具函数放 `apps/desktop/src/utils/plugin.ts`，不要定义在页面里再被组件反向 import
 
 ### 4. 文档
 
@@ -69,38 +69,35 @@ git push
 ## 目录规范
 
 ```
-src/
-  styles/             样式文件（Token、基础、动画、滚动条）
-  i18n/               国际化（locales/ 下按语言拆分）
-  components/
-    common/           通用组件（ErrorBoundary）
-    layout/           布局组件（Sidebar、TopBar、AppLayout）
-    log-viewer/       实时日志查看器
-    plugin/           插件组件（PluginLogo、PluginDetailModal、ImportPluginButton）
-    update/           自动更新 UI
-  contexts/           React Context（ThemeContext、LanguageContext）
-  pages/              页面组件
-  routes/             路由定义
-  types/              TypeScript 类型定义（.d.ts）
-  utils/              工具函数（logger.ts、plugin.ts）
-  assets/             静态资源（SVG、图片）
-electron/
-  main/               主进程逻辑（窗口、IPC、自动更新）
-    plugin/
-      api/            插件 API 模块（dispatcher/clipboard/input/screen 等）
-      installer/      插件安装（installer/download/market/zpx）
-      runtime/        插件运行时（registry/runner/http）
-      security.ts     协议/路径/域名白名单
-  preload/            宿主 preload（contextBridge）
-plugins/
-  ocr-service/        内置 OCR 服务（RapidOCR via uv / System / Tesseract）
-  example-plugin/     示例插件模板
-resources/lib/        原生模块（.node / .dylib）
-test/
-  e2e/                Playwright E2E
-  *.test.ts           Vitest 单元测试
-public/               公共静态资源
+apps/desktop/                 # 桌面应用（pnpm workspace package: desktop）
+  package.json / vite.config.ts / electron-builder.json / tsconfig*
+  src/
+    shell/                    # 壳 UI（布局、主题、i18n、Home/Settings/About）
+      layout/                 # AppLayout、Sidebar、TopBar
+      contexts/               # ThemeContext、LanguageContext
+      common/                 # ErrorBoundary
+      pages/                  # Home、Settings、About
+    capabilities/             # 可抽插能力（config 开关 + 路由）
+      config.ts               # ocr / mcp / agent / plugins
+      plugin-routes.tsx
+    components/               # 业务组件（plugin/、log-viewer/、update/）
+    pages/                    # 能力页（PluginMarket、MyPlugins）
+    routes/ styles/ i18n/ types/ utils/ assets/
+  electron/
+    main/
+      index.ts                # 入口：shell → plugin → capabilities
+      shell/                  # 协议、主窗、日志
+      capabilities/           # registry + ocr/mcp/agent（与 src 开关同步）
+      plugin/                 # 插件宿主（市场/安装/运行/安全）
+    preload/
+plugins/                      # 内置插件（ocr-service、example-plugin）
+resources/lib/                # 原生模块
+resources/ocr/                # OCR 训练数据
+packages/                     # 共享库预留（shared-types 等）
+docs/                         # VitePress 文档站
 ```
+
+**裁剪方式**：改 `apps/desktop/src/capabilities/config.ts`（主进程同步改 `electron/main/capabilities/config.ts`）；关闭后路由与侧边栏不再出现对应入口。
 
 ---
 
@@ -188,7 +185,7 @@ html.sepia {
 ### 文件结构
 
 ```
-src/i18n/
+apps/desktop/src/i18n/
   index.ts          →  导出 Language 类型、translations、LANGUAGES
   locales/
     zh-CN.ts        →  中文翻译
@@ -198,7 +195,7 @@ src/i18n/
 ### 使用方式
 
 ```tsx
-import { useLanguage } from '@/contexts/LanguageContext'
+import { useLanguage } from '@/shell/contexts/LanguageContext'
 
 const { t } = useLanguage()
 t('home.hero.title')
@@ -247,7 +244,7 @@ const result = await window.ipcRenderer.invoke('channel-name', ...args)
 ipcMain.handle('channel-name', (event, ...args) => { ... })
 ```
 
-> 参考：`electron/main/update.ts`、`electron/preload/index.ts`、`src/components/update/index.tsx`
+> 参考：`apps/desktop/electron/main/update.ts`、`apps/desktop/electron/preload/index.ts`、`apps/desktop/src/components/update/index.tsx`
 
 ---
 
@@ -255,9 +252,10 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 
 | 文件 | 用途 |
 |------|------|
-| [`vite.config.ts`](vite.config.ts) | Vite + Electron 构建配置 |
-| [`tsconfig.json`](tsconfig.json) | TypeScript 严格编译选项 |
-| [`electron-builder.json`](electron-builder.json) | 打包发布配置（含 plugins extraResources 过滤） |
+| [`pnpm-workspace.yaml`](pnpm-workspace.yaml) | monorepo 包列表（apps/*、packages/*） |
+| [`apps/desktop/vite.config.ts`](apps/desktop/vite.config.ts) | Vite + Electron 构建配置 |
+| [`apps/desktop/tsconfig.json`](apps/desktop/tsconfig.json) | TypeScript 严格编译选项 |
+| [`apps/desktop/electron-builder.json`](apps/desktop/electron-builder.json) | 打包发布配置（plugins/resources 经 `../../` 引用） |
 | [`eslint.config.js`](eslint.config.js) | ESLint 配置 |
 | [`.prettierrc`](.prettierrc) | Prettier 配置 |
 | [`.github/workflows/`](.github/workflows/) | CI/CD 流水线 |

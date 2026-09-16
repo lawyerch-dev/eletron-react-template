@@ -10,6 +10,39 @@ overrides:
 importers:
 
   .:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.7.0(jiti@2.7.0))
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.64.0
+        version: 8.64.0(@typescript-eslint/parser@8.64.0(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.64.0
+        version: 8.64.0(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3)
+      eslint:
+        specifier: ^10.7.0
+        version: 10.7.0(jiti@2.7.0)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@10.7.0(jiti@2.7.0))
+      eslint-plugin-prettier:
+        specifier: ^5.5.6
+        version: 5.5.6(eslint-config-prettier@10.1.8(eslint@10.7.0(jiti@2.7.0)))(eslint@10.7.0(jiti@2.7.0))(prettier@3.9.5)
+      eslint-plugin-react-hooks:
+        specifier: ^7.1.1
+        version: 7.1.1(eslint@10.7.0(jiti@2.7.0))
+      eslint-plugin-react-refresh:
+        specifier: ^0.5.3
+        version: 0.5.3(eslint@10.7.0(jiti@2.7.0))
+      prettier:
+        specifier: ^3.9.5
+        version: 3.9.5
+      vitepress:
+        specifier: ^1.6.4
+        version: 1.6.4(@algolia/client-search@5.57.0)(@types/node@26.1.1)(lightningcss@1.33.0)(postcss@8.5.26)(search-insights@2.17.3)(typescript@6.0.3)
+
+  apps/desktop:
     dependencies:
       '@electron/asar':
         specifier: ^4.3.0
@@ -35,6 +68,12 @@ importers:
       minimatch:
         specifier: ^10.2.6
         version: 10.2.6
+      react:
+        specifier: ^19.2.7
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.2.8(react@19.2.8)
       react-router-dom:
         specifier: ^7.18.1
         version: 7.18.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -45,9 +84,6 @@ importers:
       '@electron/get':
         specifier: 4.0.3
         version: 4.0.3
-      '@eslint/js':
-        specifier: ^10.0.1
-        version: 10.0.1(eslint@10.7.0(jiti@2.7.0))
       '@playwright/test':
         specifier: ^1.60.0
         version: 1.61.1
@@ -66,12 +102,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.4(@types/react@19.2.18)
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.64.0
-        version: 8.64.0(@typescript-eslint/parser@8.64.0(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3)
-      '@typescript-eslint/parser':
-        specifier: ^8.64.0
-        version: 8.64.0(eslint@10.7.0(jiti@2.7.0))(typescript@6.0.3)
       '@vitejs/plugin-react':
         specifier: ^6.0.2
         version: 6.0.5(vite@8.2.1(@types/node@26.1.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
@@ -80,31 +110,7 @@ importers:
         version: 42.9.3
       electron-builder:
         specifier: 26.15.4
-        version: 26.15.4(electron-builder-squirrel-windows@26.15.3)
-      eslint:
-        specifier: ^10.7.0
-        version: 10.7.0(jiti@2.7.0)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@10.7.0(jiti@2.7.0))
-      eslint-plugin-prettier:
-        specifier: ^5.5.6
-        version: 5.5.6(eslint-config-prettier@10.1.8(eslint@10.7.0(jiti@2.7.0)))(eslint@10.7.0(jiti@2.7.0))(prettier@3.9.5)
-      eslint-plugin-react-hooks:
-        specifier: ^7.1.1
-        version: 7.1.1(eslint@10.7.0(jiti@2.7.0))
-      eslint-plugin-react-refresh:
-        specifier: ^0.5.3
-        version: 0.5.3(eslint@10.7.0(jiti@2.7.0))
-      prettier:
-        specifier: ^3.9.5
-        version: 3.9.5
-      react:
-        specifier: ^19.2.7
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.2.7
-        version: 19.2.8(react@19.2.8)
+        version: 26.15.4(electron-builder-squirrel-windows@26.15.4)
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.3
@@ -120,9 +126,6 @@ importers:
       vite-plugin-electron-renderer:
         specifier: ^1.0.0
         version: 1.0.0
-      vitepress:
-        specifier: ^1.6.4
-        version: 1.6.4(@algolia/client-search@5.57.0)(@types/node@26.1.1)(@types/react@19.2.18)(lightningcss@1.33.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)(typescript@6.0.3)
       vitest:
         specifier: ^4.1.8
         version: 4.1.10(@types/node@26.1.1)(vite@8.2.1(@types/node@26.1.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
@@ -1479,13 +1482,6 @@ packages:
     resolution: {integrity: sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==}
     engines: {node: '>=12'}
 
-  app-builder-lib@26.15.3:
-    resolution: {integrity: sha512-2VnyWkqsP5v5XbBhL3tD5Syx8iNPBYsoU7kY4S2fz7wg8Rj/nztWKCUzGKaFRTv0Xwf3/H058CR1Kvtd/3lRow==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      dmg-builder: 26.15.3
-      electron-builder-squirrel-windows: 26.15.3
-
   app-builder-lib@26.15.4:
     resolution: {integrity: sha512-GQdy7Cc5Vx2QnWP+JL5nEDqGXyeoJlqa5gtdXM6JPtb4yL5iffQhC5bbMZqxEcg0i8nRxPh3ltBPy6uZpW4uRg==}
     engines: {node: '>=14.0.0'}
@@ -1776,8 +1772,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-builder-squirrel-windows@26.15.3:
-    resolution: {integrity: sha512-Jc19XPV9y9+2bAdZPkXuVNGNIEFBq9poHC61l8Kv6FdK7DRG3+Ic0rerC0DXOaeHNz8yW0fg/JnF8GQROOF5MA==}
+  electron-builder-squirrel-windows@26.15.4:
+    resolution: {integrity: sha512-6mnJvyWa6GYkYklKDMHJihgKfTjd2umE5Tj//hhnzrh1XIljfbzAuVk/286i0YSL7ZMB1vlxcHmE5HEntccrJA==}
 
   electron-builder@26.15.4:
     resolution: {integrity: sha512-b1wugxc5lj9HO1SKxDUeMj9JPim/7CKB3hqqhwy5iH6ctu8SdIyf98qnKaPiu2rmgq37Zg+r4PlFQRtDUE4XeA==}
@@ -3651,9 +3647,9 @@ snapshots:
 
   '@docsearch/css@3.8.2': {}
 
-  '@docsearch/js@3.8.2(@algolia/client-search@5.57.0)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)':
+  '@docsearch/js@3.8.2(@algolia/client-search@5.57.0)(search-insights@2.17.3)':
     dependencies:
-      '@docsearch/react': 3.8.2(@algolia/client-search@5.57.0)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)
+      '@docsearch/react': 3.8.2(@algolia/client-search@5.57.0)(search-insights@2.17.3)
       preact: 10.29.8
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -3663,16 +3659,13 @@ snapshots:
       - react-dom
       - search-insights
 
-  '@docsearch/react@3.8.2(@algolia/client-search@5.57.0)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)':
+  '@docsearch/react@3.8.2(@algolia/client-search@5.57.0)(search-insights@2.17.3)':
     dependencies:
       '@algolia/autocomplete-core': 1.17.7(@algolia/client-search@5.57.0)(algoliasearch@5.57.0)(search-insights@2.17.3)
       '@algolia/autocomplete-preset-algolia': 1.17.7(@algolia/client-search@5.57.0)(algoliasearch@5.57.0)
       '@docsearch/css': 3.8.2
       algoliasearch: 5.57.0
     optionalDependencies:
-      '@types/react': 19.2.18
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
       search-insights: 2.17.3
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -4663,7 +4656,7 @@ snapshots:
 
   ansi-styles@6.2.3: {}
 
-  app-builder-lib@26.15.3(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.3):
+  app-builder-lib@26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.4):
     dependencies:
       '@electron/asar': 3.4.1
       '@electron/fuses': 1.8.0
@@ -4684,59 +4677,11 @@ snapshots:
       chromium-pickle-js: 0.2.0
       ci-info: 4.3.1
       debug: 4.4.3
-      dmg-builder: 26.15.4(electron-builder-squirrel-windows@26.15.3)
+      dmg-builder: 26.15.4(electron-builder-squirrel-windows@26.15.4)
       dotenv: 16.4.5
       dotenv-expand: 11.0.6
       ejs: 3.1.8
-      electron-builder-squirrel-windows: 26.15.3(dmg-builder@26.15.4)
-      electron-publish: 26.15.3
-      fs-extra: 10.1.0
-      hosted-git-info: 4.1.0
-      isbinaryfile: 5.0.7
-      jiti: 2.7.0
-      js-yaml: 4.3.0
-      json5: 2.2.3
-      lazy-val: 1.0.5
-      minimatch: 10.2.6
-      pkijs: 3.4.0
-      plist: 3.1.0
-      proper-lockfile: 4.1.2
-      resedit: 1.7.0
-      semver: 7.7.4
-      tar: 7.5.22
-      temp-file: 3.4.0
-      tiny-async-pool: 1.3.0
-      unzipper: 0.12.5
-      which: 5.0.0
-    transitivePeerDependencies:
-      - supports-color
-
-  app-builder-lib@26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.3):
-    dependencies:
-      '@electron/asar': 3.4.1
-      '@electron/fuses': 1.8.0
-      '@electron/get': 4.0.3
-      '@electron/notarize': 2.5.0
-      '@electron/osx-sign': 1.3.3
-      '@electron/rebuild': 4.2.0
-      '@electron/universal': 2.0.3
-      '@malept/flatpak-bundler': 0.4.0
-      '@noble/hashes': 2.2.0
-      '@peculiar/webcrypto': 1.7.1
-      '@types/fs-extra': 9.0.13
-      ajv: 8.20.0
-      asn1js: 3.0.10
-      async-exit-hook: 2.0.1
-      builder-util: 26.15.3
-      builder-util-runtime: 9.7.0
-      chromium-pickle-js: 0.2.0
-      ci-info: 4.3.1
-      debug: 4.4.3
-      dmg-builder: 26.15.4(electron-builder-squirrel-windows@26.15.3)
-      dotenv: 16.4.5
-      dotenv-expand: 11.0.6
-      ejs: 3.1.8
-      electron-builder-squirrel-windows: 26.15.3(dmg-builder@26.15.4)
+      electron-builder-squirrel-windows: 26.15.4(dmg-builder@26.15.4)
       electron-publish: 26.15.3
       fs-extra: 10.1.0
       hosted-git-info: 4.1.0
@@ -5002,9 +4947,9 @@ snapshots:
       minimatch: 3.1.5
       p-limit: 3.1.0
 
-  dmg-builder@26.15.4(electron-builder-squirrel-windows@26.15.3):
+  dmg-builder@26.15.4(electron-builder-squirrel-windows@26.15.4):
     dependencies:
-      app-builder-lib: 26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.3)
+      app-builder-lib: 26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.4)
       builder-util: 26.15.3
       fs-extra: 10.1.0
       js-yaml: 4.3.0
@@ -5038,23 +4983,23 @@ snapshots:
     dependencies:
       jake: 10.8.5
 
-  electron-builder-squirrel-windows@26.15.3(dmg-builder@26.15.4):
+  electron-builder-squirrel-windows@26.15.4(dmg-builder@26.15.4):
     dependencies:
-      app-builder-lib: 26.15.3(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.3)
+      app-builder-lib: 26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.4)
       builder-util: 26.15.3
       electron-winstaller: 5.4.0
     transitivePeerDependencies:
       - dmg-builder
       - supports-color
 
-  electron-builder@26.15.4(electron-builder-squirrel-windows@26.15.3):
+  electron-builder@26.15.4(electron-builder-squirrel-windows@26.15.4):
     dependencies:
-      app-builder-lib: 26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.3)
+      app-builder-lib: 26.15.4(dmg-builder@26.15.4)(electron-builder-squirrel-windows@26.15.4)
       builder-util: 26.15.3
       builder-util-runtime: 9.7.0
       chalk: 4.1.2
       ci-info: 4.4.0
-      dmg-builder: 26.15.4(electron-builder-squirrel-windows@26.15.3)
+      dmg-builder: 26.15.4(electron-builder-squirrel-windows@26.15.4)
       fs-extra: 10.1.0
       lazy-val: 1.0.5
       simple-update-notifier: 2.0.0
@@ -6550,10 +6495,10 @@ snapshots:
       jiti: 2.7.0
       yaml: 2.9.0
 
-  vitepress@1.6.4(@algolia/client-search@5.57.0)(@types/node@26.1.1)(@types/react@19.2.18)(lightningcss@1.33.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)(typescript@6.0.3):
+  vitepress@1.6.4(@algolia/client-search@5.57.0)(@types/node@26.1.1)(lightningcss@1.33.0)(postcss@8.5.26)(search-insights@2.17.3)(typescript@6.0.3):
     dependencies:
       '@docsearch/css': 3.8.2
-      '@docsearch/js': 3.8.2(@algolia/client-search@5.57.0)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)
+      '@docsearch/js': 3.8.2(@algolia/client-search@5.57.0)(search-insights@2.17.3)
       '@iconify-json/simple-icons': 1.2.93
       '@shikijs/core': 2.5.0
       '@shikijs/transformers': 2.5.0

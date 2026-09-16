@@ -9,17 +9,18 @@ import prettierConfig from 'eslint-config-prettier'
 export default [
   {
     ignores: [
-      'dist/**',
-      'dist-electron/**',
+      '**/dist/**',
+      '**/dist-electron/**',
       'release/**',
-      'node_modules/**',
+      '**/node_modules/**',
       'ZTools/**',
       'plugins/**',
-      'test/e2e/**',
-      'electron/main/plugin/plugin-preload.js',
+      '**/test/e2e/**',
+      '**/electron/main/plugin/plugin-preload.js',
       'resources/**',
-      '*.config.js',
-      '*.config.ts',
+      '**/*.config.js',
+      '**/*.config.ts',
+      '**/*.config.mjs',
       '.claude/**',
       '.trae/**',
       '.vscode/**',
@@ -41,7 +42,7 @@ export default [
 
   // 渲染进程（浏览器环境）
   {
-    files: ['src/**/*.{ts,tsx}', 'test/**/*.ts'],
+    files: ['apps/desktop/src/**/*.{ts,tsx}', 'apps/desktop/test/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -74,9 +75,9 @@ export default [
     },
   },
 
-  // Node.js 脚本（scripts/ 目录）
+  // Node.js 脚本
   {
-    files: ['scripts/**/*.{mjs,js,cjs}'],
+    files: ['**/scripts/**/*.{mjs,js,cjs}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -96,7 +97,7 @@ export default [
 
   // Electron 主进程（Node.js 环境）
   {
-    files: ['electron/**/*.ts'],
+    files: ['apps/desktop/electron/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

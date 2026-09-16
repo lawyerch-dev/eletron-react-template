@@ -63,32 +63,29 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 项目结构
 
+本仓库为 **pnpm monorepo**，应用位于 `apps/desktop/`：
+
 ```
-src/
-├── styles/              样式文件（Token、Tailwind、基础样式）
-├── i18n/                国际化
-│   └── locales/         zh-CN.ts, en-US.ts
-├── components/
-│   ├── common/          通用组件（ErrorBoundary）
-│   ├── layout/          布局组件（Sidebar、AppLayout）
-│   ├── plugin/          插件 UI（PluginLogo、PluginDetailModal、ImportPluginButton）
-│   └── update/          自动更新 UI
-├── contexts/            React Context（主题、语言）
-├── pages/               页面组件（首页、插件市场、我的插件）
-├── routes/              路由定义
-├── types/               TypeScript 类型定义
-├── utils/               工具函数（logger、plugin logo/sanitize）
-├── assets/              SVG 与图片
-electron/
-├── main/
-│   ├── plugin/          插件子系统（市场、安装、注册、运行、security）
-│   ├── index.ts         主进程入口
-│   └── update.ts        自动更新
-└── preload/             宿主 Preload（contextBridge）
-plugins/
-├── ocr-service/         内置 OCR 服务（RapidOCR / System / Tesseract）
-└── example-plugin/      示例插件
-docs/                    VitePress 文档站
+apps/desktop/
+├── src/
+│   ├── shell/               壳 UI（布局、主题、i18n、Home/Settings/About）
+│   ├── capabilities/        可抽插能力（config 开关 + 路由）
+│   ├── components/          业务组件（plugin、log-viewer、update）
+│   ├── pages/               能力页（插件市场、我的产品）
+│   ├── routes/ styles/ i18n/ types/ utils/ assets/
+│   └── main.tsx
+├── electron/
+│   ├── main/
+│   │   ├── shell/           协议、主窗、日志
+│   │   ├── capabilities/    可选能力主进程
+│   │   ├── plugin/          插件宿主
+│   │   └── index.ts         主进程入口
+│   └── preload/
+├── package.json / vite.config.ts / electron-builder.json
+plugins/                     内置插件（ocr-service、example-plugin）
+resources/                   原生模块与 OCR 资源
+packages/                    共享库预留
+docs/                        VitePress 文档站
 ```
 
 ## 插件系统

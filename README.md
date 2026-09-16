@@ -62,28 +62,28 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## Project Structure
 
+This repo is a **pnpm monorepo**. The app lives in `apps/desktop/`:
+
 ```
-src/
-├── styles/              Stylesheets (tokens, tailwind, base)
-├── i18n/                Internationalization
-│   └── locales/         zh-CN.ts, en-US.ts
-├── components/
-│   ├── common/          Shared components (ErrorBoundary)
-│   ├── layout/          Layout (Sidebar, AppLayout)
-│   ├── plugin/          Plugin UI (PluginDetailModal, ImportPluginButton)
-│   └── update/          Auto-update UI
-├── contexts/            React contexts (Theme, Language)
-├── pages/               Page components (Home, PluginMarket, MyPlugins)
-├── routes/              Route definitions
-├── types/               TypeScript type definitions
-├── assets/              SVG and images
-electron/
-├── main/
-│   ├── plugin/          Plugin subsystem (market, installer, registry, runner)
-│   ├── index.ts         Main process entry
-│   └── update.ts        Auto-update
-└── preload/             Preload scripts (contextBridge)
-docs/                    VitePress documentation site
+apps/desktop/
+├── src/
+│   ├── shell/               Shell UI (layout, theme, i18n, Home/Settings/About)
+│   ├── capabilities/        Optional capabilities (config + routes)
+│   ├── components/          Business UI (plugin, log-viewer, update)
+│   ├── pages/               Capability pages (market, my products)
+│   └── routes/ styles/ i18n/ types/ utils/ assets/
+├── electron/
+│   ├── main/
+│   │   ├── shell/           protocols / window / logging
+│   │   ├── capabilities/    optional main-process capabilities
+│   │   ├── plugin/          plugin host
+│   │   └── index.ts         main entry
+│   └── preload/
+├── package.json / vite.config.ts / electron-builder.json
+plugins/                     Built-in plugins
+resources/                   Native libs + OCR assets
+packages/                    Shared packages (reserved)
+docs/                        VitePress site
 ```
 
 ## Plugin System

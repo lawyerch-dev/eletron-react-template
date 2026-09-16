@@ -56,3 +56,4 @@ ZTools-plugins
 
 # WorkBuddy workspace memory
 /.workbuddy
+tsconfig.node.tsbuildinfo
