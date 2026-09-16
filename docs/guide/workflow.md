@@ -26,7 +26,7 @@ description: "任何新功能、页面、组件开发前，必须先做规划，
 
 ## 3. 实现
 
-- 新组件放 `src/components/<name>/index.tsx`
+- 新组件放 `apps/desktop/src/features/<name>/`
 - 类型定义集中放 `src/types/`
 - IPC 通道命名：`kebab-case`
 - 样式：使用语义化 Token，禁止硬编码颜色

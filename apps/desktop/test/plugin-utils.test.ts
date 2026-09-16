@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatT, logoUrl, sanitizeHtml } from '../src/utils/plugin'
+import { formatT, logoUrl, sanitizeHtml } from '../src/shared/lib/plugin'
 
 describe('formatT', () => {
   it('replaces placeholders', () => {

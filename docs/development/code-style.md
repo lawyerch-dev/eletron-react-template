@@ -38,6 +38,6 @@ pnpm format:check
 
 ## 组件规范
 
-- 新组件放 `src/components/<name>/index.tsx`
+- 新组件放 `apps/desktop/src/features/<name>/`
 - 使用命名导出，而非默认导出
 - 类型定义与组件同文件，或放 `src/types/`

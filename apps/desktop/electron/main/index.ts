@@ -9,13 +9,13 @@ import {
   getPreloadPath,
   getIndexHtmlPath,
   VITE_DEV_SERVER_URL,
-} from './shell'
-import { initPluginSubsystem } from './plugin'
+} from './app'
+import { initPluginSubsystem } from './plugin-host'
 import { initCapabilities, isCapabilityEnabled } from './capabilities'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// 壳：日志 + 协议（须在 app ready 前）
+// 应用壳：日志 + 协议（须在 app ready 前）
 initLogging()
 registerShellProtocols()
 

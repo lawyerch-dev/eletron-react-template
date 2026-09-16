@@ -24,11 +24,11 @@
 
 ### 3. 实现
 
-- 新组件放 `apps/desktop/src/components/<Name>/`
-- 类型定义集中放 `apps/desktop/src/types/`
+- 新组件放 `apps/desktop/src/features/<feature>/`（跨功能才进 `shared/`）
+- 类型定义集中放 `apps/desktop/src/shared/types/`
 - IPC 通道命名：`kebab-case`
 - 样式：使用语义化 Token，禁止硬编码颜色
-- 插件相关工具函数放 `apps/desktop/src/utils/plugin.ts`，不要定义在页面里再被组件反向 import
+- 插件相关工具函数放 `apps/desktop/src/shared/lib/plugin.ts`，不要定义在页面里再被组件反向 import
 
 ### 4. 文档
 
@@ -57,12 +57,12 @@ git push
 | **最终用户（安装包）** | **不需要系统 Node.js** | Electron 发行包内嵌 Chromium + Node，应用与插件 preload 都跑在这套内嵌运行时上 |
 | **开发者** | Node.js ≥ 20.19 / ≥ 22.12 + pnpm | 构建、Vite、测试、electron-builder |
 | **RapidOCR 引擎（可选）** | 本机 [uv](https://docs.astral.sh/uv/) | 宿主用 `uv run` 按需拉起 Python sidecar，**不把 Python 包打进应用** |
-| **插件 Node 依赖** | 随插件目录打包 | 如 `plugins/ocr-service/node_modules`（tesseract.js、原生模块），经 `extraResources` 分发，**禁止**在用户机器上现场 `npm install` |
+| **插件 Node 依赖** | 随插件目录打包 | 如 `apps/desktop/plugins/ocr-service/node_modules`（tesseract.js、原生模块），经 `extraResources` 分发，**禁止**在用户机器上现场 `npm install` |
 
 **原则**：
 - 不要引入「给最终用户安装 Node/nvm」的方案；打包应用自带 Node。
 - 不要在应用启动时执行 `npm/pnpm install`。
-- Python 侧只通过 uv / 可选 `.venv` / `RAPIDOCR_PYTHON` 使用，见 `plugins/ocr-service/scripts/README.md`。
+- Python 侧只通过 uv / 可选 `.venv` / `RAPIDOCR_PYTHON` 使用，见 `apps/desktop/plugins/ocr-service/scripts/README.md`。
 
 ---
 
@@ -72,32 +72,31 @@ git push
 apps/desktop/                 # 桌面应用（pnpm workspace package: desktop）
   package.json / vite.config.ts / electron-builder.json / tsconfig*
   src/
-    shell/                    # 壳 UI（布局、主题、i18n、Home/Settings/About）
-      layout/                 # AppLayout、Sidebar、TopBar
+    app/                      # 壳装配（薄）
+      main.tsx providers.tsx routes.tsx
       contexts/               # ThemeContext、LanguageContext
-      common/                 # ErrorBoundary
-      pages/                  # Home、Settings、About
-    capabilities/             # 可抽插能力（config 开关 + 路由）
-      config.ts               # ocr / mcp / agent / plugins
-      plugin-routes.tsx
-    components/               # 业务组件（plugin/、log-viewer/、update/）
-    pages/                    # 能力页（PluginMarket、MyPlugins）
-    routes/ styles/ i18n/ types/ utils/ assets/
+      ErrorBoundary.tsx
+    shell/                    # 布局 chrome（AppLayout、Sidebar、TopBar）
+    features/                 # ★ 功能按业务分包
+      plugins/                # 市场 + 我的产品（pages/components/routes）
+      home/ about/ settings/ update/ ocr/
+    capabilities/             # 薄层：config 开关 + 聚合 feature 路由
+    shared/                   # i18n / lib / types / styles / assets
   electron/
     main/
-      index.ts                # 入口：shell → plugin → capabilities
-      shell/                  # 协议、主窗、日志
+      index.ts                # 入口：app → plugin-host → capabilities
+      app/                    # 协议、主窗、日志
       capabilities/           # registry + ocr/mcp/agent（与 src 开关同步）
-      plugin/                 # 插件宿主（市场/安装/运行/安全）
+      plugin-host/            # 插件宿主（市场/安装/运行/安全）
     preload/
-plugins/                      # 内置插件（ocr-service、example-plugin）
-resources/lib/                # 原生模块
-resources/ocr/                # OCR 训练数据
-packages/                     # 共享库预留（shared-types 等）
+  plugins/                    # 内置插件（ocr-service、example-plugin）
+  build/                      # electron-builder 图标等
+  resources/lib|ocr/          # 原生模块、OCR 训练数据
+packages/                     # 共享库预留（真正多 app 复用时再抽）
 docs/                         # VitePress 文档站
 ```
 
-**裁剪方式**：改 `apps/desktop/src/capabilities/config.ts`（主进程同步改 `electron/main/capabilities/config.ts`）；关闭后路由与侧边栏不再出现对应入口。
+**裁剪方式**：改 `apps/desktop/src/capabilities/config.ts`（主进程同步改 `electron/main/capabilities/config.ts`）；关闭后路由与侧边栏不再出现对应入口。新功能建 `src/features/<name>/`，不要往 `shared/` 或壳里塞业务页。
 
 ---
 
@@ -185,7 +184,7 @@ html.sepia {
 ### 文件结构
 
 ```
-apps/desktop/src/i18n/
+apps/desktop/src/shared/i18n/
   index.ts          →  导出 Language 类型、translations、LANGUAGES
   locales/
     zh-CN.ts        →  中文翻译
@@ -195,7 +194,7 @@ apps/desktop/src/i18n/
 ### 使用方式
 
 ```tsx
-import { useLanguage } from '@/shell/contexts/LanguageContext'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 const { t } = useLanguage()
 t('home.hero.title')
@@ -244,7 +243,7 @@ const result = await window.ipcRenderer.invoke('channel-name', ...args)
 ipcMain.handle('channel-name', (event, ...args) => { ... })
 ```
 
-> 参考：`apps/desktop/electron/main/update.ts`、`apps/desktop/electron/preload/index.ts`、`apps/desktop/src/components/update/index.tsx`
+> 参考：`apps/desktop/electron/main/update.ts`、`apps/desktop/electron/preload/index.ts`、`apps/desktop/src/features/update/index.tsx`
 
 ---
 
@@ -259,4 +258,4 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 | [`eslint.config.js`](eslint.config.js) | ESLint 配置 |
 | [`.prettierrc`](.prettierrc) | Prettier 配置 |
 | [`.github/workflows/`](.github/workflows/) | CI/CD 流水线 |
-| [`plugins/ocr-service/scripts/`](plugins/ocr-service/scripts/) | RapidOCR sidecar（uv + pyproject） |
+| [`apps/desktop/plugins/ocr-service/scripts/`](apps/desktop/plugins/ocr-service/scripts/) | RapidOCR sidecar（uv + pyproject） |

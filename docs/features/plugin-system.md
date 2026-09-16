@@ -25,7 +25,7 @@ description: "三层插件来源：内置插件（随应用打包）→ 插件�
 
 ### 市场仓库结构
 
-市场源为 GitHub 仓库（`electron/main/plugin/installer/market.ts` 中 `GITHUB_REPO` 配置），采用「清单 + 源码目录」模式：
+市场源为 GitHub 仓库（`electron/main/plugin-host/installer/market.ts` 中 `GITHUB_REPO` 配置），采用「清单 + 源码目录」模式：
 
 ```
 manifest.json          # 插件清单（name/version/title/logo/downloadUrl）
@@ -86,7 +86,7 @@ plugins/<name>/        # 每个插件的源码目录
 
 ## 内置 OCR 服务
 
-`plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
+`apps/desktop/plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
 
 ```javascript
 const result = await ztools.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })

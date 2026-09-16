@@ -4,11 +4,11 @@
   "asar": true,
   "extraResources": [
     {
-      "from": "electron/main/plugin/plugin-preload.js",
+      "from": "electron/main/plugin-host/plugin-preload.js",
       "to": "plugin-preload.js"
     },
     {
-      "from": "../../plugins",
+      "from": "plugins",
       "to": "plugins",
       "filter": [
         "**/*",
@@ -21,18 +21,19 @@
       ]
     },
     {
-      "from": "../../resources/lib",
+      "from": "resources/lib",
       "to": "lib",
       "filter": ["**/*"]
     },
     {
-      "from": "../../resources/ocr",
+      "from": "resources/ocr",
       "to": "ocr",
       "filter": ["**/*"]
     }
   ],
   "asarUnpack": ["resources/lib/**"],
   "directories": {
+    "buildResources": "build",
     "output": "../../release/${version}"
   },
   "files": ["dist-electron", "dist"],

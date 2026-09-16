@@ -68,22 +68,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 apps/desktop/
 ├── src/
-│   ├── shell/               壳 UI（布局、主题、i18n、Home/Settings/About）
-│   ├── capabilities/        可抽插能力（config 开关 + 路由）
-│   ├── components/          业务组件（plugin、log-viewer、update）
-│   ├── pages/               能力页（插件市场、我的产品）
-│   ├── routes/ styles/ i18n/ types/ utils/ assets/
-│   └── main.tsx
+│   ├── app/                 壳装配（main、providers、routes、contexts）
+│   ├── shell/               布局 chrome（Sidebar / TopBar / AppLayout）
+│   ├── features/            功能模块（plugins、home、settings、update…）
+│   ├── capabilities/        能力开关 + 路由聚合
+│   └── shared/              i18n、工具、类型、样式、资源
 ├── electron/
 │   ├── main/
-│   │   ├── shell/           协议、主窗、日志
+│   │   ├── app/             协议、主窗、日志
 │   │   ├── capabilities/    可选能力主进程
-│   │   ├── plugin/          插件宿主
+│   │   ├── plugin-host/     插件宿主
 │   │   └── index.ts         主进程入口
 │   └── preload/
-├── package.json / vite.config.ts / electron-builder.json
-plugins/                     内置插件（ocr-service、example-plugin）
-resources/                   原生模块与 OCR 资源
+├── plugins/                 内置插件（ocr-service、example-plugin）
+├── build/ / resources/      图标与原生/OCR 资源
+└── package.json / vite.config.ts / electron-builder.json
 packages/                    共享库预留
 docs/                        VitePress 文档站
 ```
@@ -108,7 +107,7 @@ docs/                        VitePress 文档站
 2. 插件自身 `preload`（若 `plugin.json` 声明，如 OCR 的 `window.ocrService`）
 
 ### OCR 服务
-见 [`plugins/ocr-service/README.md`](plugins/ocr-service/README.md)。默认优先 RapidOCR（需 uv），否则系统 OCR / Tesseract.js。
+见 [`apps/desktop/plugins/ocr-service/README.md`](apps/desktop/plugins/ocr-service/README.md)。默认优先 RapidOCR（需 uv），否则系统 OCR / Tesseract.js。
 
 ## 主题系统
 

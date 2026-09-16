@@ -11,8 +11,8 @@ import {
   Moon,
   Monitor,
 } from 'lucide-react'
-import { useTheme } from '@/shell/contexts/ThemeContext'
-import { useLanguage } from '@/shell/contexts/LanguageContext'
+import { useTheme } from '@/app/contexts/ThemeContext'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 import { getCapabilityNavItems } from '@/capabilities'
 
 interface SidebarProps {

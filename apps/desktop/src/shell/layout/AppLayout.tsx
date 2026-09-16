@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
-import { useLanguage } from '@/shell/contexts/LanguageContext'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 const SIDEBAR_KEY = 'sidebar-collapsed'
 
