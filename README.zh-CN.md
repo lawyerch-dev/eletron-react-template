@@ -68,20 +68,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 apps/desktop/
 ├── src/
-│   ├── app/                 壳装配（main、providers、routes、contexts）
-│   ├── shell/               布局 chrome（Sidebar / TopBar / AppLayout）
-│   ├── features/            功能模块（plugins、home、settings、update…）
-│   ├── capabilities/        能力开关 + 路由聚合
-│   └── shared/              i18n、工具、类型、样式、资源
-├── electron/
-│   ├── main/
-│   │   ├── app/             协议、主窗、日志
-│   │   ├── capabilities/    可选能力主进程
-│   │   ├── plugin-host/     插件宿主
-│   │   └── index.ts         主进程入口
-│   └── preload/
-├── plugins/                 内置插件（ocr-service、example-plugin）
-├── build/ / resources/      图标与原生/OCR 资源
+│   ├── main/                  主进程（app / services / features）
+│   ├── preload/               contextBridge
+│   ├── renderer/              前端（app / shell / features / services）
+│   └── shared/                IPC 契约与纯类型工具
+├── plugins/ / build/ / resources/
 └── package.json / vite.config.ts / electron-builder.json
 packages/                    共享库预留
 docs/                        VitePress 文档站

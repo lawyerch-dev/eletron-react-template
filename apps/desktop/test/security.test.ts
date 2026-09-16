@@ -4,11 +4,11 @@ vi.mock('electron', () => ({
   app: { getPath: () => '/tmp/fake-userData', isPackaged: false },
 }))
 
-vi.mock('../../electron/main/plugin-host/shared', () => ({
+vi.mock('../src/main/features/plugin-host/shared', () => ({
   getPluginsRoot: () => '/tmp/fake-plugins',
 }))
 
-vi.mock('../../electron/main/plugin-host/builtin', () => ({
+vi.mock('../src/main/features/plugin-host/builtin', () => ({
   resolveBuiltinPluginsRoot: () => '/tmp/fake-builtin-plugins',
 }))
 
@@ -19,7 +19,7 @@ import {
   MARKET_ICON_MAX_BYTES,
   parsePluginIconPath,
   toPluginIconUrl,
-} from '../../electron/main/plugin-host/security'
+} from '../src/main/features/plugin-host/security'
 
 describe('security helpers', () => {
   describe('isAllowedMarketIconUrl', () => {

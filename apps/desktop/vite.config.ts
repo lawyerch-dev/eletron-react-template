@@ -22,7 +22,8 @@ export default defineConfig(({ command }) => {
   return {
     resolve: {
       alias: {
-        '@': path.join(import.meta.dirname, 'src'),
+        '@shared': path.join(import.meta.dirname, 'src/shared'),
+        '@': path.join(import.meta.dirname, 'src/renderer'),
       },
     },
     plugins: [
@@ -30,7 +31,7 @@ export default defineConfig(({ command }) => {
       tailwindcss(),
       electronSimple({
         main: {
-          input: 'electron/main/index.ts',
+          input: 'src/main/main.ts',
           plugins: [notBundle()],
           options: {
             build: {
@@ -44,7 +45,7 @@ export default defineConfig(({ command }) => {
           },
         },
         preload: {
-          input: 'electron/preload/index.ts',
+          input: 'src/preload/index.ts',
           plugins: [notBundle()],
           options: {
             build: {

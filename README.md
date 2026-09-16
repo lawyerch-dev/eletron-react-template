@@ -67,20 +67,11 @@ This repo is a **pnpm monorepo**. The app lives in `apps/desktop/`:
 ```
 apps/desktop/
 ├── src/
-│   ├── app/                 Shell assembly (main, providers, routes, contexts)
-│   ├── shell/               Layout chrome (Sidebar / TopBar / AppLayout)
-│   ├── features/            Feature modules (plugins, home, settings, update…)
-│   ├── capabilities/        Capability flags + route aggregation
-│   └── shared/              i18n, lib, types, styles, assets
-├── electron/
-│   ├── main/
-│   │   ├── app/             protocols / window / logging
-│   │   ├── capabilities/    optional main-process capabilities
-│   │   ├── plugin-host/     plugin host
-│   │   └── index.ts         main entry
-│   └── preload/
-├── plugins/                 Built-in plugins (ocr-service, example-plugin)
-├── build/ / resources/      Icons + native/OCR assets
+│   ├── main/                  Main process (app / services / features)
+│   ├── preload/               contextBridge
+│   ├── renderer/              UI (app / shell / features / services)
+│   └── shared/                IPC contracts + pure types/utils
+├── plugins/ / build/ / resources/
 └── package.json / vite.config.ts / electron-builder.json
 packages/                    Shared packages (reserved)
 docs/                        VitePress site

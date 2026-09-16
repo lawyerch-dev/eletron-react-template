@@ -17,8 +17,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\" \"electron/**/*.{ts,json}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\" \"electron/**/*.{ts,json}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\""
   },
   "dependencies": {
     "@electron/asar": "^4.3.0",

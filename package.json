@@ -23,8 +23,8 @@
     "typecheck": "pnpm --filter desktop typecheck",
     "lint": "eslint apps/desktop --ext .ts,.tsx",
     "lint:fix": "eslint apps/desktop --ext .ts,.tsx --fix",
-    "format": "prettier --write \"apps/desktop/src/**/*.{ts,tsx,css,json}\" \"apps/desktop/electron/**/*.{ts,json}\"",
-    "format:check": "prettier --check \"apps/desktop/src/**/*.{ts,tsx,css,json}\" \"apps/desktop/electron/**/*.{ts,json}\"",
+    "format": "prettier --write \"apps/desktop/src/**/*.{ts,tsx,css,json}\"",
+    "format:check": "prettier --check \"apps/desktop/src/**/*.{ts,tsx,css,json}\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

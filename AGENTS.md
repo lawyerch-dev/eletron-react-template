@@ -24,11 +24,12 @@
 
 ### 3. 实现
 
-- 新组件放 `apps/desktop/src/features/<feature>/`（跨功能才进 `shared/`）
+- 新组件放 `apps/desktop/src/renderer/features/<feature>/`（跨功能才进 shared）
 - 类型定义集中放 `apps/desktop/src/shared/types/`
-- IPC 通道命名：`kebab-case`
+- IPC 通道命名：`kebab-case`，写入 `src/shared/ipc/channels.ts`
 - 样式：使用语义化 Token，禁止硬编码颜色
-- 插件相关工具函数放 `apps/desktop/src/shared/lib/plugin.ts`，不要定义在页面里再被组件反向 import
+- 插件相关工具函数放 `apps/desktop/src/shared/utils/plugin.ts`，不要定义在页面里再被组件反向 import
+- 渲染进程调主进程走 `src/renderer/services/`，禁止在页面里散落 `window.ipcRenderer`
 
 ### 4. 文档
 
@@ -72,31 +73,39 @@ git push
 apps/desktop/                 # 桌面应用（pnpm workspace package: desktop）
   package.json / vite.config.ts / electron-builder.json / tsconfig*
   src/
-    app/                      # 壳装配（薄）
-      main.tsx providers.tsx routes.tsx
-      contexts/               # ThemeContext、LanguageContext
-      ErrorBoundary.tsx
-    shell/                    # 布局 chrome（AppLayout、Sidebar、TopBar）
-    features/                 # ★ 功能按业务分包
-      plugins/                # 市场 + 我的产品（pages/components/routes）
-      home/ about/ settings/ update/ ocr/
-    capabilities/             # 薄层：config 开关 + 聚合 feature 路由
-    shared/                   # i18n / lib / types / styles / assets
-  electron/
-    main/
-      index.ts                # 入口：app → plugin-host → capabilities
+    main/                     # 主进程（后端）
+      main.ts                 # 入口装配
       app/                    # 协议、主窗、日志
-      capabilities/           # registry + ocr/mcp/agent（与 src 开关同步）
-      plugin-host/            # 插件宿主（市场/安装/运行/安全）
-    preload/
-  plugins/                    # 内置插件（ocr-service、example-plugin）
-  build/                      # electron-builder 图标等
-  resources/lib|ocr/          # 原生模块、OCR 训练数据
-packages/                     # 共享库预留（真正多 app 复用时再抽）
-docs/                         # VitePress 文档站
+      services/               # 可测业务（window-state、update）
+      features/
+        plugin-host/          # 插件宿主
+        capabilities/         # ocr/mcp/agent（与渲染开关同步）
+    preload/                  # contextBridge
+    renderer/                 # 渲染进程（前端）
+      app/                    # main.tsx、providers、routes、contexts
+      shell/                  # 布局 chrome
+      features/               # plugins、home、settings、update、ocr
+      services/               # 调 IPC 的封装（勿在页面里裸 invoke）
+      capabilities/           # 开关 + 路由聚合
+      i18n/ styles/ assets/ lib/
+    shared/                   # ★ 进程间契约（无 DOM / 无 electron）
+      ipc/channels.ts         # IpcChannel 常量
+      types/ utils/
+  plugins/ build/ resources/
+packages/                     # 真共享库预留
+docs/
 ```
 
-**裁剪方式**：改 `apps/desktop/src/capabilities/config.ts`（主进程同步改 `electron/main/capabilities/config.ts`）；关闭后路由与侧边栏不再出现对应入口。新功能建 `src/features/<name>/`，不要往 `shared/` 或壳里塞业务页。
+**依赖方向**：`renderer/features` → `renderer/services` → `shared/ipc` ← `main/*`  
+禁止：渲染层直接散落 `window.ipcRenderer`；`shared` import electron/React；主进程 import React。
+
+**裁剪方式**：改 `src/renderer/capabilities/config.ts`（主进程同步 `src/main/features/capabilities/config.ts`）。新功能：前端 `renderer/features/<name>/`，主进程 `main/features/<name>/` 或 `main/services/`。
+
+---
+
+## IPC 约定
+
+通道名集中在 `src/shared/ipc/channels.ts`。新能力先加通道常量，再写 preload/service/handler。
 
 ---
 
@@ -184,7 +193,7 @@ html.sepia {
 ### 文件结构
 
 ```
-apps/desktop/src/shared/i18n/
+apps/desktop/src/renderer/i18n/
   index.ts          →  导出 Language 类型、translations、LANGUAGES
   locales/
     zh-CN.ts        →  中文翻译
@@ -243,7 +252,7 @@ const result = await window.ipcRenderer.invoke('channel-name', ...args)
 ipcMain.handle('channel-name', (event, ...args) => { ... })
 ```
 
-> 参考：`apps/desktop/electron/main/update.ts`、`apps/desktop/electron/preload/index.ts`、`apps/desktop/src/features/update/index.tsx`
+> 参考：`src/main/services/update.ts`、`src/preload/index.ts`、`src/renderer/services/`、`src/shared/ipc/channels.ts`
 
 ---
 
@@ -252,10 +261,10 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 | 文件 | 用途 |
 |------|------|
 | [`pnpm-workspace.yaml`](pnpm-workspace.yaml) | monorepo 包列表（apps/*、packages/*） |
-| [`apps/desktop/vite.config.ts`](apps/desktop/vite.config.ts) | Vite + Electron 构建配置 |
+| [`apps/desktop/vite.config.ts`](apps/desktop/vite.config.ts) | Vite + Electron 构建（alias `@`→renderer，`@shared`→shared） |
 | [`apps/desktop/tsconfig.json`](apps/desktop/tsconfig.json) | TypeScript 严格编译选项 |
-| [`apps/desktop/electron-builder.json`](apps/desktop/electron-builder.json) | 打包发布配置（plugins/resources 经 `../../` 引用） |
-| [`eslint.config.js`](eslint.config.js) | ESLint 配置 |
+| [`apps/desktop/electron-builder.json`](apps/desktop/electron-builder.json) | 打包发布配置 |
+| [`eslint.config.js`](eslint.config.js) | ESLint（main/renderer 文件规则分离） |
 | [`.prettierrc`](.prettierrc) | Prettier 配置 |
 | [`.github/workflows/`](.github/workflows/) | CI/CD 流水线 |
 | [`apps/desktop/plugins/ocr-service/scripts/`](apps/desktop/plugins/ocr-service/scripts/) | RapidOCR sidecar（uv + pyproject） |
