@@ -31,10 +31,10 @@ my-plugin/
 
 ### 使用模板
 
-在 `plugins/` 目录下有一个示例插件模板，可以直接复制使用：
+在 `src/plugins/` 目录下有一个示例插件模板，可以直接复制使用：
 
 ```bash
-cp -r plugins/example-plugin my-plugin
+cp -r src/plugins/example-plugin my-plugin
 cd my-plugin
 ```
 

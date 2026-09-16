@@ -18,4 +18,4 @@ import { formatT } from '@ert/shared/utils/plugin'
 import type { HostApi } from '@ert/plugin-api'
 ```
 
-新工具/能力若要跨项目复用：优先抽到本目录的包，或做成 `apps/desktop/plugins/*` 插件，避免再拷贝进业务仓库。
+新工具/能力若要跨项目复用：优先抽到本目录的包，或做成 `src/plugins/*` 插件，避免再拷贝进业务仓库。

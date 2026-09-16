@@ -1,6 +1,6 @@
 ---
 title: "插件系统"
-description: "三层插件来源：内置插件（随应用打包）→ 插件市场（GitHub 清单仓库）→ 本地导入（.zpx/.zip）。"
+description: "三层插件来源 + window.host 宿主 API；契约类型见 @ert/plugin-api。"
 ---
 
 # 插件系统
@@ -11,7 +11,7 @@ description: "三层插件来源：内置插件（随应用打包）→ 插件�
 
 | 来源 | 路径 | 说明 |
 |------|------|------|
-| 内置插件 | `plugins/` | 随应用打包，自动注册，不可卸载 |
+| 内置插件 | `src/plugins/` | 随应用打包，自动注册，不可卸载 |
 | 市场插件 | 在线下载 | 从 GitHub 插件仓库安装到 `userData/plugins/` |
 | 本地导入 | `.zpx`/`.zip` | 用户手动选择文件导入 |
 
@@ -25,7 +25,7 @@ description: "三层插件来源：内置插件（随应用打包）→ 插件�
 
 ### 市场仓库结构
 
-市场源为 GitHub 仓库（`electron/main/plugin-host/installer/market.ts` 中 `GITHUB_REPO` 配置），采用「清单 + 源码目录」模式：
+市场源为 GitHub 仓库（`src/main/features/plugin-host/installer/market.ts` 中 `GITHUB_REPO` 配置），采用「清单 + 源码目录」模式：
 
 ```
 manifest.json          # 插件清单（name/version/title/logo/downloadUrl）
@@ -86,7 +86,7 @@ plugins/<name>/        # 每个插件的源码目录
 
 ## 内置 OCR 服务
 
-`apps/desktop/plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
+`src/plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
 
 ```javascript
 const result = await host.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })

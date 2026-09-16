@@ -5,6 +5,20 @@ description: "三层插件来源 + 三层后端架构："
 
 # 架构概览
 
+## 仓库分层（对齐 cherry-studio）
+
+| 目录 | 职责 |
+|------|------|
+| `src/main` | 主进程：窗口、日志、插件宿主、capabilities |
+| `src/preload` | contextBridge |
+| `src/renderer` | 渲染进程（Vite root，含 `index.html` / `public`） |
+| `src/plugins` | 内置插件源码 |
+| `packages/*` | 跨项目契约与类型（`@ert/shared`、`@ert/plugin-api`） |
+| `resources` | 原生库、OCR 等打包资源 |
+| `tests` | 单元测试 + E2E |
+
+根目录只放构建配置（`package.json`、`vite.config.ts`、`electron-builder.json`、`tsconfig*`）。
+
 ## 整体架构
 
 ```
@@ -19,7 +33,7 @@ description: "三层插件来源 + 三层后端架构："
 │  │ Preload │                        │
 │  └────┬────┘                        │
 ├───────┼─────────────────────────────┤
-│       │ IPC                         │
+│       │ IPC（契约见 @ert/shared）     │
 │  ┌────▼────┐                        │
 │  │  Main   │                        │
 │  │ Process │                        │
@@ -27,12 +41,7 @@ description: "三层插件来源 + 三层后端架构："
 │       │                             │
 │  ┌────▼─────────────────────┐       │
 │  │  Plugin Subsystem        │       │
-│  │  ┌───────┬──────┬──────┐ │       │
-│  │  │ API   │Instl │Runtm │ │       │
-│  │  │Modules│aller │  e   │ │       │
-│  │  └───────┴──────┴──────┘ │       │
-│  │         Native Module    │       │
-│  │         (.node / .dylib) │       │
+│  │  window.host + installer │       │
 │  └──────────────────────────┘       │
 └─────────────────────────────────────┘
 ```
@@ -48,6 +57,7 @@ description: "三层插件来源 + 三层后端架构："
 | 路由 | React Router 7 |
 | 测试 | Vitest + Playwright |
 | 代码质量 | ESLint + Prettier |
+| 共享契约 | `@ert/shared` / `@ert/plugin-api` |
 
 ## 插件子系统
 
@@ -57,7 +67,7 @@ description: "三层插件来源 + 三层后端架构："
 
 | 来源 | 路径 | 说明 |
 |------|------|------|
-| 内置插件 | `plugins/` | 随应用打包，自动注册，不可卸载 |
+| 内置插件 | `src/plugins/` | 随应用打包，自动注册，不可卸载 |
 | 市场插件 | 在线下载 | 从 Host 市场安装到 `userData/plugins/` |
 | 本地导入 | `.zpx`/`.zip` | 用户手动选择文件导入 |
 

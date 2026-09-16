@@ -7,14 +7,15 @@ description: "环境要求、安装依赖、启动开发的完整流程，三步
 
 ## 环境要求
 
-- Node.js >= 18
-- pnpm >= 8
+- Node.js ≥ 20.19 或 ≥ 22.12
+- pnpm ≥ 8
+- （可选）[uv](https://docs.astral.sh/uv/)：启用 RapidOCR 引擎
 
 ## 安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/lawyerch-dev/electron-react-template.git
+git clone https://github.com/BluerAngala/electron-react-template.git
 cd electron-react-template
 
 # 安装依赖
@@ -29,7 +30,7 @@ pnpm dev
 
 这会同时启动 Vite 开发服务器和 Electron 应用，支持热更新。
 
-启动后，`plugins/` 下的内置插件自动注册，"我的插件"页面可查看。
+启动后，`src/plugins/` 下的内置插件自动注册，"我的插件"页面可查看。
 
 ## 构建
 
@@ -37,7 +38,7 @@ pnpm dev
 pnpm build
 ```
 
-构建产物位于 `dist/` 和 `dist-electron/` 目录。
+构建产物位于 `out/` 和 `out/electron/` 目录。
 
 ## 代码质量检查
 

@@ -63,20 +63,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 项目结构
 
-本仓库为 **pnpm monorepo**，宿主应用在 `apps/desktop/`，跨项目契约在 `packages/`：
+对齐 cherry-studio：源码只进 `src/`，可复用包进 `packages/`，静态资源进 `resources/`。
 
 ```
-apps/desktop/
+electron-react-template/
 ├── src/
-│   ├── main/                  主进程（app / services / features）
-│   ├── preload/               contextBridge
-│   └── renderer/              前端（app / shell / features / services / capabilities）
-├── plugins/                   内置插件源码（example-plugin、ocr-service）
+│   ├── main/                 主进程
+│   ├── preload/              contextBridge
+│   ├── renderer/             前端（含 index.html、public）
+│   └── plugins/              内置插件源码
+├── packages/
+│   ├── shared/               @ert/shared
+│   └── plugin-api/           @ert/plugin-api
+├── resources/ build/ tests/ scripts/ docs/
 └── package.json / vite.config.ts / electron-builder.json
-packages/
-├── shared/                    @ert/shared — IPC、类型、工具、capabilities 真源
-└── plugin-api/                @ert/plugin-api — window.host 类型
-docs/                          VitePress 文档站
 ```
 
 ## 插件系统
@@ -99,7 +99,7 @@ docs/                          VitePress 文档站
 2. 插件自身 `preload`（若 `plugin.json` 声明，如 OCR 的 `window.ocrService`）
 
 ### OCR 服务
-见 [`apps/desktop/plugins/ocr-service/README.md`](apps/desktop/plugins/ocr-service/README.md)。默认优先 RapidOCR（需 uv），否则系统 OCR / Tesseract.js。
+见 [`src/plugins/ocr-service/README.md`](src/plugins/ocr-service/README.md)。默认优先 RapidOCR（需 uv），否则系统 OCR / Tesseract.js。
 
 ## 主题系统
 

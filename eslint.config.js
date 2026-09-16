@@ -11,11 +11,13 @@ export default [
     ignores: [
       '**/dist/**',
       '**/dist-electron/**',
+      'out/**',
+      '**/out/**',
       'release/**',
       '**/node_modules/**',
       '参考项目/**',
       '**/plugins/**',
-      '**/test/e2e/**',
+      '**/tests/e2e/**',
       '**/src/main/features/plugin-host/plugin-preload.js',
       '**/resources/**',
       '**/build/**',
@@ -44,9 +46,9 @@ export default [
   // 渲染进程（浏览器环境）
   {
     files: [
-      'apps/desktop/src/renderer/**/*.{ts,tsx}',
+      'src/renderer/**/*.{ts,tsx}',
       'packages/shared/**/*.{ts,tsx}',
-      'apps/desktop/test/**/*.ts',
+      'test/**/*.ts',
     ],
     languageOptions: {
       parser: tsparser,
@@ -103,8 +105,8 @@ export default [
   // Electron 主进程（Node.js 环境）
   {
     files: [
-      'apps/desktop/src/main/**/*.ts',
-      'apps/desktop/src/preload/**/*.ts',
+      'src/main/**/*.ts',
+      'src/preload/**/*.ts',
       'packages/plugin-api/**/*.ts',
     ],
     languageOptions: {

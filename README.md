@@ -62,20 +62,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## Project Structure
 
-This repo is a **pnpm monorepo**. The host app lives in `apps/desktop/`, shared contracts in `packages/`:
+Aligned with cherry-studio: all source under `src/`, reusable packages under `packages/`, static assets under `resources/`.
 
 ```
-apps/desktop/
+electron-react-template/
 ├── src/
-│   ├── main/                  Main process (app / services / features)
-│   ├── preload/               contextBridge
-│   └── renderer/              UI (app / shell / features / services / capabilities)
-├── plugins/                   Built-in plugin sources (example-plugin, ocr-service)
+│   ├── main/                 Main process
+│   ├── preload/              contextBridge
+│   ├── renderer/             UI (index.html + public live here)
+│   └── plugins/              Built-in plugin sources
+├── packages/
+│   ├── shared/               @ert/shared
+│   └── plugin-api/           @ert/plugin-api
+├── resources/ build/ tests/ scripts/ docs/
 └── package.json / vite.config.ts / electron-builder.json
-packages/
-├── shared/                    @ert/shared — IPC, types, utils, capabilities source of truth
-└── plugin-api/                @ert/plugin-api — window.host types
-docs/                          VitePress site
 ```
 
 ## Plugin System

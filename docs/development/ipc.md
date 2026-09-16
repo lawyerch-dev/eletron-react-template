@@ -5,14 +5,29 @@ description: "插件通过 plugin-preload.js 中的 window.host 对象调用，�
 
 # IPC 通信
 
+## 契约真源
+
+通道名常量集中在 **`packages/shared/src/ipc/channels.ts`**（`IpcChannel`）。
+
+新能力顺序：
+
+1. 在 `channels.ts` 增加通道常量
+2. `src/preload/` 暴露
+3. `src/renderer/services/` 封装
+4. 主进程 `ipcMain.handle/on` 注册
+
+页面禁止直接调用 `window.ipcRenderer`，一律经 `src/renderer/services/`。
+
 ## 基本模式
 
 ```typescript
-// 渲染进程 → 主进程
-const result = await window.ipcRenderer.invoke('channel-name', ...args)
+import { IpcChannel } from '@ert/shared/ipc'
+
+// 渲染进程（经 service）
+const result = await window.ipcRenderer.invoke(IpcChannel.PluginList)
 
 // 主进程监听
-ipcMain.handle('channel-name', (event, ...args) => { ... })
+ipcMain.handle(IpcChannel.PluginList, (event, ...args) => { ... })
 ```
 
 ## 插件管理
