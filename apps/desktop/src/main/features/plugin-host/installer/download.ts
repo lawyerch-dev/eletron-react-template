@@ -21,7 +21,7 @@ export class DownloadCancelledError extends Error {
 
 /**
  * 使用 Electron net.request 下载文件到指定路径。
- * 逻辑与 ZTools 对齐，可自动跟随重定向并处理取消/进度回调。
+ * 逻辑与 Host 对齐，可自动跟随重定向并处理取消/进度回调。
  */
 export async function downloadFile(
   url: string,

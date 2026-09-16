@@ -2,7 +2,7 @@ import { app, ipcMain } from 'electron'
 import type { ProgressInfo, UpdateDownloadedEvent, UpdateInfo } from 'electron-updater'
 // Pure cjs module does not support named exports, so we need to import the default export and access the autoUpdater property
 import updater from 'electron-updater'
-import { IpcChannel } from '../../shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 const autoUpdater = updater.autoUpdater
 let cancellationToken = new updater.CancellationToken()

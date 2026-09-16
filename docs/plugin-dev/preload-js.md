@@ -119,15 +119,15 @@ window.services = {
 }
 ```
 
-## 与 `window.ztools` 的关系
+## 与 `window.host` 的关系
 
-宿主应用自动为每个插件窗口注入 `window.ztools` 全局对象，提供剪贴板、截图、数据库、通知等 50+ API，接口与 ZTools 完全兼容。插件无需额外配置即可使用。
+宿主应用自动为每个插件窗口注入 `window.host` 全局对象，提供剪贴板、截图、数据库、通知等 50+ API，接口与 Host 完全兼容。插件无需额外配置即可使用。
 
 ```javascript
 // 前端代码中直接调用，无需在 preload 中额外暴露
-ztools.copyText('hello')
-ztools.showNotification('任务完成')
-const image = await ztools.screenCapture()
+host.copyText('hello')
+host.showNotification('任务完成')
+const image = await host.screenCapture()
 ```
 
 Preload 脚本仅用于需要 **自定义 Node.js 原生能力** 的场景，如文件系统操作、子进程等。

@@ -11,7 +11,7 @@ description: "插件是运行在独立窗口中的 Web 应用，结合了 HTML/C
 
 - 🎨 使用 HTML、CSS、JavaScript 构建美观的用户界面
 - ⚡ 通过 Preload 脚本访问系统原生能力（文件系统、网络、进程等）
-- 🔌 使用丰富的 `window.ztools` API（通知、剪贴板、窗口管理、数据库等）
+- 🔌 使用丰富的 `window.host` API（通知、剪贴板、窗口管理、数据库等）
 - 📦 支持 Vue、React 等现代前端框架
 - 🌍 跨平台运行
 
@@ -78,7 +78,7 @@ cd my-plugin
 
 1. **安装** → 插件被复制到插件目录并注册
 2. **启动** → 以独立窗口加载 `index.html`，注入 `preload.js`
-3. **运行** → 插件通过 `window.ztools` 调用宿主 API
+3. **运行** → 插件通过 `window.host` 调用宿主 API
 4. **停止** → 关闭插件窗口
 
 ## 下一步

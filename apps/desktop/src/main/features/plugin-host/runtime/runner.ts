@@ -63,13 +63,13 @@ class Runner {
     const partition = getPluginSessionPartition(plugin.name)
     const sess = session.fromPartition(partition)
     const hostPreloadPath = getRuntimePreloadPath()
-    // 确保宿主运行时 preload 存在（window.ztools）
+    // 确保宿主运行时 preload 存在（window.host）
     if (!fs.existsSync(hostPreloadPath)) {
       return { success: false, error: '插件运行时未找到，请重启应用' }
     }
 
     // 注入插件自身 preload（plugin.json 的 preload 字段），如 ocr-service 的引擎注册
-    // 宿主 ztools 走 webPreferences.preload；插件 preload 走 session 注册，两者都会执行
+    // 宿主 host 走 webPreferences.preload；插件 preload 走 session 注册，两者都会执行
     const pluginPreloadRel = plugin.preload
     const pluginPreloadAbs = pluginPreloadRel ? path.join(plugin.path, pluginPreloadRel) : ''
     if (pluginPreloadAbs && fs.existsSync(pluginPreloadAbs)) {
@@ -88,7 +88,7 @@ class Runner {
       minHeight: 400,
       backgroundColor: '#ffffff',
       webPreferences: {
-        // 注意：plugin-preload.js 直接挂载 window.ztools，依赖 contextIsolation:false。
+        // 注意：plugin-preload.js 直接挂载 window.host，依赖 contextIsolation:false。
         // 迁移到 contextBridge 是后续安全加固项；在此之前禁止 nodeIntegration / 开启 webSecurity。
         contextIsolation: false,
         nodeIntegration: false,

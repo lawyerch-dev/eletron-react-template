@@ -25,10 +25,10 @@
 ### 3. 实现
 
 - 新组件放 `apps/desktop/src/renderer/features/<feature>/`（跨功能才进 shared）
-- 类型定义集中放 `apps/desktop/src/shared/types/`
-- IPC 通道命名：`kebab-case`，写入 `src/shared/ipc/channels.ts`
+- 类型定义集中放 `packages/shared/src/types/`
+- IPC 通道命名：`kebab-case`，写入 `packages/shared/src/ipc/channels.ts`
 - 样式：使用语义化 Token，禁止硬编码颜色
-- 插件相关工具函数放 `apps/desktop/src/shared/utils/plugin.ts`，不要定义在页面里再被组件反向 import
+- 插件相关工具函数放 `packages/shared/src/utils/plugin.ts`，不要定义在页面里再被组件反向 import
 - 渲染进程调主进程走 `src/renderer/services/`，禁止在页面里散落 `window.ipcRenderer`
 
 ### 4. 文档
@@ -70,49 +70,51 @@ git push
 ## 目录规范
 
 ```
-apps/desktop/                 # 桌面应用（pnpm workspace package: desktop）
-  package.json / vite.config.ts / electron-builder.json / tsconfig*
-  src/
-    main/                     # 主进程（后端）
-      main.ts                 # 入口装配
-      app/                    # 协议、主窗、日志
-      services/               # 可测业务（window-state、update）
-      features/
-        plugin-host/          # 插件宿主
-        capabilities/         # ocr/mcp/agent（与渲染开关同步）
-    preload/                  # contextBridge
-    renderer/                 # 渲染进程（前端）
-      app/                    # main.tsx、providers、routes、contexts
-      shell/                  # 布局 chrome
-      features/               # plugins、home、settings、update、ocr
-      services/               # 调 IPC 的封装（勿在页面里裸 invoke）
-      capabilities/           # 开关 + 路由聚合
-      i18n/ styles/ assets/ lib/
-    shared/                   # ★ 进程间契约（无 DOM / 无 electron）
-      ipc/channels.ts         # IpcChannel 常量
-      types/ utils/
-  plugins/ build/ resources/
-packages/                     # 真共享库预留
-docs/
+electron-react-template/      # pnpm monorepo
+  apps/desktop/               # 桌面宿主（workspace package: desktop）
+    package.json / vite.config.ts / electron-builder.json / tsconfig*
+    src/
+      main/                   # 主进程（后端）
+        main.ts               # 入口装配
+        app/                  # 协议、主窗、日志
+        services/             # 可测业务（window-state、update）
+        features/
+          plugin-host/        # 插件宿主（window.host）
+          capabilities/       # ocr/mcp/agent 注册（读 @ert/shared 开关）
+      preload/                # contextBridge
+      renderer/               # 渲染进程（前端）
+        app/                  # main.tsx、providers、routes、contexts
+        shell/                # 布局 chrome
+        features/             # plugins、home、settings、update、ocr
+        services/             # 调 IPC 的封装（勿在页面里裸 invoke）
+        capabilities/         # 路由/导航聚合
+        i18n/ styles/ assets/ lib/
+    plugins/                  # 内置插件源码（example-plugin、ocr-service）
+    build/ resources/ test/ scripts/
+  packages/
+    shared/                   # @ert/shared — IPC、类型、工具、capabilities 真源
+    plugin-api/               # @ert/plugin-api — window.host 类型（插件作者用）
+  docs/                       # VitePress 文档站
 ```
 
-**依赖方向**：`renderer/features` → `renderer/services` → `shared/ipc` ← `main/*`  
-禁止：渲染层直接散落 `window.ipcRenderer`；`shared` import electron/React；主进程 import React。
+**依赖方向**：`renderer/features` → `renderer/services` → `@ert/shared/ipc` ← `main/*`  
+禁止：渲染层直接散落 `window.ipcRenderer`；`@ert/shared` import electron/React；主进程 import React。
 
-**裁剪方式**：改 `src/renderer/capabilities/config.ts`（主进程同步 `src/main/features/capabilities/config.ts`）。新功能：前端 `renderer/features/<name>/`，主进程 `main/features/<name>/` 或 `main/services/`。
+**裁剪方式**：改 `packages/shared/src/capabilities/config.ts`（唯一真源）。新功能：前端 `renderer/features/<name>/`，主进程 `main/features/<name>/` 或 `main/services/`。跨项目复用的契约/工具优先抽到 `packages/*`，业务工具优先做成 `apps/desktop/plugins/*`。
+
 
 ---
 
 ## IPC 约定
 
-通道名集中在 `src/shared/ipc/channels.ts`。新能力先加通道常量，再写 preload/service/handler。
+通道名集中在 `packages/shared/src/ipc/channels.ts`。新能力先加通道常量，再写 preload/service/handler。
 
 ---
 
 ## 插件运行约定
 
 1. **启动注入两层 preload**
-   - 宿主：`plugin-preload.js` → `window.ztools`（`webPreferences.preload`）
+   - 宿主：`plugin-preload.js` → `window.host`（`webPreferences.preload`）
    - 插件自身：`plugin.json` 的 `preload` 字段 → 如 `window.ocrService`（`session.registerPreloadScript`）
 2. **图标协议**
    - 本地：`plugin-icon://proxy/<encodeURIComponent(绝对路径)>`，仅允许插件目录内图片

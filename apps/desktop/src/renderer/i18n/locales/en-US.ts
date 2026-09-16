@@ -107,7 +107,7 @@ const enUS = {
   // About
   'about.title': 'About',
   'about.desc': 'Project info and tech stack',
-  'about.name': 'eletron-react-template',
+  'about.name': 'electron-react-template',
   'about.intro':
     'An Electron + React + TypeScript desktop app template based on electron-vite-react.',
   'about.stack': 'Tech stack',

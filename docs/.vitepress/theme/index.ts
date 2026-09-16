@@ -11,7 +11,7 @@ export default {
     const route = useRoute()
     const isHome = computed(() => {
       const path = route.path.replace(/\/+$/, '')
-      return path === '' || path === '/eletron-react-template' || path === '/eletron-react-template/'
+      return path === '' || path === '/electron-react-template' || path === '/electron-react-template/'
     })
 
     if (isHome.value) {

@@ -286,8 +286,8 @@ function createZBrowserClient() {
   return client
 }
 
-window.ztools = {
-  getAppName: () => 'ZTools',
+window.host = {
+  getAppName: () => 'Electron React Template',
   // 获取拖放文件的路径（Electron webUtils）
   getPathForFile: (file) => electron.webUtils.getPathForFile(file),
   // 平台检测
@@ -305,7 +305,7 @@ window.ztools = {
   isDarkColors: () => electron.ipcRenderer.sendSync('is-dark-colors'),
   // 获取当前登录用户的公开资料
   getUser: () => ipcSendSync('getUser'),
-  // 获取当前插件访问 ZTools 服务端的短期鉴权令牌
+  // 获取当前插件访问 Host 服务端的短期鉴权令牌
   getUserTempToken: () => ipcInvoke('getUserTempToken'),
   // 获取当前主题信息（isDark, primaryColor, customColor, windowMaterial）
   getThemeInfo: () => ipcSendSync('getThemeInfo'),
@@ -577,8 +577,8 @@ window.ztools = {
   createBrowserWindow: (url, options, callback) => {
     // 注册 callback（子窗口 dom-ready 时由主进程在父窗口触发）
     if (typeof callback === 'function') {
-      window.ztools.__event__ = window.ztools.__event__ || {}
-      window.ztools.__event__.createBrowserWindowCallback = callback
+      window.host.__event__ = window.host.__event__ || {}
+      window.host.__event__.createBrowserWindowCallback = callback
     }
 
     // 同步创建窗口，返回 { id, methods[], invokes[], webContents: { id, methods[], invokes[] } }
@@ -675,12 +675,12 @@ window.ztools = {
   getFileIcon: async (filePath) => await electron.ipcRenderer.invoke('get-file-icon', filePath),
   // 插件跳转
   redirect: (label, payload) =>
-    electron.ipcRenderer.sendSync('ztools-redirect', { label, payload }),
+    electron.ipcRenderer.sendSync('host-redirect', { label, payload }),
   // 跳转到快捷键设置
   redirectHotKeySetting: (cmdLabel) =>
-    electron.ipcRenderer.sendSync('ztools-redirect-hotkey-setting', cmdLabel),
+    electron.ipcRenderer.sendSync('host-redirect-hotkey-setting', cmdLabel),
   // 跳转到 AI 模型设置
-  redirectAiModelsSetting: () => electron.ipcRenderer.sendSync('ztools-redirect-ai-models-setting'),
+  redirectAiModelsSetting: () => electron.ipcRenderer.sendSync('host-redirect-ai-models-setting'),
   // HTTP 请求头设置
   http: {
     // 设置请求头
@@ -766,7 +766,7 @@ window.ztools = {
     }
   },
 
-  // 翻译便捷封装：ztools.translate(text, { from?, to?, providerId? }) → { text, detectedFrom? }
+  // 翻译便捷封装：host.translate(text, { from?, to?, providerId? }) → { text, detectedFrom? }
   translate: async (text, options = {}) => {
     const { from, to, providerId } = options || {}
     return await ipcInvoke('providersInvoke', {
@@ -776,7 +776,7 @@ window.ztools = {
     })
   },
 
-  // OCR 便捷封装：ztools.ocr(image, { lang?, providerId? }) → { text, blocks?, confidence? }
+  // OCR 便捷封装：host.ocr(image, { lang?, providerId? }) → { text, blocks?, confidence? }
   ocr: async (image, options = {}) => {
     const { lang, providerId } = options || {}
     return await ipcInvoke('providersInvoke', {
@@ -1457,15 +1457,15 @@ window.ztools = {
   getIdleUBrowsers: () => ipcSendSync('getIdleZBrowsers'),
   /**
    * 设置 zbrowser Session 代理
-   * ⚠️ 破坏性变更：uTools 为同步 API，ZTools 改为异步（返回 Promise<boolean>）
+   * ⚠️ 破坏性变更：uTools 为同步 API，Host 改为异步（返回 Promise<boolean>）
    */
   setUBrowserProxy: (config) => ipcInvoke('setZBrowserProxy', config),
   /**
    * 清除 zbrowser Session 缓存
-   * ⚠️ 破坏性变更：uTools 为同步 API，ZTools 改为异步（返回 Promise<boolean>）
+   * ⚠️ 破坏性变更：uTools 为同步 API，Host 改为异步（返回 Promise<boolean>）
    */
   clearUBrowserCache: () => ipcInvoke('clearZBrowserCache'),
-  /** ubrowserLogin 兼容桩（ZTools 暂不支持，返回 null） */
+  /** ubrowserLogin 兼容桩（Host 暂不支持，返回 null） */
   ubrowserLogin: () => ipcInvoke('ubrowserLogin'),
   // ── FFmpeg API ──
   // 注意：runFFmpeg 在 preload 端直接 spawn 子进程，而非走 IPC 转发到主进程。
@@ -1727,22 +1727,22 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
   var LIST_CSS = [
     '* { margin:0; padding:0; box-sizing:border-box; }',
     'body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; overflow:hidden;}',
-    '.ztools-list { max-height:100vh; overflow-y:auto; overflow-x:hidden; padding:0 0 2px 0; }',
-    '.ztools-li { display:flex; align-items:center; gap:12px; padding:8px 12px; border-radius:6px; cursor:pointer; transition:background-color .15s; user-select:none; }',
-    '.ztools-li:hover { background:rgba(0,0,0,.05); }',
-    '.ztools-li.selected { background:rgba(0,0,0,.05); }',
-    '.ztools-list.ignore-mouse-hover .ztools-li:hover { background:transparent; }',
-    '.ztools-li-icon { flex-shrink:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; }',
-    '.ztools-li-icon img { width:100%; height:100%; object-fit:contain; }',
-    '.ztools-li-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }',
-    '.ztools-li-title { font-size:14px; font-weight:500; color:#1a1a1a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
-    '.ztools-li-desc { font-size:12px; color:#666; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+    '.host-list { max-height:100vh; overflow-y:auto; overflow-x:hidden; padding:0 0 2px 0; }',
+    '.host-li { display:flex; align-items:center; gap:12px; padding:8px 12px; border-radius:6px; cursor:pointer; transition:background-color .15s; user-select:none; }',
+    '.host-li:hover { background:rgba(0,0,0,.05); }',
+    '.host-li.selected { background:rgba(0,0,0,.05); }',
+    '.host-list.ignore-mouse-hover .host-li:hover { background:transparent; }',
+    '.host-li-icon { flex-shrink:0; width:32px; height:32px; display:flex; align-items:center; justify-content:center; }',
+    '.host-li-icon img { width:100%; height:100%; object-fit:contain; }',
+    '.host-li-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }',
+    '.host-li-title { font-size:14px; font-weight:500; color:#1a1a1a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+    '.host-li-desc { font-size:12px; color:#666; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
     '@media(prefers-color-scheme:dark){',
-    '  .ztools-li:hover { background:rgba(255,255,255,.08); }',
-    '  .ztools-li.selected { background:rgba(255,255,255,.08); }',
-    '  .ztools-list.ignore-mouse-hover .ztools-li:hover { background:transparent; }',
-    '  .ztools-li-title { color:#e5e5e5; }',
-    '  .ztools-li-desc { color:#999; }',
+    '  .host-li:hover { background:rgba(255,255,255,.08); }',
+    '  .host-li.selected { background:rgba(255,255,255,.08); }',
+    '  .host-list.ignore-mouse-hover .host-li:hover { background:transparent; }',
+    '  .host-li-title { color:#e5e5e5; }',
+    '  .host-li-desc { color:#999; }',
     '}'
   ].join('\n')
 
@@ -1754,7 +1754,7 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
     style.textContent = LIST_CSS
     document.head.appendChild(style)
     var container = document.createElement('div')
-    container.className = 'ztools-list'
+    container.className = 'host-list'
     document.body.appendChild(container)
     listState.container = container
   }
@@ -1774,11 +1774,11 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
     for (var i = 0; i < listState.items.length; i++) {
       var item = listState.items[i]
       var div = document.createElement('div')
-      div.className = 'ztools-li' + (i === 0 ? ' selected' : '')
+      div.className = 'host-li' + (i === 0 ? ' selected' : '')
       div.dataset.index = i
 
       var iconDiv = document.createElement('div')
-      iconDiv.className = 'ztools-li-icon'
+      iconDiv.className = 'host-li-icon'
       if (item.icon) {
         var img = document.createElement('img')
         // 解析图标路径
@@ -1802,14 +1802,14 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
       div.appendChild(iconDiv)
 
       var bodyDiv = document.createElement('div')
-      bodyDiv.className = 'ztools-li-body'
+      bodyDiv.className = 'host-li-body'
       var titleDiv = document.createElement('div')
-      titleDiv.className = 'ztools-li-title'
+      titleDiv.className = 'host-li-title'
       titleDiv.textContent = item.title || ''
       bodyDiv.appendChild(titleDiv)
       if (item.description) {
         var descDiv = document.createElement('div')
-        descDiv.className = 'ztools-li-desc'
+        descDiv.className = 'host-li-desc'
         descDiv.textContent = item.description
         bodyDiv.appendChild(descDiv)
       }
@@ -1846,7 +1846,7 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
   }
 
   function updateSelection() {
-    var nodes = listState.container ? listState.container.querySelectorAll('.ztools-li') : []
+    var nodes = listState.container ? listState.container.querySelectorAll('.host-li') : []
     for (var i = 0; i < nodes.length; i++) {
       if (i === listState.selectedIndex) {
         nodes[i].classList.add('selected')
@@ -1854,18 +1854,18 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
         nodes[i].classList.remove('selected')
       }
     }
-    var sel = listState.container && listState.container.querySelector('.ztools-li.selected')
+    var sel = listState.container && listState.container.querySelector('.host-li.selected')
     if (sel) sel.scrollIntoView({ block: 'nearest' })
   }
 
   function updateHeight() {
     var container = listState.container
     if (!container || container.children.length === 0) {
-      window.ztools.setExpendHeight(0)
+      window.host.setExpendHeight(0)
       return
     }
     var height = Math.min(container.scrollHeight, 541)
-    window.ztools.setExpendHeight(height)
+    window.host.setExpendHeight(height)
   }
 
   function doSelect() {
@@ -1938,7 +1938,7 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
     // 设置子输入框（搜索）
     if (feature.args && typeof feature.args.search === 'function') {
       var searchFn = feature.args.search
-      window.ztools.setSubInput(
+      window.host.setSubInput(
         function (details) {
           searchFn(action, details.text, callbackSetList)
         },

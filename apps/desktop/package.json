@@ -21,6 +21,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\""
   },
   "dependencies": {
+    "@ert/shared": "workspace:*",
+    "@ert/plugin-api": "workspace:*",
     "@electron/asar": "^4.3.0",
     "adm-zip": "^0.6.0",
     "electron-log": "^5.4.4",

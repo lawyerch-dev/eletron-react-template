@@ -65,4 +65,4 @@ cd dist
 zip -r ../my-plugin.zip .
 ```
 
-或使用 `.zpx` 格式（ZTools 插件包格式）。
+或使用 `.zpx` 格式（Host 插件包格式）。

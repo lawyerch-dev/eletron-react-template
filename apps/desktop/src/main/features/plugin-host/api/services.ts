@@ -2,7 +2,7 @@
  * 插件 API 服务入口
  *
  * 初始化所有插件 API 模块 + 统一分发器 + 数据库 API。
- * 各模块从 ZTools 源码适配而来，保持与 ZTools 插件 API 兼容。
+ * 各模块从 Host 源码适配而来，保持与 Host 插件 API 兼容。
  */
 import type { RunningPlugin } from '../runtime/runner'
 import { pluginDb } from '../store'
@@ -185,8 +185,8 @@ function registerPluginApiServices_(): void {
   })
 }
 
-/** 注册 ZTools 特有功能的 stub handler（防止插件调用时报错） */
-function registerZToolsStubs(): void {
+/** 注册 Host 特有功能的 stub handler（防止插件调用时报错） */
+function registerHostStubs(): void {
   const { ipcMain } = require('electron') as typeof import('electron')
 
   // ZBrowser
@@ -256,8 +256,8 @@ export function initPluginRuntime(): void {
   registerPluginApiServices_()
   // 3. 注册数据库 API
   registerDatabaseApis()
-  // 4. 注册 ZTools 特有功能 stub
-  registerZToolsStubs()
+  // 4. 注册 Host 特有功能 stub
+  registerHostStubs()
   // 5. 初始化各模块（直接 IPC 通道）
   clipboardAPI.init()
   deviceAPI.init()

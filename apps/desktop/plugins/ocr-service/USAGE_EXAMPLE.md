@@ -49,7 +49,7 @@ window.invoiceReader = {
   async recognizeInvoice(imagePath) {
     try {
       // 调用 OCR 服务识别文字
-      const ocrResult = await ztools.ocr(imagePath, {
+      const ocrResult = await host.ocr(imagePath, {
         lang: 'chi_sim+eng'
       })
 
@@ -67,7 +67,7 @@ window.invoiceReader = {
 
       // 如果 OCR 服务不可用，提示用户
       if (error.message.includes('未注册')) {
-        ztools.showToast('请先安装 OCR 服务插件')
+        host.showToast('请先安装 OCR 服务插件')
       }
 
       return {
@@ -235,7 +235,7 @@ window.invoiceReader = {
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  发票识别插件    │ →   │  ztools.ocr()   │ →   │  OCR 服务插件   │
+│  发票识别插件    │ →   │  host.ocr()   │ →   │  OCR 服务插件   │
 │  (消费者)       │     │  (Provider API) │     │  (提供者)       │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
@@ -254,13 +254,13 @@ window.invoiceReader = {
 const engines = window.ocrService?.getEngines() || []
 
 // 指定引擎
-const result = await ztools.ocr(image, { 
+const result = await host.ocr(image, { 
   engine: 'system',  // 使用系统原生 OCR
   lang: 'chi_sim'
 })
 
 // 直接调用 Provider API
-const result = await ztools.providers.invokeProvider('ocr', {
+const result = await host.providers.invokeProvider('ocr', {
   image: '/path/to/image.png',
   lang: 'eng'
 })

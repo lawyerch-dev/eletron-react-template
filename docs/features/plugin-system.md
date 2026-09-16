@@ -67,10 +67,10 @@ plugins/<name>/        # 每个插件的源码目录
 
 启动插件窗口时会加载两层脚本：
 
-1. **宿主** `plugin-preload.js` → `window.ztools`（IPC / Provider）
+1. **宿主** `plugin-preload.js` → `window.host`（IPC / Provider）
 2. **插件自身** `plugin.json` 的 `preload` 字段 → 例如 OCR 服务的 `window.ocrService`
 
-未声明 `preload` 的插件只有 ztools API。
+未声明 `preload` 的插件只有 host API。
 
 ### 运行时依赖
 
@@ -89,7 +89,7 @@ plugins/<name>/        # 每个插件的源码目录
 `apps/desktop/plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
 
 ```javascript
-const result = await ztools.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })
+const result = await host.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })
 ```
 
 引擎优先级：RapidOCR（uv）→ 系统原生 → Tesseract.js。详见插件目录 README。
@@ -99,15 +99,15 @@ const result = await ztools.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })
 - **ZPX**: ASAR 压缩格式，支持版本管理
 - **ZIP**: 普通压缩包，根目录必须包含 `plugin.json`
 
-## ZTools 兼容
+## Host 兼容
 
-插件通过 `window.ztools` 调用宿主 API，接口与 ZTools 完全一致：
+插件通过 `window.host` 调用宿主 API，接口与 Host 完全一致：
 
 ```javascript
 // 截图 → OCR
-ztools.screenCapture(async (base64) => {
-  const text = await ztools.ai({ prompt: '识别图片文字', messages: [...] })
-  ztools.copyText(text)
+host.screenCapture(async (base64) => {
+  const text = await host.ai({ prompt: '识别图片文字', messages: [...] })
+  host.copyText(text)
 })
 ```
 

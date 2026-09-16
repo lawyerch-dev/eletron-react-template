@@ -47,6 +47,12 @@ importers:
       '@electron/asar':
         specifier: ^4.3.0
         version: 4.3.0
+      '@ert/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      '@ert/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       adm-zip:
         specifier: ^0.6.0
         version: 0.6.0
@@ -129,6 +135,10 @@ importers:
       vitest:
         specifier: ^4.1.8
         version: 4.1.10(@types/node@26.1.1)(vite@8.2.1(@types/node@26.1.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/plugin-api: {}
+
+  packages/shared: {}
 
 packages:
 

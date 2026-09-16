@@ -1,5 +1,5 @@
 /** 市场单个插件描述（与主进程 market 模块保持一致） */
-interface MarketPlugin {
+export interface MarketPlugin {
   name: string
   version: string
   title?: string
@@ -17,14 +17,7 @@ interface MarketPlugin {
   [key: string]: unknown
 }
 
-interface MarketListResult {
-  success: boolean
-  data?: MarketPlugin[]
-  categories?: MarketCategory[]
-  error?: string
-}
-
-interface MarketCategory {
+export interface MarketCategory {
   id: number
   title: string
   description?: string
@@ -32,8 +25,15 @@ interface MarketCategory {
   plugins: MarketPlugin[]
 }
 
+export interface MarketListResult {
+  success: boolean
+  data?: MarketPlugin[]
+  categories?: MarketCategory[]
+  error?: string
+}
+
 /** 已安装插件记录 */
-interface InstalledPluginInfo {
+export interface InstalledPluginInfo {
   name: string
   title: string
   version: string
@@ -51,14 +51,15 @@ interface InstalledPluginInfo {
   isBuiltin?: boolean
 }
 
-interface PluginDownloadProgress {
+export interface PluginDownloadProgress {
   pluginName: string
   status: 'downloading' | 'installing' | 'success' | 'error' | 'cancelled'
   progress: number | null
   error?: string
 }
 
-interface PluginBridge {
+/** 宿主暴露给渲染进程的插件管理桥（preload → window.plugin） */
+export interface PluginBridge {
   marketList: () => Promise<MarketListResult>
   marketRecommendations: (limit?: number) => Promise<MarketPlugin[]>
   marketReadme: (
@@ -84,8 +85,4 @@ interface PluginBridge {
   onPluginsChanged: (cb: () => void) => () => void
   onDownloadProgress: (cb: (payload: PluginDownloadProgress) => void) => () => void
   onToast: (cb: (payload: unknown) => void) => () => void
-}
-
-interface Window {
-  plugin: PluginBridge
 }

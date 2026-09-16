@@ -12,7 +12,7 @@ import {
 } from './app'
 import { initPluginSubsystem } from './features/plugin-host'
 import { initCapabilities, isCapabilityEnabled } from './features/capabilities'
-import { IpcChannel } from '../shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

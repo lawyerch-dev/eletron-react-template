@@ -1,8 +1,8 @@
-# eletron-react-template
+# electron-react-template
 
-[![GitHub stars](https://img.shields.io/github/stars/lawyerch-dev/eletron-react-template?color=fa6470)](https://github.com/lawyerch-dev/eletron-react-template/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/lawyerch-dev/eletron-react-template?color=d8b22d)](https://github.com/lawyerch-dev/eletron-react-template/issues)
-[![GitHub license](https://img.shields.io/github/license/lawyerch-dev/eletron-react-template)](https://github.com/lawyerch-dev/eletron-react-template/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/lawyerch-dev/electron-react-template?color=fa6470)](https://github.com/lawyerch-dev/electron-react-template/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/lawyerch-dev/electron-react-template?color=d8b22d)](https://github.com/lawyerch-dev/electron-react-template/issues)
+[![GitHub license](https://img.shields.io/github/license/lawyerch-dev/electron-react-template)](https://github.com/lawyerch-dev/electron-react-template/blob/main/LICENSE)
 [![Required Node.js >= 20.19.0 || >= 22.12.0](https://img.shields.io/static/v1?label=node&message=%3E=20.19.0%20||%20%3E=22.12.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
 English | [简体中文](README.zh-CN.md)
@@ -34,8 +34,8 @@ An Electron + React + TypeScript desktop application with a built-in plugin syst
 ## Quick Start
 
 ```sh
-git clone https://github.com/lawyerch-dev/eletron-react-template.git
-cd eletron-react-template
+git clone https://github.com/lawyerch-dev/electron-react-template.git
+cd electron-react-template
 pnpm install
 pnpm dev
 ```
@@ -62,19 +62,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## Project Structure
 
-This repo is a **pnpm monorepo**. The app lives in `apps/desktop/`:
+This repo is a **pnpm monorepo**. The host app lives in `apps/desktop/`, shared contracts in `packages/`:
 
 ```
 apps/desktop/
 ├── src/
 │   ├── main/                  Main process (app / services / features)
 │   ├── preload/               contextBridge
-│   ├── renderer/              UI (app / shell / features / services)
-│   └── shared/                IPC contracts + pure types/utils
-├── plugins/ / build/ / resources/
+│   └── renderer/              UI (app / shell / features / services / capabilities)
+├── plugins/                   Built-in plugin sources (example-plugin, ocr-service)
 └── package.json / vite.config.ts / electron-builder.json
-packages/                    Shared packages (reserved)
-docs/                        VitePress site
+packages/
+├── shared/                    @ert/shared — IPC, types, utils, capabilities source of truth
+└── plugin-api/                @ert/plugin-api — window.host types
+docs/                          VitePress site
 ```
 
 ## Plugin System
@@ -146,7 +147,7 @@ Key channels: `plugin:market-list`, `plugin:market-install`, `plugin:import-from
 
 ## Documentation
 
-Full documentation is available at [https://bluerangala.github.io/eletron-react-template/](https://bluerangala.github.io/eletron-react-template/). Built with VitePress, deployed via GitHub Actions.
+Full documentation is available at [https://bluerangala.github.io/electron-react-template/](https://bluerangala.github.io/electron-react-template/). Built with VitePress, deployed via GitHub Actions.
 
 ## License
 

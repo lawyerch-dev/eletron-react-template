@@ -1,5 +1,5 @@
 {
-  "name": "ztools-plugin-example",
+  "name": "host-plugin-example",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,5 @@
   },
   "devDependencies": {
     "vite": "^6.0.0"
-  },
-  "dependencies": {
-    "@ztools-center/ztools-api-types": "^1.0.0"
   }
 }

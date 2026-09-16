@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Boxes } from 'lucide-react'
-import { logoUrl } from '@shared/utils/plugin'
+import { logoUrl } from '@ert/shared/utils/plugin'
 
 interface Props {
   logo?: string

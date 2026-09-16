@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const SITE_URL = 'https://bluerangala.github.io'
-const BASE = '/eletron-react-template/'
+const BASE = '/electron-react-template/'
 const SITE_NAME = 'Electron React Template'
 const SITE_DESC =
   '基于 Electron + React + TypeScript 的桌面应用模板，集成插件系统、主题系统、国际化与自动更新，开箱即用'
@@ -24,7 +24,7 @@ function jsonLd(pageData: { title?: string; description?: string }, url: string,
       operatingSystem: 'macOS, Windows, Linux',
       applicationCategory: 'DeveloperApplication',
       softwareVersion: '1.1.0',
-      license: 'https://github.com/BluerAngala/eletron-react-template/blob/main/LICENSE',
+      license: 'https://github.com/BluerAngala/electron-react-template/blob/main/LICENSE',
       publisher: { '@type': 'Organization', name: 'BluerAngala' },
     }
   }
@@ -125,7 +125,7 @@ export default defineConfig({
       { text: '功能', link: '/features/plugin-system' },
       { text: '插件开发', link: '/plugin-dev/getting-started' },
       { text: '开发', link: '/development/architecture' },
-      { text: 'GitHub', link: 'https://github.com/BluerAngala/eletron-react-template' },
+      { text: 'GitHub', link: 'https://github.com/BluerAngala/electron-react-template' },
     ],
 
     sidebar: {
@@ -187,7 +187,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/BluerAngala/eletron-react-template/edit/main/docs/:path',
+      pattern: 'https://github.com/BluerAngala/electron-react-template/edit/main/docs/:path',
       text: '在 GitHub 上编辑此页',
     },
 
@@ -197,7 +197,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/BluerAngala/eletron-react-template' },
+      { icon: 'github', link: 'https://github.com/BluerAngala/electron-react-template' },
     ],
 
     footer: {

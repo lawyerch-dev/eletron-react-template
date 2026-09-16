@@ -45,10 +45,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```javascript
 // 使用默认引擎（有 RapidOCR 时优先）
-const result = await ztools.ocr(image, { lang: 'chi_sim' })
+const result = await host.ocr(image, { lang: 'chi_sim' })
 
 // 指定引擎
-const result = await ztools.ocr(image, {
+const result = await host.ocr(image, {
   engine: 'rapidocr',  // 或 'system', 'tesseract', 'paddleocr'
   lang: 'chi_sim'
 })

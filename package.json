@@ -1,19 +1,19 @@
 {
-  "name": "eletron-react-template",
+  "name": "electron-react-template",
   "version": "1.1.0",
   "private": true,
-  "description": "Electron + React + TypeScript 桌面应用 monorepo 模板，基于 electron-vite-react 二次开发。",
+  "description": "Electron + React + TypeScript 桌面应用 monorepo 模板（插件宿主 + 能力裁剪 + 语义主题）。",
   "license": "MIT",
   "author": "BluerAngala",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BluerAngala/eletron-react-template.git"
+    "url": "https://github.com/BluerAngala/electron-react-template.git"
   },
   "bugs": {
-    "url": "https://github.com/BluerAngala/eletron-react-template/issues"
+    "url": "https://github.com/BluerAngala/electron-react-template/issues"
   },
-  "homepage": "https://github.com/BluerAngala/eletron-react-template#readme",
+  "homepage": "https://github.com/BluerAngala/electron-react-template#readme",
   "scripts": {
     "dev": "pnpm --filter desktop dev",
     "build": "pnpm --filter desktop build",
@@ -21,10 +21,10 @@
     "test": "pnpm --filter desktop test",
     "test:e2e": "pnpm --filter desktop test:e2e",
     "typecheck": "pnpm --filter desktop typecheck",
-    "lint": "eslint apps/desktop --ext .ts,.tsx",
-    "lint:fix": "eslint apps/desktop --ext .ts,.tsx --fix",
-    "format": "prettier --write \"apps/desktop/src/**/*.{ts,tsx,css,json}\"",
-    "format:check": "prettier --check \"apps/desktop/src/**/*.{ts,tsx,css,json}\"",
+    "lint": "eslint apps/desktop packages --ext .ts,.tsx",
+    "lint:fix": "eslint apps/desktop packages --ext .ts,.tsx --fix",
+    "format": "prettier --write \"apps/desktop/src/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"apps/desktop/src/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,tsx,json,md}\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

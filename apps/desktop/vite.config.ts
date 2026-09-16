@@ -7,9 +7,14 @@ import { electronSimple } from 'vite-plugin-electron/multi-env'
 import { notBundle } from 'vite-plugin-electron/plugin'
 import pkg from './package.json' with { type: 'json' }
 
-const external = Object.keys(
-  'dependencies' in pkg ? (pkg.dependencies as Record<string, string>) : {},
-)
+const deps =
+  'dependencies' in pkg ? (pkg.dependencies as Record<string, string>) : {}
+// workspace 源码包需要打进 bundle，不能当 external
+const external = Object.keys(deps).filter((name) => !name.startsWith('@ert/'))
+
+const repoRoot = path.resolve(import.meta.dirname, '../..')
+const sharedSrc = path.join(repoRoot, 'packages/shared/src')
+const pluginApiSrc = path.join(repoRoot, 'packages/plugin-api/src')
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -21,10 +26,21 @@ export default defineConfig(({ command }) => {
 
   return {
     resolve: {
-      alias: {
-        '@shared': path.join(import.meta.dirname, 'src/shared'),
-        '@': path.join(import.meta.dirname, 'src/renderer'),
-      },
+      alias: [
+        { find: /^@ert\/shared\/ipc$/, replacement: path.join(sharedSrc, 'ipc/index.ts') },
+        { find: /^@ert\/shared\/types$/, replacement: path.join(sharedSrc, 'types/index.ts') },
+        {
+          find: /^@ert\/shared\/utils\/plugin$/,
+          replacement: path.join(sharedSrc, 'utils/plugin.ts'),
+        },
+        {
+          find: /^@ert\/shared\/capabilities$/,
+          replacement: path.join(sharedSrc, 'capabilities/config.ts'),
+        },
+        { find: /^@ert\/shared$/, replacement: path.join(sharedSrc, 'index.ts') },
+        { find: /^@ert\/plugin-api$/, replacement: path.join(pluginApiSrc, 'index.ts') },
+        { find: '@', replacement: path.join(import.meta.dirname, 'src/renderer') },
+      ],
     },
     plugins: [
       react(),

@@ -170,8 +170,8 @@
     <div class="section">
       <div class="section-title">调用示例</div>
       <div class="api-example">
-        <span class="comment">// 其他插件可以通过 ztools 调用 OCR 服务（默认优先 RapidOCR）</span><br><br>
-        <span class="keyword">const</span> result = <span class="keyword">await</span> ztools.<span class="function">ocr</span>(image, {<br>
+        <span class="comment">// 其他插件可以通过 host 调用 OCR 服务（默认优先 RapidOCR）</span><br><br>
+        <span class="keyword">const</span> result = <span class="keyword">await</span> host.<span class="function">ocr</span>(image, {<br>
         &nbsp;&nbsp;engine: <span class="string">'rapidocr'</span>,&nbsp;<span class="comment">// 或 'system' / 'tesseract'</span><br>
         &nbsp;&nbsp;lang: <span class="string">'chi_sim'</span><br>
         })<br>
@@ -463,8 +463,8 @@
 
     function copyResult() {
       const text = document.getElementById('resultText').textContent
-      if (text && window.ztools?.copyText) {
-        window.ztools.copyText(text)
+      if (text && window.host?.copyText) {
+        window.host.copyText(text)
         document.getElementById('status').textContent = '✅ 已复制到剪贴板'
         setTimeout(() => {
           document.getElementById('status').textContent = ''

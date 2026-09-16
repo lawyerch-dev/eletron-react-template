@@ -1,4 +1,5 @@
-import { IpcChannel } from '@shared/ipc'
+import type { PluginDownloadProgress } from '@ert/shared/types'
+import { IpcChannel } from '@ert/shared/ipc'
 
 /** 插件市场 / 安装运行 —— 渲染进程 service（经 preload window.plugin） */
 export const pluginService = {

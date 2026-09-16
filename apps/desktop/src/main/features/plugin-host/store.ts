@@ -9,7 +9,7 @@ interface StoredDoc {
 }
 
 /**
- * 基于 electron-store 的精简 KV 文档存储，替代 ZTools 的 LMDB。
+ * 基于 electron-store 的精简 KV 文档存储，替代 Host 的 LMDB。
  * 数据结构与插件运行时约定保持兼容：
  * - 宿主数据以 `ZTOOLS/<key>` 为文档 id
  * - 插件私有数据以 `PLUGIN/<pluginName>/<key>` 隔离

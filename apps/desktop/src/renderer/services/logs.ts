@@ -1,4 +1,4 @@
-import { IpcChannel } from '@shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 export const logsService = {
   getAll: () => window.ipcRenderer.invoke(IpcChannel.GetLogs) as Promise<LogEntry[]>,

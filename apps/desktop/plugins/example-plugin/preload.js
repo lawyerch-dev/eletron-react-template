@@ -51,7 +51,7 @@ window.myPluginApi = {
   recognizeImage: async (imagePath) => {
     try {
       // 检查是否有可用的 OCR provider
-      const providers = await ztools.providers.getProviders('ocr')
+      const providers = await host.providers.getProviders('ocr')
       if (!providers || providers.length === 0) {
         return {
           success: false,
@@ -60,7 +60,7 @@ window.myPluginApi = {
       }
 
       // 调用 OCR 服务
-      const result = await ztools.ocr(imagePath, {
+      const result = await host.ocr(imagePath, {
         lang: 'chi_sim+eng'  // 支持中英文
       })
 

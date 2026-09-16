@@ -58,14 +58,14 @@ description: "三层插件来源 + 三层后端架构："
 | 来源 | 路径 | 说明 |
 |------|------|------|
 | 内置插件 | `plugins/` | 随应用打包，自动注册，不可卸载 |
-| 市场插件 | 在线下载 | 从 ZTools 市场安装到 `userData/plugins/` |
+| 市场插件 | 在线下载 | 从 Host 市场安装到 `userData/plugins/` |
 | 本地导入 | `.zpx`/`.zip` | 用户手动选择文件导入 |
 
 ### 后端架构
 
 | 模块 | 目录 | 职责 |
 |------|------|------|
-| API | `api/` | 14 个模块，每个自注册 IPC handler，提供 ZTools 兼容 API |
+| API | `api/` | 14 个模块，每个自注册 IPC handler，提供 Host 兼容 API |
 | 安装 | `installer/` | 市场下载、本地导入、ZPX 解析、安装回写 |
 | 运行时 | `runtime/` | 注册表、运行器、HTTP 客户端 |
 | 原生 | `api/native/` | 加载 `.node` 原生模块，提供模拟输入/剪贴板监听等能力 |
@@ -74,7 +74,7 @@ description: "三层插件来源 + 三层后端架构："
 
 ```
 插件窗口 (plugin-preload.js)
-  → window.ztools.xxx()
+  → window.host.xxx()
   → ipcRenderer.sendSync/invoke('channel-name', args)
   → 主进程 API 模块处理
   → 返回结果

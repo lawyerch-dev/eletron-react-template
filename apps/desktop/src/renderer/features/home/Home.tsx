@@ -32,7 +32,7 @@ export function Home() {
           {/* 双按钮：仓库 + 检查更新 */}
           <div className="grid grid-cols-2 gap-3">
             <a
-              href="https://github.com/BluerAngala/eletron-react-template"
+              href="https://github.com/BluerAngala/electron-react-template"
               target="_blank"
               rel="noreferrer"
               className="group flex items-center justify-center gap-3 rounded-2xl border border-border-default bg-surface p-4 shadow-sm transition-all hover:border-accent/50 hover:shadow-md"

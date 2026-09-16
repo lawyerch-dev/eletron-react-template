@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { PluginLogo } from './PluginLogo'
-import { formatT, sanitizeHtml } from '@shared/utils/plugin'
+import { formatT, sanitizeHtml } from '@ert/shared/utils/plugin'
 import { pluginService } from '@/services'
 
 export interface PluginDetailData {

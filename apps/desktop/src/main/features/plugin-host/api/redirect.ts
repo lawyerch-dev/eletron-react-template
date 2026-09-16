@@ -23,17 +23,17 @@ class PluginRedirectAPI {
     )
 
     ipcMain.on(
-      'ztools-redirect',
+      'host-redirect',
       (_event, _options: { label?: string; payload?: Record<string, unknown> }) => {
         _event.returnValue = { success: true }
       },
     )
 
-    ipcMain.on('ztools-redirect-hotkey-setting', (_event, _cmdLabel?: string) => {
+    ipcMain.on('host-redirect-hotkey-setting', (_event, _cmdLabel?: string) => {
       _event.returnValue = { success: true }
     })
 
-    ipcMain.on('ztools-redirect-ai-models-setting', (event) => {
+    ipcMain.on('host-redirect-ai-models-setting', (event) => {
       event.returnValue = { success: true }
     })
   }

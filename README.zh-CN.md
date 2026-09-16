@@ -1,8 +1,8 @@
-# eletron-react-template
+# electron-react-template
 
-[![GitHub stars](https://img.shields.io/github/stars/lawyerch-dev/eletron-react-template?color=fa6470)](https://github.com/lawyerch-dev/eletron-react-template/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/lawyerch-dev/eletron-react-template?color=d8b22d)](https://github.com/lawyerch-dev/eletron-react-template/issues)
-[![GitHub license](https://img.shields.io/github/license/lawyerch-dev/eletron-react-template)](https://github.com/lawyerch-dev/eletron-react-template/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/lawyerch-dev/electron-react-template?color=fa6470)](https://github.com/lawyerch-dev/electron-react-template/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/lawyerch-dev/electron-react-template?color=d8b22d)](https://github.com/lawyerch-dev/electron-react-template/issues)
+[![GitHub license](https://img.shields.io/github/license/lawyerch-dev/electron-react-template)](https://github.com/lawyerch-dev/electron-react-template/blob/main/LICENSE)
 [![Required Node.js >= 20.19.0 || >= 22.12.0](https://img.shields.io/static/v1?label=node&message=%3E=20.19.0%20||%20%3E=22.12.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
 [English](README.md) | 简体中文
@@ -35,8 +35,8 @@
 ## 快速开始
 
 ```sh
-git clone https://github.com/lawyerch-dev/eletron-react-template.git
-cd eletron-react-template
+git clone https://github.com/lawyerch-dev/electron-react-template.git
+cd electron-react-template
 pnpm install
 pnpm dev
 ```
@@ -63,19 +63,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 项目结构
 
-本仓库为 **pnpm monorepo**，应用位于 `apps/desktop/`：
+本仓库为 **pnpm monorepo**，宿主应用在 `apps/desktop/`，跨项目契约在 `packages/`：
 
 ```
 apps/desktop/
 ├── src/
 │   ├── main/                  主进程（app / services / features）
 │   ├── preload/               contextBridge
-│   ├── renderer/              前端（app / shell / features / services）
-│   └── shared/                IPC 契约与纯类型工具
-├── plugins/ / build/ / resources/
+│   └── renderer/              前端（app / shell / features / services / capabilities）
+├── plugins/                   内置插件源码（example-plugin、ocr-service）
 └── package.json / vite.config.ts / electron-builder.json
-packages/                    共享库预留
-docs/                        VitePress 文档站
+packages/
+├── shared/                    @ert/shared — IPC、类型、工具、capabilities 真源
+└── plugin-api/                @ert/plugin-api — window.host 类型
+docs/                          VitePress 文档站
 ```
 
 ## 插件系统
@@ -94,7 +95,7 @@ docs/                        VitePress 文档站
 每个插件在独立 BrowserWindow 中运行，背景色固定为白色，不受宿主应用主题影响。
 
 启动时会注入：
-1. 宿主 `plugin-preload.js`（提供 `window.ztools`）
+1. 宿主 `plugin-preload.js`（提供 `window.host`）
 2. 插件自身 `preload`（若 `plugin.json` 声明，如 OCR 的 `window.ocrService`）
 
 ### OCR 服务
@@ -154,7 +155,7 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 
 ## 文档站
 
-完整文档：[https://bluerangala.github.io/eletron-react-template/](https://bluerangala.github.io/eletron-react-template/)，基于 VitePress 构建，GitHub Actions 自动部署。
+完整文档：[https://bluerangala.github.io/electron-react-template/](https://bluerangala.github.io/electron-react-template/)，基于 VitePress 构建，GitHub Actions 自动部署。
 
 ## 许可证
 

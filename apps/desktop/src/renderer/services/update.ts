@@ -1,9 +1,15 @@
-import { IpcChannel } from '@shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 type IpcListener = (...args: unknown[]) => void
 
+export interface CheckUpdateResult {
+  error?: ErrorType
+  [key: string]: unknown
+}
+
 export const updateService = {
-  check: () => window.ipcRenderer.invoke(IpcChannel.CheckUpdate),
+  check: (): Promise<CheckUpdateResult> =>
+    window.ipcRenderer.invoke(IpcChannel.CheckUpdate) as Promise<CheckUpdateResult>,
   startDownload: () => window.ipcRenderer.invoke(IpcChannel.StartDownload),
   cancelDownload: () => window.ipcRenderer.invoke(IpcChannel.CancelDownload),
   quitAndInstall: () => window.ipcRenderer.invoke(IpcChannel.QuitAndInstall),

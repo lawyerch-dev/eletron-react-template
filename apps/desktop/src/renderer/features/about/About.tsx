@@ -35,7 +35,7 @@ export function About() {
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <a
-            href="https://github.com/BluerAngala/eletron-react-template"
+            href="https://github.com/BluerAngala/electron-react-template"
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-center rounded-xl border border-border-default bg-surface-hover px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
@@ -43,7 +43,7 @@ export function About() {
             {t('about.repo')}
           </a>
           <a
-            href="https://bluerangala.github.io/eletron-react-template/"
+            href="https://bluerangala.github.io/electron-react-template/"
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-center rounded-xl border border-border-default bg-surface-hover px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent"

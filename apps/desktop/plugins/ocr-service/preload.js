@@ -1,6 +1,6 @@
 /**
  * OCR 服务插件 - Preload 脚本
- * 提供多引擎 OCR 能力，通过 ztools.registerProvider 注册为系统级服务
+ * 提供多引擎 OCR 能力，通过 host.registerProvider 注册为系统级服务
  *
  * 架构设计参考 Cherry Studio 的处理器注册表模式
  * 支持本地引擎 (RapidOCR / Tesseract / System OCR) 和远程引擎 (PaddleOCR API)
@@ -661,10 +661,10 @@ async function initEngines() {
 
 initEngines().catch(err => console.error('[OCR] 初始化失败:', err))
 
-// ==================== 注册到 ztools ====================
+// ==================== 注册到 host ====================
 
-if (typeof ztools !== 'undefined' && ztools.registerProvider) {
-  ztools.registerProvider('ocr', async (input) => {
+if (typeof host !== 'undefined' && host.registerProvider) {
+  host.registerProvider('ocr', async (input) => {
     const { image, lang, engine, useCache } = input
     return await registry.recognize(image, { engine, lang, useCache })
   })

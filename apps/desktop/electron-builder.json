@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.bluerangala.eletron-react-template",
+  "appId": "com.bluerangala.electron-react-template",
   "asar": true,
   "extraResources": [
     {
@@ -23,30 +23,44 @@
     {
       "from": "resources/lib",
       "to": "lib",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*"
+      ]
     },
     {
       "from": "resources/ocr",
       "to": "ocr",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*"
+      ]
     }
   ],
-  "asarUnpack": ["resources/lib/**"],
+  "asarUnpack": [
+    "resources/lib/**"
+  ],
   "directories": {
     "buildResources": "build",
     "output": "../../release/${version}"
   },
-  "files": ["dist-electron", "dist"],
+  "files": [
+    "dist-electron",
+    "dist"
+  ],
   "mac": {
     "artifactName": "${productName}_${version}.${ext}",
-    "target": ["dmg", "zip"],
+    "target": [
+      "dmg",
+      "zip"
+    ],
     "notarize": true
   },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       }
     ],
     "artifactName": "${productName}_${version}.${ext}"
@@ -60,7 +74,8 @@
   "publish": {
     "provider": "github",
     "owner": "BluerAngala",
-    "repo": "eletron-react-template",
+    "repo": "electron-react-template",
     "releaseType": "release"
-  }
+  },
+  "productName": "Electron React Template"
 }

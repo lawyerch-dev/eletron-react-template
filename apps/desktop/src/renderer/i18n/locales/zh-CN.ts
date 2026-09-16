@@ -104,7 +104,7 @@ const zhCN = {
   // 关于页
   'about.title': '关于',
   'about.desc': '项目信息和技术栈',
-  'about.name': 'eletron-react-template',
+  'about.name': 'electron-react-template',
   'about.intro':
     '基于 electron-vite-react 模板二次开发的 Electron + React + TypeScript 桌面应用模板。',
   'about.stack': '技术栈',

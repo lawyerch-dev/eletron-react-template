@@ -3,7 +3,7 @@ import os from 'node:os'
 import { app } from 'electron'
 
 /**
- * 开发版插件名后缀，与 ZTools 保持一致。
+ * 开发版插件名后缀，与 Host 保持一致。
  */
 export const DEV_PLUGIN_SUFFIX = '__dev'
 

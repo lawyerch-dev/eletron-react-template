@@ -172,7 +172,7 @@ window.myPluginApi = {
 
 ```json
 {
-  "name": "ztools-plugin-my-plugin",
+  "name": "host-plugin-my-plugin",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -203,53 +203,53 @@ export default defineConfig({
 })
 ```
 
-## ztools API
+## host API
 
-前端通过 `window.ztools` 访问宿主 API：
+前端通过 `window.host` 访问宿主 API：
 
 ### 基础 API
 
 ```javascript
 // 应用信息
-ztools.getAppVersion()      // 获取应用版本
-ztools.getPlatform()        // 获取平台 'darwin'/'win32'/'linux'
-ztools.isMacOs()            // 是否 macOS
-ztools.isWindows()          // 是否 Windows
-ztools.isLinux()            // 是否 Linux
-ztools.isDev()              // 是否开发模式
+host.getAppVersion()      // 获取应用版本
+host.getPlatform()        // 获取平台 'darwin'/'win32'/'linux'
+host.isMacOs()            // 是否 macOS
+host.isWindows()          // 是否 Windows
+host.isLinux()            // 是否 Linux
+host.isDev()              // 是否开发模式
 
 // 路径
-ztools.getPath('home')      // 获取系统路径（home/desktop/documents 等）
-ztools.getPathForFile(file) // 获取拖放文件路径
+host.getPath('home')      // 获取系统路径（home/desktop/documents 等）
+host.getPathForFile(file) // 获取拖放文件路径
 ```
 
 ### 通知 API
 
 ```javascript
-ztools.showNotification('通知内容')           // 系统通知
-ztools.showToast('提示消息', { duration: 2000 }) // Toast 提示
+host.showNotification('通知内容')           // 系统通知
+host.showToast('提示消息', { duration: 2000 }) // Toast 提示
 ```
 
 ### 剪贴板 API
 
 ```javascript
-ztools.copyText('文本')          // 复制文本
-ztools.copyImage(base64Url)     // 复制图片
-ztools.copyFile('/path/to/file') // 复制文件
-ztools.getCopyedFiles()         // 获取已复制文件列表
+host.copyText('文本')          // 复制文本
+host.copyImage(base64Url)     // 复制图片
+host.copyFile('/path/to/file') // 复制文件
+host.getCopyedFiles()         // 获取已复制文件列表
 ```
 
 ### 对话框 API
 
 ```javascript
 // 打开文件对话框
-const files = ztools.showOpenDialog({
+const files = host.showOpenDialog({
   properties: ['openFile', 'multiSelections'],
   filters: [{ name: 'Images', extensions: ['jpg', 'png'] }]
 })
 
 // 保存文件对话框
-const savePath = ztools.showSaveDialog({
+const savePath = host.showSaveDialog({
   filters: [{ name: 'Text', extensions: ['txt'] }]
 })
 ```
@@ -257,30 +257,30 @@ const savePath = ztools.showSaveDialog({
 ### Shell API
 
 ```javascript
-ztools.shellOpenExternal('https://example.com')  // 打开 URL
-ztools.shellOpenPath('/path/to/file')            // 打开文件
-ztools.shellShowItemInFolder('/path/to/file')    // 在文件管理器显示
-ztools.shellBeep()                               // 系统提示音
+host.shellOpenExternal('https://example.com')  // 打开 URL
+host.shellOpenPath('/path/to/file')            // 打开文件
+host.shellShowItemInFolder('/path/to/file')    // 在文件管理器显示
+host.shellBeep()                               // 系统提示音
 ```
 
 ### 窗口 API
 
 ```javascript
 // 创建子窗口
-const windowId = ztools.createBrowserWindow('https://example.com', {
+const windowId = host.createBrowserWindow('https://example.com', {
   width: 800,
   height: 600
 })
 
 // 退出插件
-ztools.outPlugin(false)  // false=不杀进程，true=杀进程
+host.outPlugin(false)  // false=不杀进程，true=杀进程
 ```
 
 ### 插件生命周期
 
 ```javascript
 // 监听插件进入事件（接收启动参数）
-window.ztools?.onPluginEnter((params) => {
+window.host?.onPluginEnter((params) => {
   console.log('启动参数:', params.payload)
 })
 ```
@@ -291,7 +291,7 @@ window.ztools?.onPluginEnter((params) => {
 
 - 插件目录名：小写英文 + 连字符（`my-plugin`）
 - `plugin.json.name`：与目录名一致
-- `package.json.name`：`ztools-plugin-{name}`
+- `package.json.name`：`host-plugin-{name}`
 
 ### 样式规范
 
@@ -313,7 +313,7 @@ window.ztools?.onPluginEnter((params) => {
 
 ```javascript
 // 插件 A - 在 preload.js 中注册 OCR 服务
-ztools.registerProvider('ocr', async (input) => {
+host.registerProvider('ocr', async (input) => {
   const { image, lang } = input
   // 实现 OCR 逻辑
   const text = await recognizeText(image, lang)
@@ -325,21 +325,21 @@ ztools.registerProvider('ocr', async (input) => {
 
 ```javascript
 // 插件 B - 调用 OCR 服务
-const result = await ztools.ocr(image, { lang: 'chi_sim' })
+const result = await host.ocr(image, { lang: 'chi_sim' })
 console.log(result.text)
 
 // 或使用通用 Provider API
-const result = await ztools.providers.invokeProvider('ocr', { image, lang: 'eng' })
+const result = await host.providers.invokeProvider('ocr', { image, lang: 'eng' })
 
 // 查询可用的 provider
-const providers = await ztools.providers.getProviders('ocr')
+const providers = await host.providers.getProviders('ocr')
 ```
 
 ### 内置服务插件
 
 | 插件 | 服务类型 | 调用方式 |
 |------|----------|----------|
-| `ocr-service` | `ocr` | `ztools.ocr(image, options)` |
+| `ocr-service` | `ocr` | `host.ocr(image, options)` |
 
 ### 最佳实践
 
@@ -350,13 +350,13 @@ const providers = await ztools.providers.getProviders('ocr')
 
 ```javascript
 // 查询是否有 OCR 服务
-const ocrProviders = await ztools.providers.getProviders('ocr')
+const ocrProviders = await host.providers.getProviders('ocr')
 if (ocrProviders.length > 0) {
   // 有可用的 OCR 服务，直接调用
-  const result = await ztools.ocr(image)
+  const result = await host.ocr(image)
 } else {
   // 没有 OCR 服务，提示用户安装
-  ztools.showToast('请先安装 OCR 服务插件')
+  host.showToast('请先安装 OCR 服务插件')
 }
 ```
 

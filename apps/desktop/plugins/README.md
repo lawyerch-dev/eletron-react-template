@@ -1,6 +1,6 @@
 # Plugins 目录
 
-存放 ZTools 插件的源码目录。
+存放 Host 插件的源码目录。
 
 ## 目录结构
 
@@ -20,11 +20,13 @@ plugins/
 
 ```javascript
 // 其他插件调用 OCR 服务
-const result = await ztools.ocr(image, { lang: 'chi_sim+eng' })
+const result = await host.ocr(image, { lang: 'chi_sim+eng' })
 console.log(result.text)
 ```
 
 详见 [ocr-service/README.md](./ocr-service/README.md)
+
+API 全局对象为 `window.host`（类型见 `@ert/plugin-api`）。
 
 ## 快速开始
 
@@ -52,6 +54,6 @@ cp -r example-plugin my-plugin
 
 详细开发指南请查看 [AGENTS.md](./AGENTS.md) 或访问：
 
-- [插件开发快速开始](../docs/plugin-dev/getting-started.md)
-- [plugin.json 配置](../docs/plugin-dev/plugin-json.md)
-- [插件 API 参考](../docs/plugin-dev/plugin-api.md)
+- [插件开发快速开始](../../../docs/plugin-dev/getting-started.md)
+- [plugin.json 配置](../../../docs/plugin-dev/plugin-json.md)
+- [插件 API 参考](../../../docs/plugin-dev/plugin-api.md)

@@ -1,6 +1,6 @@
 import { BrowserWindow, app, ipcMain } from 'electron'
 import log from 'electron-log/main'
-import { IpcChannel } from '../../shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 export interface LogEntry {
   id: number

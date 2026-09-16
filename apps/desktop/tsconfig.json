@@ -19,9 +19,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@shared/*": ["./src/shared/*"],
+      "@ert/shared": ["../../packages/shared/src/index.ts"],
+      "@ert/shared/*": ["../../packages/shared/src/*"],
+      "@ert/plugin-api": ["../../packages/plugin-api/src/index.ts"],
       "@/*": ["./src/renderer/*"]
     }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "../../packages/shared/src", "../../packages/plugin-api/src"]
 }

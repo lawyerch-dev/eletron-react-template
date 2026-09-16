@@ -1,20 +1,20 @@
 ---
 title: "发布插件"
-description: "要将插件发布到线上插件市场，你需要使用 ZTools 插件 CLI 工具。"
+description: "要将插件发布到线上插件市场，你需要使用 Host 插件 CLI 工具。"
 ---
 
 # 发布插件
 
 ## 发布到插件市场
 
-要将插件发布到线上插件市场，你需要使用 ZTools 插件 CLI 工具。
+要将插件发布到线上插件市场，你需要使用 Host 插件 CLI 工具。
 
 ### 安装 CLI
 
 ```bash
-npm install -g @ztools-center/plugin-cli
+npm install -g @ert/plugin-cli
 # 或
-pnpm add -g @ztools-center/plugin-cli
+pnpm add -g @ert/plugin-cli
 ```
 
 ### 发布流程
@@ -26,7 +26,7 @@ git add .
 git commit -m "Initial commit"
 
 # 2. 发布插件
-ztools publish
+host publish
 ```
 
 首次发布时，CLI 会自动完成：

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bluerangala.github.io/eletron-react-template/sitemap.xml
+Sitemap: https://bluerangala.github.io/electron-react-template/sitemap.xml

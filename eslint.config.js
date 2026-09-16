@@ -13,7 +13,7 @@ export default [
       '**/dist-electron/**',
       'release/**',
       '**/node_modules/**',
-      'ZTools/**',
+      '参考项目/**',
       '**/plugins/**',
       '**/test/e2e/**',
       '**/src/main/features/plugin-host/plugin-preload.js',
@@ -43,7 +43,11 @@ export default [
 
   // 渲染进程（浏览器环境）
   {
-    files: ['apps/desktop/src/renderer/**/*.{ts,tsx}', 'apps/desktop/src/shared/**/*.{ts,tsx}', 'apps/desktop/test/**/*.ts'],
+    files: [
+      'apps/desktop/src/renderer/**/*.{ts,tsx}',
+      'packages/shared/**/*.{ts,tsx}',
+      'apps/desktop/test/**/*.ts',
+    ],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -98,7 +102,11 @@ export default [
 
   // Electron 主进程（Node.js 环境）
   {
-    files: ['apps/desktop/src/main/**/*.ts', 'apps/desktop/src/preload/**/*.ts'],
+    files: [
+      'apps/desktop/src/main/**/*.ts',
+      'apps/desktop/src/preload/**/*.ts',
+      'packages/plugin-api/**/*.ts',
+    ],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

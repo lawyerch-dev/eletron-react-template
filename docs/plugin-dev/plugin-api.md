@@ -1,61 +1,61 @@
 ---
 title: "插件 API 参考"
-description: "插件通过全局对象 window.ztools 访问宿主应用提供的 API。"
+description: "插件通过全局对象 window.host 访问宿主应用提供的 API。"
 ---
 
 # 插件 API 参考
 
-插件通过全局对象 `window.ztools` 访问宿主应用提供的 API。
+插件通过全局对象 `window.host` 访问宿主应用提供的 API。
 
 ## 基础 API
 
-### `ztools.getAppName()`
+### `host.getAppName()`
 获取应用名称。
 
-- **返回**: `string` — 固定返回 `'ZTools'`。
+- **返回**: `string` — 固定返回 `'Host'`。
 
-### `ztools.getAppVersion()`
+### `host.getAppVersion()`
 获取应用版本号。
 
 - **返回**: `string` — 应用版本号。
 
-### `ztools.getPlatform()`
+### `host.getPlatform()`
 获取当前操作系统平台。
 
 - **返回**: `string` — `'darwin'` | `'win32'` | `'linux'`。
 
-### `ztools.isMacOs()` / `ztools.isMacOS()`
+### `host.isMacOs()` / `host.isMacOS()`
 检测当前是否为 macOS 系统。
 
 - **返回**: `boolean`
 
-### `ztools.isWindows()`
+### `host.isWindows()`
 检测当前是否为 Windows 系统。
 
 - **返回**: `boolean`
 
-### `ztools.isLinux()`
+### `host.isLinux()`
 检测当前是否为 Linux 系统。
 
 - **返回**: `boolean`
 
-### `ztools.isDev()`
+### `host.isDev()`
 检查当前插件是否处于开发模式。
 
 - **返回**: `boolean`
 
-### `ztools.getWebContentsId()`
+### `host.getWebContentsId()`
 获取当前 WebContents ID。
 
 - **返回**: `number`
 
-### `ztools.getPathForFile(file)`
+### `host.getPathForFile(file)`
 获取拖放文件的真实路径。
 
 - **file**: `File` — 拖放事件中的 File 对象。
 - **返回**: `string` — 文件的本地路径。
 
-### `ztools.getPath(name)`
+### `host.getPath(name)`
 获取系统特殊路径。
 
 - **name**: `string` — 路径名称（如 `'home'`、`'desktop'`、`'documents'` 等）。
@@ -63,12 +63,12 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 ## 通知 API
 
-### `ztools.showNotification(body)`
+### `host.showNotification(body)`
 显示系统通知。
 
 - **body**: `string` — 通知内容。
 
-### `ztools.showToast(message, options)`
+### `host.showToast(message, options)`
 显示 Toast 提示。
 
 - **message**: `string` — 提示消息。
@@ -76,61 +76,61 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 ## 剪贴板 API
 
-### `ztools.copyText(text)`
+### `host.copyText(text)`
 复制文本到剪贴板。
 
 - **text**: `string` — 要复制的文本。
 - **返回**: `boolean`
 
-### `ztools.copyImage(image)`
+### `host.copyImage(image)`
 复制图片到剪贴板。
 
 - **image**: `string` — 图片 base64 Data URL 或文件路径。
 - **返回**: `boolean`
 
-### `ztools.copyFile(filePath)`
+### `host.copyFile(filePath)`
 复制文件到剪贴板。
 
 - **filePath**: `string` — 文件路径。
 - **返回**: `boolean`
 
-### `ztools.getCopyedFiles()`
+### `host.getCopyedFiles()`
 获取已复制的文件列表。
 
 - **返回**: `string[]`
 
 ## Shell API
 
-### `ztools.shellOpenExternal(url)`
+### `host.shellOpenExternal(url)`
 使用系统默认程序打开 URL。
 
 - **url**: `string` — 要打开的 URL。
 - **返回**: `boolean`
 
-### `ztools.shellOpenPath(fullPath)`
+### `host.shellOpenPath(fullPath)`
 使用系统默认方式打开文件或文件夹。
 
 - **fullPath**: `string` — 文件或文件夹路径。
 - **返回**: `boolean`
 
-### `ztools.shellShowItemInFolder(fullPath)`
+### `host.shellShowItemInFolder(fullPath)`
 在文件管理器中显示文件。
 
 - **fullPath**: `string` — 文件路径。
 - **返回**: `boolean`
 
-### `ztools.shellBeep()`
+### `host.shellBeep()`
 播放系统提示音。
 
 ## 对话框 API
 
-### `ztools.showOpenDialog(options)`
+### `host.showOpenDialog(options)`
 弹出文件打开对话框。
 
 - **options**: `object` — 对话框配置，与 Electron `showOpenDialogSync` 保持一致。
 - **返回**: `string[] | undefined` — 选择的文件路径数组。用户取消则返回 `undefined`。
 
-### `ztools.showSaveDialog(options)`
+### `host.showSaveDialog(options)`
 弹出文件保存对话框。
 
 - **options**: `object` — 对话框配置，与 Electron `showSaveDialogSync` 保持一致。
@@ -138,7 +138,7 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 ## 窗口 API
 
-### `ztools.createBrowserWindow(url, options, callback)`
+### `host.createBrowserWindow(url, options, callback)`
 创建独立子窗口。
 
 - **url**: `string` — 窗口加载的 URL。
@@ -146,7 +146,7 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 - **callback**: `() => void` — (可选) 窗口加载完成后的回调函数。
 - **返回**: `number | null` — 窗口 ID，创建失败返回 `null`。
 
-### `ztools.outPlugin(isKill)`
+### `host.outPlugin(isKill)`
 退出插件应用。
 
 - **isKill**: `boolean` — (可选) 为 `true` 时将结束进程。
@@ -154,7 +154,7 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 ## 事件 API
 
-### `ztools.onPluginEnter(callback)`
+### `host.onPluginEnter(callback)`
 监听插件进入事件。当用户打开插件时触发。
 
 - **callback**: `(param: LaunchParam) => void`
@@ -164,27 +164,27 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 - `type`: `'text' | 'regex' | 'over'` — 命令类型
 - `code`: `string` — 插件 Feature Code
 
-### `ztools.onPluginReady(callback)`
+### `host.onPluginReady(callback)`
 兼容旧 API，功能与 `onPluginEnter` 相同。
 
-### `ztools.onPluginOut(callback)`
+### `host.onPluginOut(callback)`
 监听插件退出事件。
 
 - **callback**: `(isKill: boolean) => void`
 
 ## 显示器 API
 
-### `ztools.getPrimaryDisplay()`
+### `host.getPrimaryDisplay()`
 获取主显示器信息。
 
 - **返回**: `object`
 
-### `ztools.getAllDisplays()`
+### `host.getAllDisplays()`
 获取所有显示器。
 
 - **返回**: `object[]`
 
-### `ztools.getCursorScreenPoint()`
+### `host.getCursorScreenPoint()`
 获取鼠标光标的屏幕坐标。
 
 - **返回**: `{ x: number, y: number }`
@@ -193,50 +193,50 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 插件拥有独立的数据库存储空间（Bucket），以插件名称隔离。
 
-### `ztools.db.put(doc)`
+### `host.db.put(doc)`
 保存数据。
 
 - **doc**: `object` — 必须包含 `_id` 字段。
 - **返回**: `object`
 
-### `ztools.db.get(id)`
+### `host.db.get(id)`
 获取数据。
 
 - **id**: `string` — 文档 ID。
 - **返回**: `object | null`
 
-### `ztools.db.remove(docOrId)`
+### `host.db.remove(docOrId)`
 删除数据。
 
 - **docOrId**: `object | string` — 文档对象或文档 ID。
 - **返回**: `object`
 
-### `ztools.db.bulkDocs(docs)`
+### `host.db.bulkDocs(docs)`
 批量操作文档。
 
 - **docs**: `object[]`
 - **返回**: `object[]`
 
-### `ztools.db.allDocs(key)`
+### `host.db.allDocs(key)`
 获取所有文档或按 key 前缀查询。
 
 - **key**: `string` — (可选) 文档 ID 前缀。
 - **返回**: `object[]`
 
-### `ztools.db.postAttachment(id, attachment, type)`
+### `host.db.postAttachment(id, attachment, type)`
 为文档添加附件。
 
 - **id**: `string` — 文档 ID。
 - **attachment**: `string | Buffer` — 附件内容。
 - **type**: `string` — MIME 类型。
 
-### `ztools.db.getAttachment(id)`
+### `host.db.getAttachment(id)`
 获取文档附件。
 
 - **id**: `string` — 文档 ID。
 - **返回**: `Buffer`
 
-### `ztools.db.getAttachmentType(id)`
+### `host.db.getAttachmentType(id)`
 获取文档附件的 MIME 类型。
 
 - **id**: `string` — 文档 ID。
@@ -244,45 +244,45 @@ description: "插件通过全局对象 window.ztools 访问宿主应用提供的
 
 ### Promise API
 
-数据库 API 还提供了 Promise 版本，位于 `window.ztools.db.promises` 下：
+数据库 API 还提供了 Promise 版本，位于 `window.host.db.promises` 下：
 
 ```javascript
-await window.ztools.db.promises.put(doc)
-await window.ztools.db.promises.get(id)
-await window.ztools.db.promises.remove(docOrId)
-await window.ztools.db.promises.bulkDocs(docs)
-await window.ztools.db.promises.allDocs(key)
+await window.host.db.promises.put(doc)
+await window.host.db.promises.get(id)
+await window.host.db.promises.remove(docOrId)
+await window.host.db.promises.bulkDocs(docs)
+await window.host.db.promises.allDocs(key)
 ```
 
 ## 简易存储 API
 
 类似 `localStorage` 的简化接口。
 
-### `ztools.dbStorage.setItem(key, value)`
+### `host.dbStorage.setItem(key, value)`
 保存数据。
 
 - **key**: `string` — 键名。
 - **value**: `any` — 会自动序列化为 JSON。
 
-### `ztools.dbStorage.getItem(key)`
+### `host.dbStorage.getItem(key)`
 获取数据。
 
 - **key**: `string` — 键名。
 - **返回**: `any`
 
-### `ztools.dbStorage.removeItem(key)`
+### `host.dbStorage.removeItem(key)`
 删除数据。
 
 - **key**: `string` — 键名。
 
 ## 屏幕截图
 
-### `ztools.screenCapture(callback)`
+### `host.screenCapture(callback)`
 屏幕截图，进入截图模式后回调返回 base64 图片。
 
 - **callback**: `(image: string, bounds?: object) => void`
 
-### `ztools.screenColorPick(callback)`
+### `host.screenColorPick(callback)`
 屏幕取色。
 
 - **callback**: `(result: { hex: string, rgb: string }) => void`
@@ -304,13 +304,13 @@ await window.ztools.db.promises.allDocs(key)
 ## 剪贴板历史
 
 ```javascript
-ztools.clipboard.getHistory(page, pageSize, filter)
-ztools.clipboard.search(keyword)
-ztools.clipboard.write(id, shouldPaste)
-ztools.clipboard.writeContent(data, shouldPaste)
-ztools.clipboard.delete(id)
-ztools.clipboard.clear(type)
-ztools.clipboard.onChange(callback)
+host.clipboard.getHistory(page, pageSize, filter)
+host.clipboard.search(keyword)
+host.clipboard.write(id, shouldPaste)
+host.clipboard.writeContent(data, shouldPaste)
+host.clipboard.delete(id)
+host.clipboard.clear(type)
+host.clipboard.onChange(callback)
 ```
 
 ## 页面内查找

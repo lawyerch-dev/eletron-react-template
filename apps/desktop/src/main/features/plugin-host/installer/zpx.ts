@@ -1,4 +1,4 @@
-/** ZPX（gzip/brotli 压缩的 ASAR）读写与安装准备工具。逻辑与 ZTools 对齐。 */
+/** ZPX（gzip/brotli 压缩的 ASAR）读写与安装准备工具。逻辑与 Host 对齐。 */
 import * as asar from '@electron/asar'
 import { minimatch } from 'minimatch'
 import {

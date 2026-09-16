@@ -1,6 +1,6 @@
 ---
 title: "IPC 通信"
-description: "插件通过 plugin-preload.js 中的 window.ztools 对象调用，底层走 plugin.api 统一分发通道和直接 IPC 通道。"
+description: "插件通过 plugin-preload.js 中的 window.host 对象调用，底层走 plugin.api 统一分发通道和直接 IPC 通道。"
 ---
 
 # IPC 通信
@@ -32,7 +32,7 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 
 ## 插件 API（预留给插件窗口调用）
 
-插件通过 `plugin-preload.js` 中的 `window.ztools` 对象调用，底层走 `plugin.api` 统一分发通道和直接 IPC 通道。
+插件通过 `plugin-preload.js` 中的 `window.host` 对象调用，底层走 `plugin.api` 统一分发通道和直接 IPC 通道。
 
 **统一分发通道**：`plugin.api`（同步 + 异步），服务名包括 `getPath`、`getUser`、`getThemeInfo` 等。
 
@@ -49,7 +49,7 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 | lifecycle | `out-plugin` |
 | device | `get-native-id`、`get-app-version` |
 | http | `http-set-headers`、`http-get-headers`、`http-clear-headers` |
-| redirect | `redirect`、`ztools-redirect`、`ztools-redirect-hotkey-setting`、`ztools-redirect-ai-models-setting` |
+| redirect | `redirect`、`host-redirect`、`host-redirect-hotkey-setting`、`host-redirect-ai-models-setting` |
 | feature | `get-features`、`set-feature`、`remove-feature` |
 | toast | `plugin:show-toast` |
 | db | `db:put/get/remove/bulkDocs/allDocs/postAttachment/getAttachment/getAttachmentType`（同步+异步） |

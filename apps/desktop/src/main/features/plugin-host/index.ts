@@ -15,7 +15,7 @@ import {
   MARKET_ICON_MAX_BYTES,
   parsePluginIconPath,
 } from './security'
-import { IpcChannel } from '../../../shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CHANGED_EVENT = 'plugins-changed'
@@ -169,7 +169,7 @@ export function initPluginSubsystem(
   ipcMain.handle(IpcChannel.PluginImportFromFile, async () => {
     const result = await dialog.showOpenDialog({
       title: '导入插件',
-      filters: [{ name: 'ZTools 插件', extensions: ['zpx', 'zip'] }],
+      filters: [{ name: 'Host 插件', extensions: ['zpx', 'zip'] }],
       properties: ['openFile'],
     })
     if (result.canceled || result.filePaths.length === 0) {

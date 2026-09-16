@@ -1,3 +1,4 @@
+import type { InstalledPluginInfo, MarketCategory } from '@ert/shared/types'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Search, RefreshCw, Boxes, Download, Loader2, AlertTriangle, Play } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,7 +9,7 @@ import {
 } from '@/features/plugins/components/PluginDetailModal'
 import { ImportPluginButton } from '@/features/plugins/components/ImportPluginButton'
 import { PluginLogo } from '@/features/plugins/components/PluginLogo'
-import { formatT } from '@shared/utils/plugin'
+import { formatT } from '@ert/shared/utils/plugin'
 import { pluginService } from '@/services'
 
 interface PluginItem {

@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import { IpcChannel } from '@shared/ipc'
+import { IpcChannel } from '@ert/shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
