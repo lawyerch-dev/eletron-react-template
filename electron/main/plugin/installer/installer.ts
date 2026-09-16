@@ -8,7 +8,8 @@ import { downloadFile, DownloadCancelledError } from './download'
 import { isValidZpx, prepareZpxAsar, readTextFromZpx } from './zpx'
 import { physicalFs } from '../physicalFs'
 import { pluginMarket } from './market'
-import { pluginDb } from '../store'
+import { registry } from '../runtime/registry'
+import { runner } from '../runtime/runner'
 import { getPluginsRoot, type InstalledPlugin } from '../shared'
 
 const artifactFs = physicalFs.promises
@@ -34,15 +35,11 @@ interface DownloadTask {
 }
 
 /**
- * 插件安装器：负责从市场/本地文件安装 .zpx/.zip 插件，并写入注册表。
+ * 插件安装器：负责从市场/本地文件安装 .zpx/.zip 插件。
+ * 用户插件列表的读写统一走 registry，本类不再维护 notify 回调。
  */
 class Installer {
   private tasks = new Map<string, DownloadTask>()
-  private notifyPluginsChanged: () => void = () => {}
-
-  setOnPluginsChanged(cb: () => void): void {
-    this.notifyPluginsChanged = cb
-  }
 
   private emit(pluginName: string, payload: Omit<ProgressPayload, 'pluginName'>): void {
     for (const w of BrowserWindow.getAllWindows()) {
@@ -53,12 +50,7 @@ class Installer {
   }
 
   private readInstalled(): InstalledPlugin[] {
-    const list = pluginDb.dbGet('plugins')
-    return Array.isArray(list) ? (list as InstalledPlugin[]) : []
-  }
-
-  private writeInstalled(plugins: InstalledPlugin[]): void {
-    pluginDb.dbPut('plugins', plugins)
+    return registry.listUserInstalled()
   }
 
   /**
@@ -219,6 +211,14 @@ class Installer {
       )
       if (!validation.valid) return { success: false, error: validation.error }
 
+      // 覆盖安装前关闭同名/同目标路径的运行中实例，避免文件占用
+      const sameName = existing.find((p) => p.name === name)
+      if (sameName) await runner.forceClose(sameName.path)
+      const destPath = isZpx
+        ? path.join(pluginsRoot, `${name}-${pluginConfig.version}.asar`)
+        : path.join(pluginsRoot, name)
+      await runner.forceClose(destPath)
+
       // 准备实体
       if (isZpx) {
         const prepared = await prepareZpxAsar(filePath, workDir)
@@ -237,6 +237,15 @@ class Installer {
         publishedPath = dirPath
       }
 
+      // logo 必须落在插件目录内，防止恶意 plugin.json 用 ../ 指向外部文件
+      let logoUrl = ''
+      if (pluginConfig.logo) {
+        const logoAbs = path.resolve(publishedPath, pluginConfig.logo as string)
+        if (logoAbs === publishedPath || logoAbs.startsWith(publishedPath + path.sep)) {
+          logoUrl = 'plugin-icon://' + logoAbs
+        }
+      }
+
       const storageKind: 'asar' | 'directory' = isZpx ? 'asar' : 'directory'
       const installed: InstalledPlugin = {
         name,
@@ -245,9 +254,7 @@ class Installer {
         description: (pluginConfig.description as string) || '',
         author: (pluginConfig.author as string) || '',
         homepage: (pluginConfig.homepage as string) || '',
-        logo: pluginConfig.logo
-          ? 'plugin-icon://' + path.join(publishedPath, pluginConfig.logo as string)
-          : '',
+        logo: logoUrl,
         main: pluginConfig.main as string | undefined,
         preload: pluginConfig.preload as string | undefined,
         features: Array.isArray(pluginConfig.features) ? pluginConfig.features : [],
@@ -257,11 +264,8 @@ class Installer {
         isDevelopment: false,
       }
 
-      // 覆盖旧记录，写入注册表
-      const next = existing.filter((p) => p.name !== name)
-      next.push(installed)
-      this.writeInstalled(next)
-      this.notifyPluginsChanged()
+      // 统一由 registry 写入用户插件列表
+      registry.upsertUserPlugin(installed)
       return { success: true, plugin: installed }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : '安装失败' }

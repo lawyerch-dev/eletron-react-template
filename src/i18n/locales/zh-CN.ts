@@ -51,6 +51,16 @@ const zhCN = {
   'market.import.success': '产品导入成功',
   'market.import.failed': '产品导入失败',
   'market.toast.installed': '产品 "{title}" 安装成功',
+  'market.total': '全部解决方案 {count} 个',
+  'market.category.all': '全部',
+  'market.downloads': '{count} 次下载',
+  'market.detail.author': '作者',
+  'market.detail.version': '版本',
+  'market.detail.downloads': '下载量',
+  'market.detail.downloads.value': '{count} 次',
+  'market.detail.no-readme': '暂无详情',
+  'market.uninstall.success': '产品 "{title}" 已卸载',
+  'market.launch.failed': '启动失败',
 
   // 我的插件
   'myplugins.title': '我的产品',
@@ -124,12 +134,22 @@ const zhCN = {
   'log.empty': '暂无日志',
   'log.search': '搜索日志...',
   'log.allLevels': '全部级别',
+  'log.source.all': '全部',
+  'log.source.main': '主进程',
+  'log.source.renderer': '渲染进程',
+  'log.source.plugin': '插件',
   'log.copy': '复制',
   'log.export': '导出',
   'log.copied': '已复制到剪贴板',
   'log.exported': '日志已导出',
   'log.cleared': '日志已清空',
   'log.refreshed': '日志已刷新',
+
+  // 错误边界
+  'error.boundary.title': '页面出错了',
+  'error.boundary.desc': '渲染过程中发生错误',
+  'error.boundary.reload': '重新加载',
+  'error.boundary.copy': '复制错误',
 } as const
 
 export default zhCN

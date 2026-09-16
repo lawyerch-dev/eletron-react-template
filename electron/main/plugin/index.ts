@@ -9,6 +9,7 @@ import { runner } from './runtime/runner'
 import { initPluginRuntime, bindRunningContext } from './api/services'
 import { getRuntimePreloadPath } from './shared'
 import { scanBuiltinPlugins } from './builtin'
+import { isSafePluginIconPath, isAllowedMarketIconUrl, MARKET_ICON_MAX_BYTES } from './security'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CHANGED_EVENT = 'plugins-changed'
@@ -82,15 +83,16 @@ export function initPluginSubsystem(
   initPluginRuntime()
   bindRunningContext({ getRunning: () => runner.getRunning() })
 
-  // 注册 plugin-icon 协议，将 plugin-icon://path 代理到 file://path
-  // request.url 已被 Electron 标准协议层解码，直接使用即可；构造 file:// URL 时需对空格等特殊字符进行编码
+  // 注册 plugin-icon 协议：仅允许读取插件目录内的图片，防任意本地文件读
   protocol.handle('plugin-icon', (request) => {
     const filePath = decodeURIComponent(request.url.slice('plugin-icon://'.length))
+    if (!isSafePluginIconPath(filePath)) {
+      return new Response('', { status: 403 })
+    }
     return net.fetch('file:///' + filePath)
   })
 
-  // 注册 market-icon 协议，代理市场远程图标并按文件头修正 MIME。
-  // 部分插件把 SVG 内容存成 logo.png，GitHub raw 会以 text/plain + nosniff 返回导致 <img> 拒绝渲染。
+  // 注册 market-icon 协议：白名单域名代理远程图标，按文件头修正 MIME，并限制体积
   protocol.handle('market-icon', async (request) => {
     const raw = request.url.slice('market-icon://proxy/'.length)
     let target = raw
@@ -101,13 +103,16 @@ export function initPluginSubsystem(
         return new Response('', { status: 400 })
       }
     }
-    if (!/^https?:\/\//i.test(target)) {
-      return new Response('', { status: 400 })
+    if (!isAllowedMarketIconUrl(target)) {
+      return new Response('', { status: 403 })
     }
     try {
       const resp = await net.fetch(target)
       if (!resp.ok) return new Response('', { status: resp.status })
       const buffer = Buffer.from(await resp.arrayBuffer())
+      if (buffer.length > MARKET_ICON_MAX_BYTES) {
+        return new Response('', { status: 413 })
+      }
       return new Response(buffer, {
         status: 200,
         headers: {
@@ -123,7 +128,6 @@ export function initPluginSubsystem(
   const notify = (): void => {
     notifyWeb?.(CHANGED_EVENT)
   }
-  installer.setOnPluginsChanged(notify)
   registry.setOnPluginsChanged(notify)
   runner.setOnRunningChanged(() => notify)
 
@@ -145,7 +149,11 @@ export function initPluginSubsystem(
 
   // ── 已安装插件 ──
   ipcMain.handle('plugin:list', () => registry.list())
-  ipcMain.handle('plugin:delete', (_e, pluginPath: string) => registry.delete(pluginPath))
+  ipcMain.handle('plugin:delete', async (_e, pluginPath: string) => {
+    // 卸载前强制关闭运行中窗口，避免文件占用导致删除失败
+    await runner.forceClose(pluginPath)
+    return registry.delete(pluginPath)
+  })
 
   // ── 本地导入 ──
   ipcMain.handle('plugin:import-from-file', async () => {

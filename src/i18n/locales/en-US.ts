@@ -51,6 +51,16 @@ const enUS = {
   'market.import.success': 'Product imported successfully',
   'market.import.failed': 'Failed to import product',
   'market.toast.installed': 'Product "{title}" installed successfully',
+  'market.total': '{count} solutions total',
+  'market.category.all': 'All',
+  'market.downloads': '{count} downloads',
+  'market.detail.author': 'Author',
+  'market.detail.version': 'Version',
+  'market.detail.downloads': 'Downloads',
+  'market.detail.downloads.value': '{count}',
+  'market.detail.no-readme': 'No details available',
+  'market.uninstall.success': 'Product "{title}" uninstalled',
+  'market.launch.failed': 'Launch failed',
 
   // My Plugins
   'myplugins.title': 'My Products',
@@ -128,12 +138,22 @@ const enUS = {
   'log.empty': 'No logs yet',
   'log.search': 'Search logs...',
   'log.allLevels': 'All levels',
+  'log.source.all': 'All',
+  'log.source.main': 'Main',
+  'log.source.renderer': 'Renderer',
+  'log.source.plugin': 'Plugin',
   'log.copy': 'Copy',
   'log.export': 'Export',
   'log.copied': 'Copied to clipboard',
   'log.exported': 'Logs exported',
   'log.cleared': 'Logs cleared',
   'log.refreshed': 'Logs refreshed',
+
+  // Error boundary
+  'error.boundary.title': 'Something went wrong',
+  'error.boundary.desc': 'An error occurred while rendering',
+  'error.boundary.reload': 'Reload',
+  'error.boundary.copy': 'Copy error',
 } as const
 
 export default enUS

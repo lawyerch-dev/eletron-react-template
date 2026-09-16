@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { PluginDetailModal, type PluginDetailData } from '@/components/plugin/PluginDetailModal'
 import { ImportPluginButton } from '@/components/plugin/ImportPluginButton'
 import { PluginLogo } from '@/components/plugin/PluginLogo'
-import { formatT } from './PluginMarket'
+import { formatT } from '@/utils/plugin'
 
 type RunningInfo = { name: string; path: string; running: boolean }
 
@@ -50,7 +50,7 @@ export function MyPlugins() {
   const launch = async (plugin: InstalledPluginInfo) => {
     const result = await window.plugin.launch(plugin.path)
     if (!result.success) {
-      toast.error(result.error || '启动失败')
+      toast.error(result.error || t('market.launch.failed'))
     }
     void refresh()
   }
@@ -64,7 +64,7 @@ export function MyPlugins() {
     if (window.confirm(formatT(t('myplugins.uninstall.confirm'), { title: plugin.title }))) {
       const result = await window.plugin.deletePlugin(plugin.path)
       if (result.success) {
-        toast.success(formatT(t('market.uninstall'), { title: plugin.title }))
+        toast.success(formatT(t('market.uninstall.success'), { title: plugin.title }))
         void refresh()
       } else {
         toast.error(result.error || t('market.error'))

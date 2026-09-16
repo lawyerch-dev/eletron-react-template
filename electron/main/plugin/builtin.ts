@@ -42,7 +42,14 @@ export function scanBuiltinPlugins(): InstalledPlugin[] {
       const version = typeof config.version === 'string' ? config.version : '0.0.0'
       if (!name) continue
 
-      const logo = config.logo ? 'plugin-icon://' + path.join(pluginDir, config.logo) : ''
+      // logo 必须落在插件目录内
+      let logo = ''
+      if (config.logo) {
+        const logoAbs = path.resolve(pluginDir, config.logo as string)
+        if (logoAbs === pluginDir || logoAbs.startsWith(pluginDir + path.sep)) {
+          logo = 'plugin-icon://' + logoAbs
+        }
+      }
 
       plugins.push({
         name,

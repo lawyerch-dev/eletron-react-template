@@ -5,23 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { PluginDetailModal, type PluginDetailData } from '@/components/plugin/PluginDetailModal'
 import { ImportPluginButton } from '@/components/plugin/ImportPluginButton'
 import { PluginLogo } from '@/components/plugin/PluginLogo'
-
-/** 简易插值：t('key', { count: 3 }) → 替换 {count} */
-type Vars = Record<string, string | number>
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function formatT(raw: string, vars?: Vars): string {
-  if (!vars) return raw
-  return raw.replace(/\{(\w+)\}/g, (_, key) => (vars[key] !== undefined ? String(vars[key]) : ''))
-}
-
-/** 本地 file:// 走 plugin-icon://；远程 http(s) 走 market-icon:// 代理（修正 content-type） */
-// eslint-disable-next-line react-refresh/only-export-components
-export function logoUrl(url: string | undefined): string {
-  if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return `market-icon://proxy/${encodeURIComponent(url)}`
-  return url.replace(/^file:\/\//, 'plugin-icon://')
-}
+import { formatT } from '@/utils/plugin'
 
 interface PluginItem {
   name: string
@@ -169,8 +153,8 @@ export function PluginMarket() {
               {t('market.title')}
             </h1>
             <span className="text-sm text-foreground-muted">
-              （{formatT(t('myplugins.count'), { count: installed.length })} / 全部解决方案{' '}
-              {plugins.length} 个）
+              （{formatT(t('myplugins.count'), { count: installed.length })} /{' '}
+              {formatT(t('market.total'), { count: plugins.length })}）
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -212,7 +196,7 @@ export function PluginMarket() {
                   : 'bg-surface-hover text-foreground-secondary hover:bg-surface-hover/80'
               }`}
             >
-              全部
+              {t('market.category.all')}
             </button>
             {categories.map((cat) => (
               <button
@@ -303,7 +287,11 @@ export function PluginMarket() {
                     <span className="text-xs text-foreground-muted">
                       v{plugin.version}
                       {plugin.downloadCount != null && (
-                        <> · {Number(plugin.downloadCount).toLocaleString()} 次下载</>
+                        <>
+                          {' '}
+                          ·{' '}
+                          {formatT(t('market.downloads'), { count: Number(plugin.downloadCount) })}
+                        </>
                       )}
                     </span>
                     <div className="flex items-center gap-2">

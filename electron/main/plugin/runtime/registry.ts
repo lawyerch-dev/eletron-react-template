@@ -5,8 +5,9 @@ import type { InstalledPlugin } from '../shared'
 const artifactFs = physicalFs.promises
 
 /**
- * 已装插件注册表：负责插件列表读取、卸载。
+ * 已装插件注册表：负责插件列表读取、卸载、写入。
  * 支持三层来源：内置插件（memory）+ 用户插件（electron-store）。
+ * installer 等模块应通过本类读写用户插件列表，避免双写。
  */
 class Registry {
   /** 内置插件列表（内存，每次启动时从 plugins/ 扫描） */
@@ -39,13 +40,35 @@ class Registry {
   }
 
   getByName(name: string): InstalledPlugin | undefined {
-    // 先查用户插件，再查内置插件
-    const userPlugin = this.list().find((p) => p.name === name)
-    return userPlugin
+    return this.list().find((p) => p.name === name)
   }
 
-  private writeInstalled(plugins: InstalledPlugin[]): void {
+  /** 仅读用户安装列表（不含内置） */
+  listUserInstalled(): InstalledPlugin[] {
+    const userPlugins = pluginDb.dbGet('plugins')
+    return Array.isArray(userPlugins) ? (userPlugins as InstalledPlugin[]) : []
+  }
+
+  private writeUserInstalled(plugins: InstalledPlugin[]): void {
     pluginDb.dbPut('plugins', plugins)
+  }
+
+  /** 写入/覆盖一条用户插件记录（安装成功后调用） */
+  upsertUserPlugin(plugin: InstalledPlugin): void {
+    const next = this.listUserInstalled().filter((p) => p.name !== plugin.name)
+    next.push(plugin)
+    this.writeUserInstalled(next)
+    this.notifyPluginsChanged()
+  }
+
+  /** 按 path 移除用户插件记录（不删文件） */
+  removeUserPluginByPath(pluginPath: string): boolean {
+    const userPlugins = this.listUserInstalled()
+    const filtered = userPlugins.filter((p) => p.path !== pluginPath)
+    if (filtered.length === userPlugins.length) return false
+    this.writeUserInstalled(filtered)
+    this.notifyPluginsChanged()
+    return true
   }
 
   async delete(pluginPath: string): Promise<{ success: boolean; error?: string }> {
@@ -60,23 +83,17 @@ class Registry {
       return { success: false, error: '内置插件不可卸载' }
     }
 
-    // 从用户插件列表中移除
-    const userPlugins = Array.isArray(pluginDb.dbGet('plugins'))
-      ? (pluginDb.dbGet('plugins') as InstalledPlugin[])
-      : []
-    const filtered = userPlugins.filter((p) => p.path !== pluginPath)
-    this.writeInstalled(filtered)
-    this.notifyPluginsChanged()
-
-    // 删除文件
+    // 先删文件，失败则不改注册表，避免「库已删、文件还在」的不一致
     try {
       await Promise.all([
-        artifactFs.rm(plugin.path, { force: true }),
+        artifactFs.rm(plugin.path, { recursive: true, force: true }),
         artifactFs.rm(`${plugin.path}.unpacked`, { recursive: true, force: true }),
       ])
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : '删除文件失败' }
     }
+
+    this.removeUserPluginByPath(pluginPath)
     return { success: true }
   }
 }

@@ -239,7 +239,9 @@ class PluginMarket {
     pluginName: string,
   ): Promise<{ success: boolean; content?: string; error?: string }> {
     try {
-      const url = `${GITHUB_RAW}/plugins/${pluginName}/README.md`
+      // 编码插件名，防止路径注入
+      const safeName = encodeURIComponent(pluginName)
+      const url = `${GITHUB_RAW}/plugins/${safeName}/README.md`
       const response = await fetch(url)
       if (!response.ok) return { success: false, error: '暂无详情' }
       const content = await response.text()

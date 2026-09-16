@@ -1,5 +1,16 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { AlertTriangle, RotateCcw, Copy } from 'lucide-react'
+import { translations, type Language } from '@/i18n'
+
+/** ErrorBoundary 无法使用 hooks，直接读当前语言 */
+function et(key: string): string {
+  const lang =
+    (typeof document !== 'undefined' && (document.documentElement.lang as Language)) ||
+    ((typeof localStorage !== 'undefined' && localStorage.getItem('language')) as Language) ||
+    'zh-CN'
+  const dict = translations[lang] || translations['zh-CN']
+  return dict[key] || key
+}
 
 interface Props {
   children: ReactNode
@@ -45,8 +56,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-300" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-foreground">页面出错了</h1>
-                <p className="text-sm text-foreground-muted">渲染过程中发生错误</p>
+                <h1 className="text-lg font-semibold text-foreground">
+                  {et('error.boundary.title')}
+                </h1>
+                <p className="text-sm text-foreground-muted">{et('error.boundary.desc')}</p>
               </div>
             </div>
 
@@ -62,14 +75,14 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 font-medium text-accent-foreground transition hover:opacity-90"
               >
                 <RotateCcw className="h-4 w-4" />
-                重新加载
+                {et('error.boundary.reload')}
               </button>
               <button
                 onClick={this.handleCopy}
                 className="flex items-center justify-center gap-2 rounded-xl border border-border-default px-4 py-2.5 text-foreground-secondary transition hover:bg-surface-hover"
               >
                 <Copy className="h-4 w-4" />
-                复制错误
+                {et('error.boundary.copy')}
               </button>
             </div>
           </div>

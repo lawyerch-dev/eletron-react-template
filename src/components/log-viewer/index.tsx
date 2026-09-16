@@ -341,7 +341,9 @@ export const LogViewer = forwardRef<LogViewerHandle, LogViewerProps>(function Lo
                 >
                   <span className="flex items-center gap-2">
                     {source !== 'all' && SOURCE_CONFIG[source].icon}
-                    <span className="capitalize">{source === 'all' ? '全部' : source}</span>
+                    <span className="capitalize">
+                      {source === 'all' ? t('log.source.all') : t(`log.source.${source}`)}
+                    </span>
                   </span>
                   {source !== 'all' && (
                     <span className="text-xs text-foreground-muted">

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { PluginLogo } from './PluginLogo'
+import { formatT, sanitizeHtml } from '@/utils/plugin'
 
 export interface PluginDetailData {
   name: string
@@ -82,7 +83,7 @@ export function PluginDetailModal({
 
   const renderedHtml = useMemo(() => {
     if (!readme) return ''
-    return marked.parse(readme, { async: false }) as string
+    return sanitizeHtml(marked.parse(readme, { async: false }) as string)
   }, [readme])
 
   const handleOverlay = (e: React.MouseEvent) => {
@@ -104,18 +105,25 @@ export function PluginDetailModal({
 
   if (!open) return null
 
-  const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = []
+  const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
+    { id: 'detail', label: t('market.detail'), icon: BookOpen },
+  ]
   if (plugin.features?.length) {
     tabs.push({ id: 'commands', label: t('market.commands'), icon: List })
   }
 
   const metaItems = [
-    { icon: User, label: t('market.author'), value: plugin.author || '—' },
-    { icon: Tag, label: '版本', value: `v${plugin.version || '—'}` },
+    { icon: User, label: t('market.detail.author'), value: plugin.author || '—' },
+    { icon: Tag, label: t('market.detail.version'), value: `v${plugin.version || '—'}` },
     {
       icon: BarChart3,
-      label: '下载量',
-      value: plugin.downloadCount != null ? `${plugin.downloadCount.toLocaleString()} 次` : '—',
+      label: t('market.detail.downloads'),
+      value:
+        plugin.downloadCount != null
+          ? formatT(t('market.detail.downloads.value'), {
+              count: plugin.downloadCount.toLocaleString(),
+            })
+          : '—',
     },
   ]
 
@@ -200,7 +208,7 @@ export function PluginDetailModal({
                   dangerouslySetInnerHTML={{ __html: renderedHtml }}
                 />
               ) : (
-                <p className="text-sm text-foreground-muted">暂无详情</p>
+                <p className="text-sm text-foreground-muted">{t('market.detail.no-readme')}</p>
               )}
             </div>
           )}

@@ -113,14 +113,32 @@ function registerDatabaseApis(): void {
     pluginDb.remove(prefix + key)
     event.returnValue = undefined
   })
-  ipcMain.handle('db:put', async (_event, doc) => pluginDb.put(doc))
-  ipcMain.handle('db:get', async (_event, id) => pluginDb.get(id))
-  ipcMain.handle('db:remove', async (_event, docOrId) => {
-    const id = typeof docOrId === 'string' ? docOrId : docOrId?._id
-    return pluginDb.remove(id)
+  // 异步 handle 必须与同步 on 一样按 sender 隔离，否则插件可直写宿主 ZTOOLS/ 命名空间
+  ipcMain.handle('db:put', async (event, doc) => {
+    const prefix = resolvePrefixForSender(event)
+    return pluginDb.put({ ...doc, _id: prefix + doc._id })
   })
-  ipcMain.handle('db:bulk-docs', async (_event, docs) => docs.map((d: any) => pluginDb.put(d))) // eslint-disable-line @typescript-eslint/no-explicit-any
-  ipcMain.handle('db:all-docs', async (_event, key) => pluginDb.allDocs(key))
+  ipcMain.handle('db:get', async (event, id) => {
+    const prefix = resolvePrefixForSender(event)
+    const doc = pluginDb.get(prefix + id)
+    return doc ? { ...doc, _id: id } : null
+  })
+  ipcMain.handle('db:remove', async (event, docOrId) => {
+    const prefix = resolvePrefixForSender(event)
+    const id = typeof docOrId === 'string' ? docOrId : docOrId?._id
+    return pluginDb.remove(prefix + id)
+  })
+  ipcMain.handle('db:bulk-docs', async (event, docs) => {
+    const prefix = resolvePrefixForSender(event)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return docs.map((d: any) => pluginDb.put({ ...d, _id: prefix + d._id }))
+  })
+  ipcMain.handle('db:all-docs', async (event, key) => {
+    const prefix = resolvePrefixForSender(event)
+    const prefixToQuery = Array.isArray(key) ? key.map((k: string) => prefix + k) : prefix
+    const docs = pluginDb.allDocs(prefixToQuery as string | string[])
+    return docs.map((d) => ({ ...d, _id: String(d._id).slice(prefix.length) }))
+  })
 }
 
 /** 注册 plugin.api 统一分发通道的服务 */

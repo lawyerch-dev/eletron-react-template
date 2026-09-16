@@ -1,5 +1,43 @@
 import { ipcMain, BrowserWindow } from 'electron'
 
+/** 插件允许调用的 BrowserWindow 安全方法白名单 */
+const ALLOWED_WINDOW_METHODS = new Set([
+  'close',
+  'focus',
+  'blur',
+  'show',
+  'hide',
+  'maximize',
+  'unmaximize',
+  'minimize',
+  'restore',
+  'setTitle',
+  'getSize',
+  'setSize',
+  'getPosition',
+  'setPosition',
+  'getBounds',
+  'setBounds',
+  'isMinimized',
+  'isMaximized',
+  'isVisible',
+  'isFocused',
+  'center',
+  'setAlwaysOnTop',
+  'loadURL',
+  'reload',
+])
+
+function isSafeWindowUrl(raw: unknown): boolean {
+  if (typeof raw !== 'string' || !raw) return false
+  try {
+    const parsed = new URL(raw)
+    return ['http:', 'https:', 'file:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
 /**
  * 窗口管理API - 插件专用
  */
@@ -15,19 +53,33 @@ export class PluginWindowAPI {
       'createBrowserWindow',
       (event, args: { url: string; options?: Electron.BrowserWindowConstructorOptions }) => {
         const { url, options } = args || {}
-        if (!url) {
+        if (!url || typeof url !== 'string') {
           event.returnValue = null
           return
         }
+        // 仅允许 http(s)/file 加载，拒绝 javascript: 等危险协议
+        try {
+          const parsed = new URL(url)
+          if (!['http:', 'https:', 'file:'].includes(parsed.protocol)) {
+            event.returnValue = null
+            return
+          }
+        } catch {
+          event.returnValue = null
+          return
+        }
+        // 强制安全 webPreferences：忽略插件传入的危险覆盖（nodeIntegration 等）
         const win = new BrowserWindow({
-          width: 800,
-          height: 600,
+          width: options?.width || 800,
+          height: options?.height || 600,
           backgroundColor: '#ffffff',
-          ...options,
+          ...(typeof options?.x === 'number' ? { x: options.x } : {}),
+          ...(typeof options?.y === 'number' ? { y: options.y } : {}),
           webPreferences: {
-            contextIsolation: false,
+            contextIsolation: true,
             nodeIntegration: false,
-            ...options?.webPreferences,
+            sandbox: true,
+            webSecurity: true,
           },
         })
         const winId = win.webContents.id
@@ -53,6 +105,14 @@ export class PluginWindowAPI {
           event.returnValue = { success: false, error: '窗口不存在' }
           return
         }
+        if (typeof method !== 'string' || !ALLOWED_WINDOW_METHODS.has(method)) {
+          event.returnValue = { success: false, error: '方法不允许' }
+          return
+        }
+        if (method === 'loadURL' && !isSafeWindowUrl(methodArgs[0])) {
+          event.returnValue = { success: false, error: 'URL 不允许' }
+          return
+        }
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = (win as any)[method](...methodArgs)
@@ -71,6 +131,12 @@ export class PluginWindowAPI {
         const { id, method, args: methodArgs = [] } = args || {}
         const win = this.createdWindows.get(id)
         if (!win) return { success: false, error: '窗口不存在' }
+        if (typeof method !== 'string' || !ALLOWED_WINDOW_METHODS.has(method)) {
+          return { success: false, error: '方法不允许' }
+        }
+        if (method === 'loadURL' && !isSafeWindowUrl(methodArgs[0])) {
+          return { success: false, error: 'URL 不允许' }
+        }
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await (win as any)[method](...methodArgs)

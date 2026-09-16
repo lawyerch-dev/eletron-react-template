@@ -1,5 +1,6 @@
 import { ipcMain, shell, app, nativeTheme } from 'electron'
 import fs from 'node:fs'
+import { isSafeExternalUrl } from '../security'
 
 /**
  * Shell 操作API - 插件专用
@@ -11,17 +12,26 @@ export class PluginShellAPI {
 
   private setupIPC(): void {
     ipcMain.on('shell-open-external', (event, url: string) => {
-      if (typeof url === 'string') shell.openExternal(url)
-      event.returnValue = true
+      // 仅允许 http/https/mailto，防止 file:// 或自定义协议被滥用
+      if (typeof url === 'string' && isSafeExternalUrl(url)) {
+        shell.openExternal(url)
+        event.returnValue = true
+        return
+      }
+      event.returnValue = false
     })
 
     ipcMain.on('shell-open-path', (event, p: string) => {
-      if (typeof p === 'string') shell.openPath(p)
+      if (typeof p === 'string' && p && !p.includes('\0')) {
+        shell.openPath(p)
+      }
       event.returnValue = true
     })
 
     ipcMain.on('shell-show-item-in-folder', (event, p: string) => {
-      if (typeof p === 'string') shell.showItemInFolder(p)
+      if (typeof p === 'string' && p && !p.includes('\0')) {
+        shell.showItemInFolder(p)
+      }
       event.returnValue = true
     })
 

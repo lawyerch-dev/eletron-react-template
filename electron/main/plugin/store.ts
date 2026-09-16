@@ -16,7 +16,7 @@ interface StoredDoc {
  */
 class KvStore {
   private store: Store<Record<string, StoredDoc>>
-  private revCounter = 1
+  private revCounter: number
 
   constructor() {
     this.store = new Store<Record<string, StoredDoc>>({
@@ -24,9 +24,24 @@ class KvStore {
       clearInvalidConfig: true,
       defaults: {},
     })
+    // 从已有文档恢复计数器，避免进程重启后 _rev 从 1 重新计数导致冲突
+    this.revCounter = this.scanMaxRev() + 1
   }
 
-  /** 生成递增 revision（简单字符串，不冲突检测） */
+  private scanMaxRev(): number {
+    let max = 0
+    try {
+      for (const doc of Object.values(this.store.store)) {
+        const rev = Number(doc?._rev)
+        if (Number.isFinite(rev) && rev > max) max = rev
+      }
+    } catch {
+      // 忽略损坏数据
+    }
+    return max
+  }
+
+  /** 生成递增 revision */
   private nextRev(): string {
     return `${this.revCounter++}`
   }

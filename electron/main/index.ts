@@ -291,13 +291,14 @@ app.on('activate', () => {
   }
 })
 
-// New window example arg: new windows url
+// 子窗口示例：与主窗一致的隔离策略，禁止 nodeIntegration
 ipcMain.handle('open-win', (_, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
       preload,
-      nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
     },
   })
 

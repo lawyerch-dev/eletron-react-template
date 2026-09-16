@@ -23,7 +23,7 @@ export function AppLayout() {
     '/about': t('page.about'),
   }
 
-  const title = pageTitles[location.pathname] || '页面'
+  const title = pageTitles[location.pathname] || t('page.home')
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(collapsed))

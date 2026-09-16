@@ -18,6 +18,8 @@ export interface RunningPlugin {
 class Runner {
   private running: RunningPlugin[] = []
   private onRunningChanged: (running: RunningPlugin[]) => void = () => {}
+  /** 已注册过 preload 的 session partition，避免重复 registerPreloadScript */
+  private preloadRegistered = new Set<string>()
 
   setOnRunningChanged(cb: (running: RunningPlugin[]) => void): void {
     this.onRunningChanged = cb
@@ -40,29 +42,35 @@ class Runner {
 
   /**
    * 启动插件，以独立窗口运行。
+   * loadURL 成功后才登记 running，避免失败残留脏状态。
    */
   async launch(plugin: InstalledPlugin): Promise<{ success: boolean; error?: string }> {
     const existing = this.getRunningByPluginPath(plugin.path)
     if (existing) {
-      // 聚焦已在运行的窗口
+      // 聚焦已在运行的窗口；若窗口已销毁则清理脏记录
       const win = BrowserWindow.fromId(existing.webContentsId)
-      if (win) {
+      if (win && !win.isDestroyed()) {
         if (win.isMinimized()) win.restore()
         win.focus()
+        return { success: true }
       }
-      return { success: true }
+      this.removeRunning(plugin.path)
     }
 
     // 对于 asar 插件，其内部文件可通过 asar 路径 + 相对文件访问（Electron 支持 asar 内虚拟路径）
     const url = this.resolvePluginUrl(plugin)
 
-    const sess = session.fromPartition(getPluginSessionPartition(plugin.name))
+    const partition = getPluginSessionPartition(plugin.name)
+    const sess = session.fromPartition(partition)
     const preloadPath = getRuntimePreloadPath()
     // 确保 preload 存在
     if (!fs.existsSync(preloadPath)) {
       return { success: false, error: '插件运行时未找到，请重启应用' }
     }
-    sess.registerPreloadScript({ type: 'frame', filePath: preloadPath })
+    if (!this.preloadRegistered.has(partition)) {
+      sess.registerPreloadScript({ type: 'frame', filePath: preloadPath })
+      this.preloadRegistered.add(partition)
+    }
 
     const win = new BrowserWindow({
       title: plugin.title || plugin.name,
@@ -72,6 +80,8 @@ class Runner {
       minHeight: 400,
       backgroundColor: '#ffffff',
       webPreferences: {
+        // 注意：plugin-preload.js 直接挂载 window.ztools，依赖 contextIsolation:false。
+        // 迁移到 contextBridge 是后续安全加固项；在此之前禁止 nodeIntegration / 开启 webSecurity。
         contextIsolation: false,
         nodeIntegration: false,
         webSecurity: false,
@@ -91,11 +101,20 @@ class Runner {
       this.removeRunning(plugin.path)
     })
 
+    try {
+      await win.loadURL(url)
+    } catch (error) {
+      if (!win.isDestroyed()) win.destroy()
+      this.removeRunning(plugin.path)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '插件加载失败',
+      }
+    }
+
     const id = win.webContents.id
     this.running.push({ name: plugin.name, path: plugin.path, webContentsId: id })
     this.onRunningChanged(this.running)
-
-    await win.loadURL(url)
     return { success: true }
   }
 
@@ -108,12 +127,30 @@ class Runner {
     const running = this.getRunningByPluginPath(pluginPath)
     if (!running) return { success: false, error: '插件未运行' }
     const win = BrowserWindow.fromId(running.webContentsId)
-    if (win) {
+    if (win && !win.isDestroyed()) {
       win.close()
     } else {
       this.removeRunning(pluginPath)
     }
     return { success: true }
+  }
+
+  /** 卸载/覆盖安装前强制关闭运行中的插件窗口 */
+  async forceClose(pluginPath: string): Promise<void> {
+    const running = this.getRunningByPluginPath(pluginPath)
+    if (!running) return
+    const win = BrowserWindow.fromId(running.webContentsId)
+    if (win && !win.isDestroyed()) {
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, 2000)
+        win.once('closed', () => {
+          clearTimeout(timer)
+          resolve()
+        })
+        win.close()
+      })
+    }
+    this.removeRunning(pluginPath)
   }
 
   getRunningPlugins(): Array<{ name: string; path: string; running: boolean }> {
