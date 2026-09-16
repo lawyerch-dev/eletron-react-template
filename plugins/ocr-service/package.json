@@ -1,8 +1,8 @@
 {
   "name": "ztools-plugin-ocr-service",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "内置 OCR 服务插件",
+  "description": "内置 OCR 服务插件（RapidOCR via uv / System OCR / Tesseract.js）",
   "main": "preload.js",
   "dependencies": {
     "@napi-rs/system-ocr": "^1.1.0",

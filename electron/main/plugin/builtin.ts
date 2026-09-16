@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { InstalledPlugin } from './shared'
+import { toPluginIconUrl } from './security'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -47,7 +48,7 @@ export function scanBuiltinPlugins(): InstalledPlugin[] {
       if (config.logo) {
         const logoAbs = path.resolve(pluginDir, config.logo as string)
         if (logoAbs === pluginDir || logoAbs.startsWith(pluginDir + path.sep)) {
-          logo = 'plugin-icon://' + logoAbs
+          logo = toPluginIconUrl(logoAbs)
         }
       }
 

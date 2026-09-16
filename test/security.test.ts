@@ -17,6 +17,8 @@ import {
   isSafeExternalUrl,
   isSafePluginIconPath,
   MARKET_ICON_MAX_BYTES,
+  parsePluginIconPath,
+  toPluginIconUrl,
 } from '../../electron/main/plugin/security'
 
 describe('security helpers', () => {
@@ -62,5 +64,20 @@ describe('security helpers', () => {
 
   it('exposes a positive market icon size cap', () => {
     expect(MARKET_ICON_MAX_BYTES).toBeGreaterThan(0)
+  })
+
+  describe('plugin-icon url encode/parse', () => {
+    it('roundtrips absolute path via proxy encoding', () => {
+      const abs = '/Users/bluer/迭代中项目/plugins/x/logo.svg'
+      const url = toPluginIconUrl(abs)
+      expect(url.startsWith('plugin-icon://proxy/')).toBe(true)
+      expect(parsePluginIconPath(url)).toBe(abs)
+    })
+
+    it('rejects non-proxy formats', () => {
+      expect(parsePluginIconPath('plugin-icon:///tmp/a/logo.png')).toBe('')
+      expect(parsePluginIconPath('https://example.com/x.png')).toBe('')
+      expect(parsePluginIconPath('')).toBe('')
+    })
   })
 })

@@ -4,6 +4,7 @@
 
 | 引擎 | 运行时 | 平台支持 | 特点 |
 |------|--------|----------|------|
+| **RapidOCR** | 本地 (uv + Python sidecar) | 全平台（需 uv） | PP-OCRv6 ONNX，中英优秀，**默认优先** |
 | **Tesseract.js** | 本地 | 全平台 | 开源、离线可用 |
 | **macOS Vision** | 本地 | macOS | 系统原生、速度快 |
 | **Windows OCR** | 本地 | Windows | 系统原生、集成度高 |
@@ -11,9 +12,15 @@
 
 ## 引擎选择策略
 
-- **macOS/Windows**: 默认使用系统原生 OCR（速度快、无需额外依赖）
-- **Linux**: 默认使用 Tesseract.js（开源、离线可用）
-- **需要高精度中文识别**: 推荐使用 PaddleOCR API
+1. **RapidOCR**（若本机有 [uv](https://docs.astral.sh/uv/)；依赖按需拉取，不内置包）
+2. **macOS/Windows**: 系统原生 OCR
+3. **其他平台 / 兜底**: Tesseract.js
+
+安装 uv 即可启用 RapidOCR，无需在应用内打包 Python：
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 ## 配置远程引擎
 
@@ -37,18 +44,18 @@
 其他插件可以通过以下方式调用 OCR 服务：
 
 ```javascript
-// 使用默认引擎
-const result = await ztools.ocr(image, { lang: 'eng+chi_sim' })
+// 使用默认引擎（有 RapidOCR 时优先）
+const result = await ztools.ocr(image, { lang: 'chi_sim' })
 
 // 指定引擎
-const result = await ztools.ocr(image, { 
-  engine: 'system',  // 或 'tesseract', 'paddleocr'
+const result = await ztools.ocr(image, {
+  engine: 'rapidocr',  // 或 'system', 'tesseract', 'paddleocr'
   lang: 'chi_sim'
 })
 
 // 使用 ocrService API
 const result = await window.ocrService.recognize(image, {
-  engine: 'tesseract',
+  engine: 'rapidocr',
   lang: 'eng',
   useCache: true
 })
@@ -57,7 +64,7 @@ const result = await window.ocrService.recognize(image, {
 const processors = window.ocrService.getProcessors()
 
 // 设置默认引擎
-window.ocrService.setDefaultProcessor('system')
+window.ocrService.setDefaultProcessor('rapidocr')
 
 // 清除缓存
 window.ocrService.clearCache()
@@ -76,7 +83,7 @@ window.ocrService.clearCache()
 | 德文 | `deu` |
 | 西班牙文 | `spa` |
 
-支持多语言同时识别，使用 `+` 连接：`eng+chi_sim`
+支持多语言同时识别，使用 `+` 连接：`eng+chi_sim`（Tesseract/System）；RapidOCR 默认中英混合模型。
 
 ## 缓存机制
 

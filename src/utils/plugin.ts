@@ -6,11 +6,21 @@ export function formatT(raw: string, vars?: Vars): string {
   return raw.replace(/\{(\w+)\}/g, (_, key) => (vars[key] !== undefined ? String(vars[key]) : ''))
 }
 
-/** 本地 file:// 走 plugin-icon://；远程 http(s) 走 market-icon:// 代理（修正 content-type） */
+/** 本地路径 → plugin-icon://proxy/<encoded>；远程 http(s) 走 market-icon 代理 */
 export function logoUrl(url: string | undefined): string {
   if (!url) return ''
   if (/^https?:\/\//i.test(url)) return `market-icon://proxy/${encodeURIComponent(url)}`
-  return url.replace(/^file:\/\//, 'plugin-icon://')
+  if (url.startsWith('plugin-icon://')) return url
+  // file:///abs → plugin-icon://proxy/encoded
+  if (url.startsWith('file://')) {
+    try {
+      const p = decodeURIComponent(url.replace(/^file:\/\//, ''))
+      return `plugin-icon://proxy/${encodeURIComponent(p)}`
+    } catch {
+      return url.replace(/^file:\/\//, 'plugin-icon://proxy/')
+    }
+  }
+  return url
 }
 
 /**

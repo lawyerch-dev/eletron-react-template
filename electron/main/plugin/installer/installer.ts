@@ -11,6 +11,7 @@ import { pluginMarket } from './market'
 import { registry } from '../runtime/registry'
 import { runner } from '../runtime/runner'
 import { getPluginsRoot, type InstalledPlugin } from '../shared'
+import { toPluginIconUrl } from '../security'
 
 const artifactFs = physicalFs.promises
 
@@ -242,7 +243,7 @@ class Installer {
       if (pluginConfig.logo) {
         const logoAbs = path.resolve(publishedPath, pluginConfig.logo as string)
         if (logoAbs === publishedPath || logoAbs.startsWith(publishedPath + path.sep)) {
-          logoUrl = 'plugin-icon://' + logoAbs
+          logoUrl = toPluginIconUrl(logoAbs)
         }
       }
 

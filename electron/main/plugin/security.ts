@@ -67,7 +67,24 @@ export function isSafePluginIconPath(filePath: string): boolean {
   return roots.some((root) => real === root || real.startsWith(root + path.sep))
 }
 
-/** 校验 market-icon 远程 URL：仅允许 http(s) + 白名单域名 */
+/**
+ * 将绝对路径编码为 plugin-icon URL。
+ * 使用 proxy/encodeURIComponent，避免 standard 协议把路径首段当成 host 并小写化。
+ */
+export function toPluginIconUrl(absPath: string): string {
+  return `plugin-icon://proxy/${encodeURIComponent(absPath)}`
+}
+
+/** 从 plugin-icon://proxy/<encoded> 还原本地绝对路径。非法格式返回空串。 */
+export function parsePluginIconPath(requestUrl: string): string {
+  const prefix = 'plugin-icon://proxy/'
+  if (!requestUrl.startsWith(prefix)) return ''
+  try {
+    return decodeURIComponent(requestUrl.slice(prefix.length))
+  } catch {
+    return ''
+  }
+}
 export function isAllowedMarketIconUrl(target: string): boolean {
   if (typeof target !== 'string' || !target) return false
   let url: URL

@@ -102,7 +102,7 @@
           <label class="selector-label">识别引擎</label>
           <div class="select-wrapper">
             <select id="engineSelect" class="engine-select" onchange="switchEngine(this.value)">
-              <option value="tesseract">Tesseract.js (本地)</option>
+              <!-- 由 window.ocrService.getProcessors() 动态填充 -->
             </select>
             <span class="select-arrow">&#9662;</span>
           </div>
@@ -170,13 +170,14 @@
     <div class="section">
       <div class="section-title">调用示例</div>
       <div class="api-example">
-        <span class="comment">// 其他插件可以通过以下方式调用 OCR 服务</span><br><br>
-        <span class="comment">// 方式 1: 使用 Tesseract.js 直接识别</span><br>
-        <span class="keyword">const</span> worker = <span class="keyword">await</span> Tesseract.<span class="function">createWorker</span>(<span class="string">'eng+chi_sim'</span>)<br>
-        <span class="keyword">const</span> { data } = <span class="keyword">await</span> worker.<span class="function">recognize</span>(image)<br>
-        <span class="keyword">await</span> worker.<span class="function">terminate</span>()<br><br>
-        <span class="comment">// 方式 2: 使用本页面的测试功能</span><br>
-        <span class="comment">// 直接点击上方测试用例按钮</span>
+        <span class="comment">// 其他插件可以通过 ztools 调用 OCR 服务（默认优先 RapidOCR）</span><br><br>
+        <span class="keyword">const</span> result = <span class="keyword">await</span> ztools.<span class="function">ocr</span>(image, {<br>
+        &nbsp;&nbsp;engine: <span class="string">'rapidocr'</span>,&nbsp;<span class="comment">// 或 'system' / 'tesseract'</span><br>
+        &nbsp;&nbsp;lang: <span class="string">'chi_sim'</span><br>
+        })<br>
+        console.<span class="function">log</span>(result.text, result.confidence)<br><br>
+        <span class="comment">// 或本窗口 API</span><br>
+        <span class="keyword">await</span> window.ocrService.<span class="function">recognize</span>(image, { engine: <span class="string">'rapidocr'</span> })
       </div>
     </div>
   </div>
@@ -243,29 +244,53 @@
     // 初始化引擎列表
     async function initEngineList() {
       try {
-        if (window.ocrService) {
-          processors = window.ocrService.getProcessors()
-          currentProcessorId = window.ocrService.getDefaultProcessor() || 'tesseract'
-          
+        if (window.ocrService && typeof window.ocrService.getProcessors === 'function') {
+          processors = window.ocrService.getProcessors() || []
+          currentProcessorId = window.ocrService.getDefaultProcessor() || (processors[0] && processors[0].id) || 'tesseract'
+
           const select = document.getElementById('engineSelect')
           select.innerHTML = ''
-          
+
           processors.forEach(proc => {
             const option = document.createElement('option')
             option.value = proc.id
-            option.textContent = `${proc.name} (${proc.runtime === 'local' ? '本地' : '远程'})`
+            option.textContent = `${proc.name} (${proc.runtime === 'local' ? '本地' : '远程'})${proc.available ? '' : ' · 不可用'}`
             option.disabled = !proc.available
             select.appendChild(option)
           })
-          
-          select.value = currentProcessorId
+
+          // 默认选中第一个可用引擎
+          const firstAvail = processors.find(p => p.available)
+          if (firstAvail) {
+            currentProcessorId = firstAvail.id
+            select.value = firstAvail.id
+          }
+
           updateEngineInfo(currentProcessorId)
-          
-          // 初始化语言选择器
           initLanguageSelect()
+          document.getElementById('status').textContent =
+            `已加载 ${processors.filter(p => p.available).length} 个可用引擎`
+        } else {
+          // preload 未注入时兜底：页面内直接用 Tesseract.js
+          processors = [{
+            id: 'tesseract',
+            name: 'Tesseract.js',
+            runtime: 'local',
+            available: true,
+            capabilities: ['image_to_text'],
+            supportedLanguages: ['eng', 'chi_sim'],
+          }]
+          currentProcessorId = 'tesseract'
+          const select = document.getElementById('engineSelect')
+          select.innerHTML = '<option value="tesseract">Tesseract.js (本地兜底)</option>'
+          initLanguageSelect()
+          document.getElementById('status').textContent =
+            'window.ocrService 未就绪，已回退页面内 Tesseract'
+          console.warn('[OCR UI] window.ocrService 未注入，请检查插件 preload 是否加载')
         }
       } catch (e) {
         console.warn('引擎列表初始化失败:', e)
+        document.getElementById('status').textContent = '引擎初始化失败: ' + e.message
       }
     }
 

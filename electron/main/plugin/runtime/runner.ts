@@ -62,14 +62,22 @@ class Runner {
 
     const partition = getPluginSessionPartition(plugin.name)
     const sess = session.fromPartition(partition)
-    const preloadPath = getRuntimePreloadPath()
-    // 确保 preload 存在
-    if (!fs.existsSync(preloadPath)) {
+    const hostPreloadPath = getRuntimePreloadPath()
+    // 确保宿主运行时 preload 存在（window.ztools）
+    if (!fs.existsSync(hostPreloadPath)) {
       return { success: false, error: '插件运行时未找到，请重启应用' }
     }
-    if (!this.preloadRegistered.has(partition)) {
-      sess.registerPreloadScript({ type: 'frame', filePath: preloadPath })
-      this.preloadRegistered.add(partition)
+
+    // 注入插件自身 preload（plugin.json 的 preload 字段），如 ocr-service 的引擎注册
+    // 宿主 ztools 走 webPreferences.preload；插件 preload 走 session 注册，两者都会执行
+    const pluginPreloadRel = plugin.preload
+    const pluginPreloadAbs = pluginPreloadRel ? path.join(plugin.path, pluginPreloadRel) : ''
+    if (pluginPreloadAbs && fs.existsSync(pluginPreloadAbs)) {
+      const pluginPreloadKey = `${partition}::plugin::${pluginPreloadAbs}`
+      if (!this.preloadRegistered.has(pluginPreloadKey)) {
+        sess.registerPreloadScript({ type: 'frame', filePath: pluginPreloadAbs })
+        this.preloadRegistered.add(pluginPreloadKey)
+      }
     }
 
     const win = new BrowserWindow({
@@ -87,7 +95,7 @@ class Runner {
         webSecurity: false,
         sandbox: false,
         session: sess,
-        preload: preloadPath,
+        preload: hostPreloadPath,
       },
     })
 

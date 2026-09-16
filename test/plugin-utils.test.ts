@@ -22,12 +22,16 @@ describe('logoUrl', () => {
     )
   })
 
-  it('rewrites file:// to plugin-icon://', () => {
-    expect(logoUrl('file:///tmp/plugins/x/logo.png')).toBe('plugin-icon:///tmp/plugins/x/logo.png')
+  it('rewrites file:// to plugin-icon proxy', () => {
+    expect(logoUrl('file:///tmp/plugins/x/logo.png')).toBe(
+      `plugin-icon://proxy/${encodeURIComponent('/tmp/plugins/x/logo.png')}`,
+    )
   })
 
   it('passes through plugin-icon:// as-is', () => {
-    expect(logoUrl('plugin-icon:///tmp/x/logo.png')).toBe('plugin-icon:///tmp/x/logo.png')
+    expect(logoUrl('plugin-icon://proxy/' + encodeURIComponent('/tmp/x/logo.png'))).toBe(
+      'plugin-icon://proxy/' + encodeURIComponent('/tmp/x/logo.png'),
+    )
   })
 
   it('returns empty for missing url', () => {

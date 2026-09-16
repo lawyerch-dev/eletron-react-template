@@ -1,7 +1,7 @@
 import { ipcMain, protocol, net, dialog } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { pluginMarket } from './installer/market'
 import { installer } from './installer/installer'
 import { registry } from './runtime/registry'
@@ -9,7 +9,12 @@ import { runner } from './runtime/runner'
 import { initPluginRuntime, bindRunningContext } from './api/services'
 import { getRuntimePreloadPath } from './shared'
 import { scanBuiltinPlugins } from './builtin'
-import { isSafePluginIconPath, isAllowedMarketIconUrl, MARKET_ICON_MAX_BYTES } from './security'
+import {
+  isSafePluginIconPath,
+  isAllowedMarketIconUrl,
+  MARKET_ICON_MAX_BYTES,
+  parsePluginIconPath,
+} from './security'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CHANGED_EVENT = 'plugins-changed'
@@ -84,12 +89,13 @@ export function initPluginSubsystem(
   bindRunningContext({ getRunning: () => runner.getRunning() })
 
   // 注册 plugin-icon 协议：仅允许读取插件目录内的图片，防任意本地文件读
+  // 使用 proxy/encodeURIComponent 传路径，避免 standard 协议把 /Users 当 host 小写化
   protocol.handle('plugin-icon', (request) => {
-    const filePath = decodeURIComponent(request.url.slice('plugin-icon://'.length))
-    if (!isSafePluginIconPath(filePath)) {
+    const filePath = parsePluginIconPath(request.url)
+    if (!filePath || !isSafePluginIconPath(filePath)) {
       return new Response('', { status: 403 })
     }
-    return net.fetch('file:///' + filePath)
+    return net.fetch(pathToFileURL(filePath).href)
   })
 
   // 注册 market-icon 协议：白名单域名代理远程图标，按文件头修正 MIME，并限制体积
