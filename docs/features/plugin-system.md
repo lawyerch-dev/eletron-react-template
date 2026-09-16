@@ -56,13 +56,43 @@ plugins/<name>/        # 每个插件的源码目录
 
 ### 图标加载
 
-市场远程图标经 `market-icon://` 协议代理到主进程，主进程按文件头字节嗅探并修正 MIME。即使插件把 SVG 内容存成 `logo.png`（GitHub raw 会以 `text/plain` + `nosniff` 返回导致 `<img>` 拒绝渲染），也能正确显示。
+| 类型 | 协议 | 说明 |
+|------|------|------|
+| 本地插件图标 | `plugin-icon://proxy/<encodeURIComponent(绝对路径)>` | 仅允许插件根目录内图片扩展名，防任意文件读 |
+| 市场远程图标 | `market-icon://proxy/<url>` | 仅 GitHub 系域名；按文件头嗅探修正 MIME；体积上限 2MB |
+
+即使插件把 SVG 内容存成 `logo.png`（GitHub raw 会以 `text/plain` + `nosniff` 返回导致 `<img>` 拒绝渲染），市场代理也能正确显示。
+
+### Preload 注入
+
+启动插件窗口时会加载两层脚本：
+
+1. **宿主** `plugin-preload.js` → `window.ztools`（IPC / Provider）
+2. **插件自身** `plugin.json` 的 `preload` 字段 → 例如 OCR 服务的 `window.ocrService`
+
+未声明 `preload` 的插件只有 ztools API。
+
+### 运行时依赖
+
+- 最终用户**不需要**系统 Node.js：Electron 发行包内嵌 Node/Chromium。
+- 插件的 `node_modules`（含原生模块）随插件目录经 `extraResources` 分发。
+- OCR 的 RapidOCR 引擎可选依赖本机 [uv](https://docs.astral.sh/uv/)，应用内不打包 Python 包。
 
 ## 我的插件
 
 - 启动/停止（独立 BrowserWindow，背景色固定白色）
-- 卸载 / 导入 `.zpx`/`.zip`
+- 卸载 / 导入 `.zpx`/`.zip`（卸载前会强制关闭运行中实例）
 - 内置插件显示 `内置` 标签
+
+## 内置 OCR 服务
+
+`plugins/ocr-service` 通过 Provider 注册 `ocr`，其他插件可调用：
+
+```javascript
+const result = await ztools.ocr(image, { engine: 'rapidocr', lang: 'chi_sim' })
+```
+
+引擎优先级：RapidOCR（uv）→ 系统原生 → Tesseract.js。详见插件目录 README。
 
 ## 插件格式
 

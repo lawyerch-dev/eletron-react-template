@@ -10,7 +10,15 @@
     {
       "from": "plugins",
       "to": "plugins",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*",
+        "!**/.venv/**",
+        "!**/venv/**",
+        "!**/__pycache__/**",
+        "!**/*.pyc",
+        "!**/uv.lock",
+        "!**/.git/**"
+      ]
     },
     {
       "from": "resources/lib",

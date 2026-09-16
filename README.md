@@ -14,12 +14,22 @@ An Electron + React + TypeScript desktop application with a built-in plugin syst
 ### Features
 
 - 🧩 **Plugin System** — Online plugin marketplace, local import, one-click install and launch
+- 🔍 **Built-in OCR** — RapidOCR (uv sidecar) / system OCR / Tesseract.js
 - 🎨 **Semantic Theme Engine** — CSS custom property tokens, light/dark themes, extensible
 - 🌐 **i18n** — Multi-language support (zh-CN / en-US), easy to extend
 - ⚡ **Vite + React 19** — Fast HMR, TypeScript strict mode
 - 🔄 **Auto Update** — Powered by electron-updater
 - 🧪 **Testing** — Vitest unit tests + Playwright E2E
 - 📦 **CI/CD** — GitHub Actions + electron-builder + GitHub Pages docs
+
+## Runtime Environment
+
+| Audience | Requirement |
+|----------|-------------|
+| **End users (installers)** | **No system Node.js** — Electron ships Chromium + Node |
+| Developers | Node.js ≥ 20.19 or ≥ 22.12 + pnpm |
+| RapidOCR engine (optional) | [uv](https://docs.astral.sh/uv/); otherwise system OCR / Tesseract.js |
+| Plugin npm deps | Ship with the plugin folder via `extraResources`; never `npm install` on the user machine |
 
 ## Quick Start
 
@@ -28,6 +38,12 @@ git clone https://github.com/lawyerch-dev/eletron-react-template.git
 cd eletron-react-template
 pnpm install
 pnpm dev
+```
+
+Optional RapidOCR:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ## Scripts

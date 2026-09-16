@@ -14,12 +14,23 @@
 ### 特性
 
 - 🧩 **插件系统** — 在线插件市场、本地导入、一键安装和启动
+- 🔍 **内置 OCR 服务** — RapidOCR（uv sidecar）/ 系统原生 / Tesseract.js 多引擎
 - 🎨 **语义化主题引擎** — CSS 自定义属性 Token，浅色/暗色主题，可扩展
 - 🌐 **国际化** — 中英文双语支持，易于扩展
 - ⚡ **Vite + React 19** — 快速 HMR，TypeScript 严格模式
 - 🔄 **自动更新** — 基于 electron-updater
 - 🧪 **测试** — Vitest 单元测试 + Playwright E2E
 - 📦 **CI/CD** — GitHub Actions + electron-builder + GitHub Pages 文档站
+
+## 环境要求
+
+| 场景 | 需要 |
+|------|------|
+| **安装并使用应用** | **不需要系统 Node.js**（Electron 包内自带 Chromium + Node） |
+| 开发本仓库 | Node.js ≥ 20.19 或 ≥ 22.12 + [pnpm](https://pnpm.io) |
+| 启用 RapidOCR 引擎（可选） | [uv](https://docs.astral.sh/uv/)；无 uv 时回退系统 OCR / Tesseract.js |
+
+插件若依赖 npm 包（如 `tesseract.js`、原生模块），须在开发机安装后**随插件目录一起打包**（`electron-builder` 的 `extraResources`），最终用户机器上**不会**执行 `npm install`。
 
 ## 快速开始
 
@@ -28,6 +39,12 @@ git clone https://github.com/lawyerch-dev/eletron-react-template.git
 cd eletron-react-template
 pnpm install
 pnpm dev
+```
+
+可选启用 RapidOCR：
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ## 脚本
@@ -54,19 +71,23 @@ src/
 ├── components/
 │   ├── common/          通用组件（ErrorBoundary）
 │   ├── layout/          布局组件（Sidebar、AppLayout）
-│   ├── plugin/          插件 UI（PluginDetailModal、ImportPluginButton）
+│   ├── plugin/          插件 UI（PluginLogo、PluginDetailModal、ImportPluginButton）
 │   └── update/          自动更新 UI
 ├── contexts/            React Context（主题、语言）
 ├── pages/               页面组件（首页、插件市场、我的插件）
 ├── routes/              路由定义
 ├── types/               TypeScript 类型定义
+├── utils/               工具函数（logger、plugin logo/sanitize）
 ├── assets/              SVG 与图片
 electron/
 ├── main/
-│   ├── plugin/          插件子系统（市场、安装、注册、运行）
+│   ├── plugin/          插件子系统（市场、安装、注册、运行、security）
 │   ├── index.ts         主进程入口
 │   └── update.ts        自动更新
-└── preload/             Preload 脚本（contextBridge）
+└── preload/             宿主 Preload（contextBridge）
+plugins/
+├── ocr-service/         内置 OCR 服务（RapidOCR / System / Tesseract）
+└── example-plugin/      示例插件
 docs/                    VitePress 文档站
 ```
 
@@ -84,6 +105,13 @@ docs/                    VitePress 文档站
 
 ### 插件窗口
 每个插件在独立 BrowserWindow 中运行，背景色固定为白色，不受宿主应用主题影响。
+
+启动时会注入：
+1. 宿主 `plugin-preload.js`（提供 `window.ztools`）
+2. 插件自身 `preload`（若 `plugin.json` 声明，如 OCR 的 `window.ocrService`）
+
+### OCR 服务
+见 [`plugins/ocr-service/README.md`](plugins/ocr-service/README.md)。默认优先 RapidOCR（需 uv），否则系统 OCR / Tesseract.js。
 
 ## 主题系统
 

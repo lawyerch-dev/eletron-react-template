@@ -24,14 +24,15 @@
 
 ### 3. 实现
 
-- 新组件放 `src/components/<name>/index.tsx`
+- 新组件放 `src/components/<Name>/`（或同目录明确命名文件）
 - 类型定义集中放 `src/types/`
 - IPC 通道命名：`kebab-case`
 - 样式：使用语义化 Token，禁止硬编码颜色
+- 插件相关工具函数放 `src/utils/plugin.ts`，不要定义在页面里再被组件反向 import
 
 ### 4. 文档
 
-更新 `docs/` 中对应的文档站文件，保持与代码变更同步。
+更新 `docs/` 中对应的文档站文件，保持与代码变更同步。架构/环境约定变更须同步本文件与 `README.zh-CN.md`。
 
 ### 5. 预检
 
@@ -49,6 +50,22 @@ git push
 
 ---
 
+## 运行时环境边界（重要）
+
+| 角色 | 需要什么 | 说明 |
+|------|----------|------|
+| **最终用户（安装包）** | **不需要系统 Node.js** | Electron 发行包内嵌 Chromium + Node，应用与插件 preload 都跑在这套内嵌运行时上 |
+| **开发者** | Node.js ≥ 20.19 / ≥ 22.12 + pnpm | 构建、Vite、测试、electron-builder |
+| **RapidOCR 引擎（可选）** | 本机 [uv](https://docs.astral.sh/uv/) | 宿主用 `uv run` 按需拉起 Python sidecar，**不把 Python 包打进应用** |
+| **插件 Node 依赖** | 随插件目录打包 | 如 `plugins/ocr-service/node_modules`（tesseract.js、原生模块），经 `extraResources` 分发，**禁止**在用户机器上现场 `npm install` |
+
+**原则**：
+- 不要引入「给最终用户安装 Node/nvm」的方案；打包应用自带 Node。
+- 不要在应用启动时执行 `npm/pnpm install`。
+- Python 侧只通过 uv / 可选 `.venv` / `RAPIDOCR_PYTHON` 使用，见 `plugins/ocr-service/scripts/README.md`。
+
+---
+
 ## 目录规范
 
 ```
@@ -59,13 +76,13 @@ src/
     common/           通用组件（ErrorBoundary）
     layout/           布局组件（Sidebar、TopBar、AppLayout）
     log-viewer/       实时日志查看器
-    plugin/           插件组件（PluginDetailModal、ImportPluginButton）
+    plugin/           插件组件（PluginLogo、PluginDetailModal、ImportPluginButton）
     update/           自动更新 UI
   contexts/           React Context（ThemeContext、LanguageContext）
   pages/              页面组件
   routes/             路由定义
   types/              TypeScript 类型定义（.d.ts）
-  utils/              工具函数（logger.ts）
+  utils/              工具函数（logger.ts、plugin.ts）
   assets/             静态资源（SVG、图片）
 electron/
   main/               主进程逻辑（窗口、IPC、自动更新）
@@ -73,14 +90,30 @@ electron/
       api/            插件 API 模块（dispatcher/clipboard/input/screen 等）
       installer/      插件安装（installer/download/market/zpx）
       runtime/        插件运行时（registry/runner/http）
-  preload/            Preload 脚本（contextBridge）
-plugins/               内置插件源码（详见 plugins/AGENTS.md）  ocr-service/         内置 OCR 服务（为其他插件提供文字识别能力）
-  example-plugin/      示例插件模板resources/lib/         原生模块（.node / .dylib）
+      security.ts     协议/路径/域名白名单
+  preload/            宿主 preload（contextBridge）
+plugins/
+  ocr-service/        内置 OCR 服务（RapidOCR via uv / System / Tesseract）
+  example-plugin/     示例插件模板
+resources/lib/        原生模块（.node / .dylib）
 test/
   e2e/                Playwright E2E
   *.test.ts           Vitest 单元测试
 public/               公共静态资源
 ```
+
+---
+
+## 插件运行约定
+
+1. **启动注入两层 preload**
+   - 宿主：`plugin-preload.js` → `window.ztools`（`webPreferences.preload`）
+   - 插件自身：`plugin.json` 的 `preload` 字段 → 如 `window.ocrService`（`session.registerPreloadScript`）
+2. **图标协议**
+   - 本地：`plugin-icon://proxy/<encodeURIComponent(绝对路径)>`，仅允许插件目录内图片
+   - 远程：`market-icon://proxy/<url>`，仅 GitHub 系域名 + 体积上限
+3. **安装列表**统一由 `registry` 写入，installer 不得双写。
+4. 卸载/覆盖安装前必须 `runner.forceClose` 运行中实例。
 
 ---
 
@@ -183,6 +216,8 @@ t('home.hero.title')
 'home.new.key': 'English text',
 ```
 
+禁止在组件里硬编码用户可见中文/英文（ErrorBoundary 等 class 组件需读 i18n 字典）。
+
 ---
 
 ## 代码质量工具
@@ -222,7 +257,8 @@ ipcMain.handle('channel-name', (event, ...args) => { ... })
 |------|------|
 | [`vite.config.ts`](vite.config.ts) | Vite + Electron 构建配置 |
 | [`tsconfig.json`](tsconfig.json) | TypeScript 严格编译选项 |
-| [`electron-builder.json`](electron-builder.json) | 打包发布配置 |
+| [`electron-builder.json`](electron-builder.json) | 打包发布配置（含 plugins extraResources 过滤） |
 | [`eslint.config.js`](eslint.config.js) | ESLint 配置 |
 | [`.prettierrc`](.prettierrc) | Prettier 配置 |
 | [`.github/workflows/`](.github/workflows/) | CI/CD 流水线 |
+| [`plugins/ocr-service/scripts/`](plugins/ocr-service/scripts/) | RapidOCR sidecar（uv + pyproject） |
