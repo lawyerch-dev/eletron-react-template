@@ -1,5 +1,6 @@
 import { initOcrCapability } from './ocr'
 import { initMcpCapability } from './mcp'
+import { initModelsCapability } from './models'
 import { initAgentCapability } from './agent'
 import { isCapabilityEnabled } from './config'
 
@@ -13,6 +14,9 @@ export async function initCapabilities(): Promise<void> {
   }
   if (isCapabilityEnabled('mcp')) {
     initMcpCapability()
+  }
+  if (isCapabilityEnabled('models')) {
+    initModelsCapability()
   }
   if (isCapabilityEnabled('agent')) {
     initAgentCapability()

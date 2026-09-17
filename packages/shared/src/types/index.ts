@@ -25,3 +25,16 @@ export type {
   McpServerType,
   McpToolInfo,
 } from './mcp'
+export type {
+  ModelConfig,
+  ModelProviderConfig,
+  ModelProviderPreset,
+  ModelProviderType,
+  ModelRole,
+  ModelRoleAssignment,
+  ModelRolesMap,
+  ModelTestResult,
+  ModelsConfig,
+  PublicModelProvider,
+} from './models'
+export { MODEL_ROLES } from './models'

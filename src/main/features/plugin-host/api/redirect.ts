@@ -1,3 +1,6 @@
+import { windowManager } from '../../../app/window'
+import { isCapabilityEnabled } from '../../capabilities'
+import { sendIpcEvent } from '../../../ipc'
 import { ipcMain } from 'electron'
 
 /**
@@ -7,6 +10,15 @@ import { ipcMain } from 'electron'
 class PluginRedirectAPI {
   public init(): void {
     this.setupIPC()
+  }
+
+  private focusMainAndNavigate(route: string): boolean {
+    const main = windowManager.getMainWindow()
+    if (!main || main.isDestroyed()) return false
+    if (main.isMinimized()) main.restore()
+    main.focus()
+    sendIpcEvent(main.webContents, 'app.navigate', { route })
+    return true
   }
 
   private setupIPC(): void {
@@ -29,12 +41,16 @@ class PluginRedirectAPI {
       },
     )
 
-    ipcMain.on('host-redirect-hotkey-setting', (_event, _cmdLabel?: string) => {
-      _event.returnValue = { success: true }
+    ipcMain.on('host-redirect-hotkey-setting', (event) => {
+      this.focusMainAndNavigate('/settings')
+      event.returnValue = { success: true }
     })
 
     ipcMain.on('host-redirect-ai-models-setting', (event) => {
-      event.returnValue = { success: true }
+      const ok = isCapabilityEnabled('models')
+        ? this.focusMainAndNavigate('/models')
+        : this.focusMainAndNavigate('/settings')
+      event.returnValue = { success: ok }
     })
   }
 }

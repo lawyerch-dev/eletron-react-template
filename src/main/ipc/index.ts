@@ -1,5 +1,6 @@
 import { registerLogsIpcHandlers } from './handlers/logs'
 import { registerMcpIpcHandlers } from './handlers/mcp'
+import { registerModelsIpcHandlers } from './handlers/models'
 import { registerOcrIpcHandlers } from './handlers/ocr'
 import { registerPluginIpcHandlers } from './handlers/plugin'
 import { initUpdateIpc } from './handlers/update'
@@ -22,6 +23,7 @@ export function initHostIpc(options: {
   pluginsEnabled: boolean
   ocrEnabled: boolean
   mcpEnabled: boolean
+  modelsEnabled: boolean
 }): void {
   initIpcApiTransport()
   registerLogsIpcHandlers()
@@ -32,6 +34,9 @@ export function initHostIpc(options: {
   }
   if (options.mcpEnabled) {
     registerMcpIpcHandlers()
+  }
+  if (options.modelsEnabled) {
+    registerModelsIpcHandlers()
   }
   if (options.pluginsEnabled) {
     registerPluginIpcHandlers()

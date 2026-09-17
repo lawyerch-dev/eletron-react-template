@@ -22,6 +22,8 @@ import toolsAPI from './tools'
 import uiAPI from './ui'
 import windowAPI from './window'
 import { ensureNativeModule } from './native'
+import { isCapabilityEnabled } from '../../capabilities'
+import { modelService } from '../../capabilities/models'
 
 let runningContext: {
   getRunning: () => RunningPlugin[]
@@ -198,10 +200,45 @@ function registerHostStubs(): void {
   ipcMain.handle('clearZBrowserCache', async () => false)
   ipcMain.handle('ubrowserLogin', async () => ({ success: false }))
 
-  // Provider
-  ipcMain.handle('providersGetProviders', async () => [])
-  ipcMain.handle('providersGetDefault', async () => null)
-  ipcMain.handle('providersInvoke', async () => ({ success: false }))
+  // Provider：models 能力开启时暴露 AI 供应商；否则保持空 stub
+  ipcMain.handle('providersGetProviders', async (_e, args?: { type?: string }) => {
+    try {
+      if (!isCapabilityEnabled('models')) return []
+      const list = modelService.listPublicProviders()
+      // type 过滤：llm/ai/chat 视为模型供应商；其余 type 仍返回空（留给插件 provider）
+      const type = args?.type
+      if (!type || type === 'llm' || type === 'ai' || type === 'chat' || type === 'model') {
+        return list
+      }
+      return []
+    } catch {
+      return []
+    }
+  })
+  ipcMain.handle('providersGetDefault', async () => {
+    try {
+      if (!isCapabilityEnabled('models')) return null
+      const roles = modelService.getRoles()
+      const assignment = roles['default-assistant']
+      if (!assignment) return null
+      const provider = modelService
+        .listPublicProviders()
+        .find((p) => p.id === assignment.providerId)
+      if (!provider) return null
+      return {
+        providerId: provider.id,
+        modelId: assignment.modelId,
+        name: provider.name,
+        type: provider.type,
+      }
+    } catch {
+      return null
+    }
+  })
+  ipcMain.handle('providersInvoke', async () => ({
+    success: false,
+    error: '模型调用由业务层实现',
+  }))
 
   // FFmpeg
   ipcMain.handle('getFFmpegPath', async () => null)

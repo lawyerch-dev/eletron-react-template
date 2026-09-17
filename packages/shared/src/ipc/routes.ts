@@ -20,6 +20,14 @@ import type {
   McpServerStatus,
   McpToolInfo,
 } from '../types/mcp'
+import type {
+  ModelProviderConfig,
+  ModelProviderPreset,
+  ModelRole,
+  ModelRolesMap,
+  ModelTestResult,
+  PublicModelProvider,
+} from '../types/models'
 
 /**
  * 请求路由契约：route 为 resource.verb 点分 snake_case。
@@ -121,6 +129,44 @@ export interface IpcRequestMap {
     input: { serverId: string }
     output: McpServerLogEntry[]
   }
+
+  // capabilities: models
+  'models.list_providers': { input: void; output: ModelProviderConfig[] }
+  'models.save_provider': {
+    input: { provider: ModelProviderConfig }
+    output: ModelProviderConfig
+  }
+  'models.delete_provider': { input: { providerId: string }; output: void }
+  'models.list_presets': { input: void; output: ModelProviderPreset[] }
+  'models.add_preset': {
+    input: {
+      presetId: string
+      name?: string
+      apiKey?: string
+      baseUrl?: string
+    }
+    output: { provider: ModelProviderConfig; providers: ModelProviderConfig[] }
+  }
+  'models.list_roles': { input: void; output: ModelRolesMap }
+  'models.set_role': {
+    input: {
+      role: ModelRole
+      providerId?: string
+      modelId?: string
+    }
+    output: ModelRolesMap
+  }
+  'models.clear_role': { input: { role: ModelRole }; output: ModelRolesMap }
+  'models.test_provider': {
+    input: { providerId: string }
+    output: ModelTestResult
+  }
+  'models.fetch_models': {
+    input: { providerId: string }
+    output: { models: string[] }
+  }
+  /** 插件宿主 / 其它能力读取可用模型供应商（无密钥） */
+  'models.list_public_providers': { input: void; output: PublicModelProvider[] }
 }
 
 export type IpcRoute = keyof IpcRequestMap
@@ -137,6 +183,8 @@ export interface IpcEventMap {
   'update.error': UpdateErrorPayload
   'update.progress': UpdateProgressInfo
   'update.downloaded': void
+  /** 主窗内 hash 路由跳转（如插件 host-redirect-ai-models-setting） */
+  'app.navigate': { route: string }
 }
 
 export type IpcEventName = keyof IpcEventMap

@@ -36,6 +36,7 @@ app.whenReady().then(async () => {
     pluginsEnabled: isCapabilityEnabled('plugins'),
     ocrEnabled: isCapabilityEnabled('ocr'),
     mcpEnabled: isCapabilityEnabled('mcp'),
+    modelsEnabled: isCapabilityEnabled('models'),
   })
 
   // 2) 注册并启动主进程服务

@@ -3,6 +3,7 @@ import { isCapabilityEnabled } from './config'
 import { getPluginRoutes, getPluginNavItems } from '@/features/plugins'
 import { getOcrRoutes, getOcrNavItems } from '@/features/ocr'
 import { getMcpRoutes, getMcpNavItems } from '@/features/mcp'
+import { getModelsRoutes, getModelsNavItems } from '@/features/models'
 
 /** 聚合各能力提供的子路由（挂载在 AppLayout children 下） */
 export function getCapabilityRoutes(): RouteObject[] {
@@ -16,13 +17,16 @@ export function getCapabilityRoutes(): RouteObject[] {
   if (isCapabilityEnabled('mcp')) {
     routes.push(...getMcpRoutes())
   }
+  if (isCapabilityEnabled('models')) {
+    routes.push(...getModelsRoutes())
+  }
   return routes
 }
 
 /** 侧边栏能力入口（壳导航之外的可选项） */
 export interface CapabilityNavItem {
   to: string
-  iconKey: 'store' | 'package' | 'scan' | 'cable'
+  iconKey: 'store' | 'package' | 'scan' | 'cable' | 'cpu'
   labelKey: string
 }
 
@@ -36,6 +40,9 @@ export function getCapabilityNavItems(): CapabilityNavItem[] {
   }
   if (isCapabilityEnabled('mcp')) {
     items.push(...getMcpNavItems())
+  }
+  if (isCapabilityEnabled('models')) {
+    items.push(...getModelsNavItems())
   }
   return items
 }

@@ -19,4 +19,9 @@ export {
   findMcpPreset,
   seedDefaultMcpServers,
 } from '../mcp/presets'
+export {
+  MODEL_PROVIDER_DEFAULT_BASE_URL,
+  MODEL_PROVIDER_PRESETS,
+  findModelProviderPreset,
+} from '../models/presets'
 export { buildMcpToolWireId } from '../mcp/toolId'

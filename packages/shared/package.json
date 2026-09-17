@@ -29,6 +29,10 @@
     "./mcp/presets": {
       "types": "./src/mcp/presets.ts",
       "default": "./src/mcp/presets.ts"
+    },
+    "./models/presets": {
+      "types": "./src/models/presets.ts",
+      "default": "./src/models/presets.ts"
     }
   },
   "scripts": {

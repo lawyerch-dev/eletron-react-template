@@ -6,6 +6,7 @@
 export const capabilities = {
   ocr: true,
   mcp: true,
+  models: true,
   agent: false,
   plugins: true,
 } as const

@@ -21,7 +21,7 @@ description: "Electron 进程模型、IpcApi、WindowManager、serviceRegistry �
 ═══ Renderer · Chromium · src/renderer/ ══════════════════════
   app/        bootstrap · providers · routes · contexts
   shell/      布局 chrome
-  features/   home · plugins · update · settings · about · ocr
+  features/   home · plugins · update · settings · about · ocr · mcp · models
   services/   类型化 IPC 门面
   ipc/        ipcApi · useIpcOn
   capabilities/  能力路由/导航聚合
@@ -57,6 +57,8 @@ description: "Electron 进程模型、IpcApi、WindowManager、serviceRegistry �
 | 窗口 | `windowManager.open(type)`，类型在 `windowRegistry` |
 | 服务 | `registerService` + `bootstrapServices` / `disposeServices` |
 | 边界 | eslint `no-restricted-imports` / `no-restricted-properties` |
+
+可选能力开关见 `packages/shared/src/capabilities/config.ts`（`ocr` / `mcp` / `models` / `plugins` / `agent`）。
 
 ## 目录职责
 

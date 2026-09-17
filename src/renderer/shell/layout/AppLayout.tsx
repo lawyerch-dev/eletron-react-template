@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { useLanguage } from '@/app/contexts/LanguageContext'
+import { useIpcOn } from '@/ipc/useIpcOn'
 
 const SIDEBAR_KEY = 'sidebar-collapsed'
 
@@ -13,12 +14,14 @@ export function AppLayout() {
   })
 
   const location = useLocation()
+  const navigate = useNavigate()
   const { t } = useLanguage()
 
   const pageTitles: Record<string, string> = {
     '/': t('page.home'),
     '/plugin-market': t('page.plugin-market'),
     '/my-plugins': t('page.my-plugins'),
+    '/models': t('page.models'),
     '/settings': t('page.settings'),
     '/about': t('page.about'),
   }
@@ -28,6 +31,14 @@ export function AppLayout() {
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(collapsed))
   }, [collapsed])
+
+  const onNavigate = useCallback(
+    (payload: { route: string }) => {
+      if (payload?.route) navigate(payload.route)
+    },
+    [navigate],
+  )
+  useIpcOn('app.navigate', onNavigate)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
