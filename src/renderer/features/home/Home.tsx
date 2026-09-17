@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import UpdateElectron from '@/features/update'
+import { Update } from '@/features/update'
 import logoVite from '@/assets/logo-vite.svg'
 import logoElectron from '@/assets/logo-electron.svg'
 import logoTailwind from '@/assets/logo-tailwindcss.svg'
@@ -49,7 +49,7 @@ export function Home() {
                 {t('home.hero.repo')}
               </span>
             </a>
-            <UpdateElectron />
+            <Update />
           </div>
         </div>
       </section>

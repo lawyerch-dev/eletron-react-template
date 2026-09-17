@@ -1,6 +1,4 @@
-import path from 'node:path'
-import os from 'node:os'
-import { app } from 'electron'
+import { paths } from '../../app/paths'
 
 /**
  * 开发版插件名后缀，与 Host 保持一致。
@@ -30,22 +28,14 @@ export function getPluginSessionPartition(pluginName: string): string {
  * 插件安装的根目录（内存中可覆盖，便于测试）。
  */
 export function getPluginsRoot(custom?: string): string {
-  return (
-    custom ||
-    process.env.PLUGIN_ROOT ||
-    path.join(app.isPackaged ? app.getPath('userData') : app.getPath('userData'), 'plugins')
-  )
+  return custom || paths.userPluginsRoot()
 }
 
 /**
  * 插件运行时 preload 输出路径。
  */
 export function getRuntimePreloadPath(custom?: string): string {
-  return (
-    custom ||
-    process.env.PLUGIN_RUNTIME_PRELOAD ||
-    path.join(app.getPath('userData'), 'plugin-preload.js')
-  )
+  return custom || paths.pluginRuntimePreload()
 }
 
 /**
@@ -53,7 +43,7 @@ export function getRuntimePreloadPath(custom?: string): string {
  */
 export function getTempPath(ext: string, prefix = 'plg'): string {
   const name = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
-  return path.join(os.tmpdir(), name)
+  return paths.temp(name)
 }
 
 export type PluginStorageKind = 'directory' | 'asar'

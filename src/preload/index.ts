@@ -1,72 +1,43 @@
-import { ipcRenderer, contextBridge } from 'electron'
-import { IpcChannel } from '@ert/shared/ipc'
+import { contextBridge, ipcRenderer } from 'electron'
+import {
+  IPC_API_EVENT,
+  IPC_API_REQUEST,
+  unwrapIpcResult,
+  type HostApi,
+  type IpcEventName,
+  type IpcEventPayload,
+  type IpcInput,
+  type IpcOutput,
+  type IpcResult,
+  type IpcRoute,
+} from '@ert/shared/ipc'
 
-// --------- Expose some API to the Renderer process ---------
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
+/** 宿主渲染层唯一 preload 面：类型化 IpcApi。禁止再透传完整 ipcRenderer。 */
+const hostApi: HostApi = {
+  ipcApi: {
+    async request<R extends IpcRoute>(route: R, input: IpcInput<R>): Promise<IpcOutput<R>> {
+      const result = (await ipcRenderer.invoke(IPC_API_REQUEST, route, input)) as IpcResult<
+        IpcOutput<R>
+      >
+      // 主进程包了一层 { ok, data | error }，这里必须解包，否则渲染层拿到的是信封对象
+      return unwrapIpcResult(result)
+    },
+    on<E extends IpcEventName>(
+      event: E,
+      listener: (payload: IpcEventPayload<E>) => void,
+    ): () => void {
+      const handler = (_e: Electron.IpcRendererEvent, name: string, payload: unknown): void => {
+        if (name === event) listener(payload as IpcEventPayload<E>)
+      }
+      ipcRenderer.on(IPC_API_EVENT, handler)
+      return () => {
+        ipcRenderer.off(IPC_API_EVENT, handler)
+      }
+    },
   },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
-  },
+}
 
-  // You can expose other APTs you need here.
-  // ...
-})
-
-// --------- 日志事件监听 ---------
-contextBridge.exposeInMainWorld('logEvents', {
-  onLogEntry: (cb: (entry: unknown) => void) => {
-    const handler = (_e: unknown, entry: unknown) => cb(entry)
-    ipcRenderer.on(IpcChannel.LogEntry, handler)
-    return () => ipcRenderer.removeListener(IpcChannel.LogEntry, handler)
-  },
-  sendLog: (entry: unknown) => ipcRenderer.invoke(IpcChannel.LogFromRenderer, entry),
-})
-
-// --------- 插件市场 / 插件管理 API ---------
-contextBridge.exposeInMainWorld('plugin', {
-  marketList: () => ipcRenderer.invoke(IpcChannel.PluginMarketList),
-  marketRecommendations: (limit?: number) =>
-    ipcRenderer.invoke(IpcChannel.PluginMarketRecommendations, limit),
-  marketReadme: (pluginName: string) =>
-    ipcRenderer.invoke(IpcChannel.PluginMarketReadme, pluginName),
-  marketClearCache: () => ipcRenderer.invoke(IpcChannel.PluginMarketClearCache),
-  installFromMarket: (plugin: unknown) =>
-    ipcRenderer.invoke(IpcChannel.PluginMarketInstall, plugin),
-  installFromFile: () => ipcRenderer.invoke(IpcChannel.PluginImportFromFile),
-  cancelDownload: (name: string) => ipcRenderer.invoke(IpcChannel.PluginMarketCancel, name),
-  listInstalled: () => ipcRenderer.invoke(IpcChannel.PluginList),
-  deletePlugin: (pluginPath: string) => ipcRenderer.invoke(IpcChannel.PluginDelete, pluginPath),
-  launch: (pluginPath: string) => ipcRenderer.invoke(IpcChannel.PluginLaunch, pluginPath),
-  closePlugin: (pluginPath: string) => ipcRenderer.invoke(IpcChannel.PluginClose, pluginPath),
-  runningPlugins: () => ipcRenderer.invoke(IpcChannel.PluginRunning),
-  onPluginsChanged: (cb: () => void) => {
-    const handler = () => cb()
-    ipcRenderer.on(IpcChannel.PluginsChanged, handler)
-    return () => ipcRenderer.removeListener(IpcChannel.PluginsChanged, handler)
-  },
-  onDownloadProgress: (cb: (payload: unknown) => void) => {
-    const handler = (_e: unknown, payload: unknown) => cb(payload)
-    ipcRenderer.on(IpcChannel.PluginMarketDownloadProgress, handler)
-    return () => ipcRenderer.removeListener(IpcChannel.PluginMarketDownloadProgress, handler)
-  },
-  onToast: (cb: (payload: unknown) => void) => {
-    const handler = (_e: unknown, payload: unknown) => cb(payload)
-    ipcRenderer.on(IpcChannel.PluginToast, handler)
-    return () => ipcRenderer.removeListener(IpcChannel.PluginToast, handler)
-  },
-})
+contextBridge.exposeInMainWorld('api', hostApi)
 
 // --------- Preload scripts loading ---------
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -96,12 +67,6 @@ const safeDOM = {
   },
 }
 
-/**
- * https://tobiasahlin.com/spinkit
- * https://connoratherton.com/loaders
- * https://projects.lukehaas.me/css-loaders
- * https://matejkustec.github.io/SpinThatShit
- */
 function useLoading() {
   const className = `loaders-css__square-spin`
   const styleContent = `
@@ -151,10 +116,8 @@ function useLoading() {
   }
 }
 
-// ----------------------------------------------------------------------
-
 const { appendLoading, removeLoading } = useLoading()
-domReady().then(appendLoading)
+void domReady().then(appendLoading)
 
 window.onmessage = (ev) => {
   if (ev.data.payload === 'removeLoading') removeLoading()

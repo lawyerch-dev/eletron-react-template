@@ -19,6 +19,8 @@
 - 🌐 **国际化** — 中英文双语支持，易于扩展
 - ⚡ **Vite + React 19** — 快速 HMR，TypeScript 严格模式
 - 🔄 **自动更新** — 基于 electron-updater
+- 🧱 **生产级主进程骨架** — IpcApi 类型化 IPC、paths 路径注册、WindowManager、serviceRegistry
+- 🚫 **进程/包边界由 lint 强制** — 禁止裸 `ipcRenderer`、跨进程乱 import、散落 `app.getPath`
 - 🧪 **测试** — Vitest 单元测试 + Playwright E2E
 - 📦 **CI/CD** — GitHub Actions + electron-builder + GitHub Pages 文档站
 
@@ -141,17 +143,32 @@ html.sepia {
 - 使用：`const { t } = useLanguage(); t('home.hero.title')`
 - 新增翻译键**必须**同时添加到两个语言文件
 
-## IPC 通信
+## 架构
+
+详见 `docs/development/architecture.md` 与 `docs/architecture/`：
+
+- 主进程：`docs/architecture/main.md`（paths / WindowManager / serviceRegistry / IpcApi）
+- 渲染层：`docs/architecture/renderer.md`（features / services / ipc）
+- 边界约束：`docs/architecture/boundaries.md`
+
+### IPC 通信
+
+宿主渲染层统一走 **IpcApi**（类型化 RPC），契约在 `packages/shared/src/ipc/routes.ts`。
 
 ```typescript
-// 渲染进程 → 主进程
-const result = await window.ipcRenderer.invoke('channel-name', ...args)
+// 渲染进程（经 service，禁止 window.ipcRenderer）
+import { pluginService } from '@/services'
+const list = await pluginService.listInstalled()
 
-// 主进程监听
-ipcMain.handle('channel-name', (event, ...args) => { ... })
+// 或底层
+import { ipcApi } from '@/ipc'
+await ipcApi.request('plugin.list', undefined as void)
+
+// 主进程
+registerIpcHandler('plugin.list', () => registry.list())
 ```
 
-主要通道：`plugin:market-list`、`plugin:market-install`、`plugin:import-from-file`、`plugin:launch`、`plugin:list` 等。
+详见 `docs/development/ipc.md`。
 
 ## 文档站
 

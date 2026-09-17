@@ -5,13 +5,14 @@ import Modal from '@/features/update/modal'
 import Progress from '@/features/update/progress'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { updateService } from '@/services'
+import type { UpdateProgressInfo, UpdateVersionInfo } from '@ert/shared/types'
 
 const Update = () => {
   const { t } = useLanguage()
   const [checking, setChecking] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
-  const [versionInfo, setVersionInfo] = useState<VersionInfo>()
-  const [updateError, setUpdateError] = useState<ErrorType>()
+  const [versionInfo, setVersionInfo] = useState<UpdateVersionInfo>()
+  const [updateError, setUpdateError] = useState<{ message: string }>()
   const [progressInfo, setProgressInfo] = useState<Partial<ProgressInfo>>()
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [modalBtn, setModalBtn] = useState<{
@@ -32,12 +33,12 @@ const Update = () => {
     setModalOpen(true)
     if (result?.error) {
       setUpdateAvailable(false)
-      setUpdateError(result?.error)
+      setUpdateError(result.error)
     }
   }
 
   const onUpdateCanAvailable = useCallback(
-    (_event: Electron.IpcRendererEvent, arg1: VersionInfo) => {
+    (arg1: UpdateVersionInfo) => {
       setVersionInfo(arg1)
       setUpdateError(undefined)
       if (arg1.update) {
@@ -55,45 +56,34 @@ const Update = () => {
     [t],
   )
 
-  const onUpdateError = useCallback((_event: Electron.IpcRendererEvent, arg1: ErrorType) => {
+  const onUpdateError = useCallback((arg1: { message: string }) => {
     setUpdateAvailable(false)
     setUpdateError(arg1)
   }, [])
 
-  const onDownloadProgress = useCallback(
-    (_event: Electron.IpcRendererEvent, arg1: ProgressInfo) => {
-      setProgressInfo(arg1)
-    },
-    [],
-  )
+  const onDownloadProgress = useCallback((arg1: UpdateProgressInfo) => {
+    setProgressInfo(arg1)
+  }, [])
 
-  const onUpdateDownloaded = useCallback(
-    (_event: Electron.IpcRendererEvent, ..._args: unknown[]) => {
-      setProgressInfo({ percent: 100 })
-      setModalBtn((state) => ({
-        ...state,
-        cancelText: t('update.later'),
-        okText: t('update.install'),
-        onOk: () => updateService.quitAndInstall(),
-      }))
-    },
-    [t],
-  )
+  const onUpdateDownloaded = useCallback(() => {
+    setProgressInfo({ percent: 100 })
+    setModalBtn((state) => ({
+      ...state,
+      cancelText: t('update.later'),
+      okText: t('update.install'),
+      onOk: () => updateService.quitAndInstall(),
+    }))
+  }, [t])
 
   useEffect(() => {
-    if (!window.ipcRenderer) return
-
-    updateService.onCanAvailable(onUpdateCanAvailable as never)
-    updateService.onError(onUpdateError as never)
-    updateService.onProgress(onDownloadProgress as never)
-    updateService.onDownloaded(onUpdateDownloaded as never)
-
+    const offs = [
+      updateService.onCanAvailable(onUpdateCanAvailable),
+      updateService.onError(onUpdateError),
+      updateService.onProgress(onDownloadProgress),
+      updateService.onDownloaded(onUpdateDownloaded),
+    ]
     return () => {
-      if (!window.ipcRenderer) return
-      updateService.offCanAvailable(onUpdateCanAvailable as never)
-      updateService.offError(onUpdateError as never)
-      updateService.offProgress(onDownloadProgress as never)
-      updateService.offDownloaded(onUpdateDownloaded as never)
+      for (const off of offs) off()
     }
   }, [onUpdateCanAvailable, onUpdateError, onDownloadProgress, onUpdateDownloaded])
 

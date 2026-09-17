@@ -1,25 +1,15 @@
 /// <reference types="vite/client" />
-import type { PluginBridge } from '@ert/shared/types'
+import type { HostApi } from '@ert/shared/ipc'
+import type { LogEntry as SharedLogEntry } from '@ert/shared/types'
 
 declare global {
   interface Window {
-    /** preload/index.ts 注入 */
-    ipcRenderer: import('electron').IpcRenderer
-    plugin: PluginBridge
-    logEvents: {
-      onLogEntry: (cb: (entry: LogEntry) => void) => () => void
-      sendLog: (entry: { level: string; message: string; data?: unknown[] }) => void
-    }
+    /** preload 注入的唯一宿主 API 面（禁止扩展为完整 ipcRenderer） */
+    api: HostApi
   }
 
-  interface LogEntry {
-    id: number
-    level: 'error' | 'warn' | 'info' | 'debug' | 'verbose'
-    source: 'main' | 'renderer' | 'plugin'
-    timestamp: string
-    message: string
-    data?: unknown[]
-  }
+  /** 兼容既有组件里的全局 LogEntry 引用；实现见 @ert/shared/types */
+  type LogEntry = SharedLogEntry
 }
 
 export {}

@@ -19,6 +19,8 @@ An Electron + React + TypeScript desktop application with a built-in plugin syst
 - 🌐 **i18n** — Multi-language support (zh-CN / en-US), easy to extend
 - ⚡ **Vite + React 19** — Fast HMR, TypeScript strict mode
 - 🔄 **Auto Update** — Powered by electron-updater
+- 🧱 **Production main-process skeleton** — Typed IpcApi, path registry, WindowManager, serviceRegistry
+- 🚫 **Lint-enforced process/package boundaries** — No bare `ipcRenderer`, no cross-process imports, no ad-hoc `app.getPath`
 - 🧪 **Testing** — Vitest unit tests + Playwright E2E
 - 📦 **CI/CD** — GitHub Actions + electron-builder + GitHub Pages docs
 
@@ -133,17 +135,28 @@ No component changes needed.
 - Usage: `const { t } = useLanguage(); t('home.hero.title')`
 - New keys must be added to **both** locale files
 
+## Architecture
+
+See `docs/development/architecture.md` and `docs/architecture/`:
+
+- Main: `docs/architecture/main.md` (paths / WindowManager / serviceRegistry / IpcApi)
+- Renderer: `docs/architecture/renderer.md` (features / services / ipc)
+- Boundaries: `docs/architecture/boundaries.md`
+
 ## IPC Communication
 
-```typescript
-// Renderer → Main
-const result = await window.ipcRenderer.invoke('channel-name', ...args)
+Host renderer traffic goes through **typed IpcApi**. Contracts live in `packages/shared/src/ipc/routes.ts`.
 
-// Main process
-ipcMain.handle('channel-name', (event, ...args) => { ... })
+```typescript
+// Renderer (via service; never window.ipcRenderer)
+import { pluginService } from '@/services'
+const list = await pluginService.listInstalled()
+
+// Main
+registerIpcHandler('plugin.list', () => registry.list())
 ```
 
-Key channels: `plugin:market-list`, `plugin:market-install`, `plugin:import-from-file`, `plugin:launch`, `plugin:list`, etc.
+See `docs/development/ipc.md`.
 
 ## Documentation
 

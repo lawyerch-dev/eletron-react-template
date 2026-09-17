@@ -108,7 +108,7 @@ export const LogViewer = forwardRef<LogViewerHandle, LogViewerProps>(function Lo
       if (typeof p === 'string') setLogPath(p)
     })
 
-    const unsub = window.logEvents.onLogEntry((entry) => {
+    const unsub = logsService.onEntry((entry) => {
       setLogs((prev) => {
         const next = [...prev, entry]
         if (next.length > MAX_LOG_ENTRIES) {

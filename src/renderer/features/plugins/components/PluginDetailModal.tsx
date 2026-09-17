@@ -71,7 +71,7 @@ export function PluginDetailModal({
     setReadmeError('')
     if (plugin.name) {
       setReadmeLoading(true)
-      window.plugin
+      pluginService
         .marketReadme(plugin.name)
         .then((r) => {
           if (r.success && r.content) setReadme(r.content)

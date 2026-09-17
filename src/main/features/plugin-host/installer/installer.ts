@@ -1,5 +1,5 @@
 import AdmZip from 'adm-zip'
-import { app, BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron'
 import { rm, mkdir } from 'node:fs/promises'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -12,6 +12,8 @@ import { registry } from '../runtime/registry'
 import { runner } from '../runtime/runner'
 import { getPluginsRoot, type InstalledPlugin } from '../shared'
 import { toPluginIconUrl } from '../security'
+import { broadcastIpcEvent } from '../../../ipc/IpcApiService'
+import { paths } from '../../../app/paths'
 
 const artifactFs = physicalFs.promises
 
@@ -43,9 +45,13 @@ class Installer {
   private tasks = new Map<string, DownloadTask>()
 
   private emit(pluginName: string, payload: Omit<ProgressPayload, 'pluginName'>): void {
+    const body = { pluginName, ...payload }
+    // 宿主渲染层：IpcApi 事件
+    broadcastIpcEvent('plugin.download.progress', body)
+    // 插件沙箱 preload 仍监听原始通道
     for (const w of BrowserWindow.getAllWindows()) {
       if (!w.isDestroyed()) {
-        w.webContents.send(MARKET_DOWNLOAD_PROGRESS_CHANNEL, { pluginName, ...payload })
+        w.webContents.send(MARKET_DOWNLOAD_PROGRESS_CHANNEL, body)
       }
     }
   }
@@ -73,7 +79,7 @@ class Installer {
     const controller = new AbortController()
     this.tasks.set(pluginName, { controller })
 
-    const tempDir = path.join(app.getPath('temp'), 'plugin-download', taskId)
+    const tempDir = paths.electronTemp('plugin-download', taskId)
     const safeName = pluginName.replace(/[\\/]/g, '_')
 
     try {

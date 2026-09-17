@@ -1,31 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { InstalledPlugin } from './shared'
 import { toPluginIconUrl } from './security'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { paths } from '../../app/paths'
 
 /**
  * 解析内置插件根目录。
  * 打包模式：resources/plugins/（extraResources 自 src/plugins）
- * 开发模式：src/plugins/（APP_ROOT = 仓库根）
+ * 开发模式：src/plugins/
  */
 export function resolveBuiltinPluginsRoot(): string {
-  if (process.resourcesPath) {
-    const packaged = path.join(process.resourcesPath, 'plugins')
-    if (fs.existsSync(packaged)) return packaged
-  }
-  const appRoot = process.env.APP_ROOT || path.join(__dirname, '../..')
-  const candidates = [
-    path.join(appRoot, 'src/plugins'),
-    path.join(appRoot, 'plugins'),
-    path.join(appRoot, '..', '..', 'src/plugins'),
-  ]
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate
-  }
-  return candidates[0]
+  return paths.builtinPluginsRoot()
 }
 
 /**

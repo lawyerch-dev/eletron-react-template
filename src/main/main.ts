@@ -1,47 +1,28 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import {
-  initLogging,
-  registerShellProtocols,
-  createMainWindow,
-  getPreloadPath,
-  getIndexHtmlPath,
-  VITE_DEV_SERVER_URL,
-} from './app'
-import { initPluginSubsystem } from './features/plugin-host'
-import { initCapabilities, isCapabilityEnabled } from './features/capabilities'
-import { IpcChannel } from '@ert/shared/ipc'
+import { initAppRoot, initLogging, registerShellProtocols, paths } from './app'
+import { registerDefaultServices } from './app/defaultServices'
+import { bootstrapServices, disposeServices } from './app/serviceRegistry'
+import { windowManager } from './app/window'
+import { isCapabilityEnabled } from './features/capabilities'
+import { initHostIpc } from './ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// 应用壳：日志 + 协议（须在 app ready 前）
+// 路径注册必须最先：后续日志/协议/插件都依赖 APP_ROOT
+initAppRoot(path.join(__dirname, '../../..'))
+process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
+  ? paths.rendererPublic()
+  : paths.rendererDist()
+
 initLogging()
 registerShellProtocols()
 
-// The built directory structure
-//
-// ├─┬ out
-// │ ├─┬ electron
-// │ │ ├─┬ main
-// │ │ │ └── main.js     > Electron-Main
-// │ │ └─┬ preload
-// │ │   └── index.mjs   > Preload-Scripts
-// │ └─┬ renderer
-// │   └── src/renderer/index.html  > Electron-Renderer
-//
-process.env.APP_ROOT = path.join(__dirname, '../../..')
-
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
-  ? path.join(process.env.APP_ROOT, 'src/renderer/public')
-  : path.join(process.env.APP_ROOT, 'out/renderer')
-
-// Disable GPU Acceleration for Windows 7
-if (process.platform === 'win32' && os.release().startsWith('6.1'))
+if (process.platform === 'win32' && os.release().startsWith('6.1')) {
   app.disableHardwareAcceleration()
-
-// Set application name for Windows 10+ notifications
+}
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
 if (!app.requestSingleInstanceLock()) {
@@ -49,57 +30,40 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0)
 }
 
-let win: BrowserWindow | null = null
-const preload = getPreloadPath()
-const indexHtml = getIndexHtmlPath()
-
 app.whenReady().then(async () => {
-  if (isCapabilityEnabled('plugins')) {
-    initPluginSubsystem((channel, ...args) => {
-      if (win && !win.isDestroyed()) win.webContents.send(channel, ...args)
-    })
-  }
-  await initCapabilities()
-  win = await createMainWindow()
+  // 1) IpcApi 传输 + 各域 handler
+  initHostIpc({
+    pluginsEnabled: isCapabilityEnabled('plugins'),
+    ocrEnabled: isCapabilityEnabled('ocr'),
+  })
+
+  // 2) 注册并启动主进程服务
+  registerDefaultServices({ pluginsEnabled: isCapabilityEnabled('plugins') })
+  await bootstrapServices()
+
+  // 3) 主窗（经 WindowManager，禁止业务 new BrowserWindow）
+  await windowManager.openMain()
 })
 
 app.on('window-all-closed', () => {
-  win = null
-  if (process.platform !== 'darwin') app.quit()
+  if (process.platform !== 'darwin') {
+    disposeServices()
+    app.quit()
+  }
+})
+
+app.on('before-quit', () => {
+  disposeServices()
 })
 
 app.on('second-instance', () => {
-  if (win) {
-    if (win.isMinimized()) win.restore()
-    win.focus()
-  }
+  windowManager.focusMain()
 })
 
 app.on('activate', () => {
-  const allWindows = BrowserWindow.getAllWindows()
-  if (allWindows.length) {
-    allWindows[0].focus()
+  if (BrowserWindow.getAllWindows().length === 0) {
+    void windowManager.openMain()
   } else {
-    void createMainWindow().then((w) => {
-      win = w
-    })
-  }
-})
-
-// 子窗口示例：与主窗一致的隔离策略，禁止 nodeIntegration
-ipcMain.handle(IpcChannel.OpenWin, (_, arg) => {
-  const childWindow = new BrowserWindow({
-    webPreferences: {
-      preload,
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: false,
-    },
-  })
-
-  if (VITE_DEV_SERVER_URL) {
-    childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
-  } else {
-    childWindow.loadFile(indexHtml, { hash: arg })
+    windowManager.focusMain()
   }
 })

@@ -1,95 +1,112 @@
 ---
 title: "架构概览"
-description: "三层插件来源 + 三层后端架构："
+description: "Electron 进程模型、IpcApi、WindowManager、serviceRegistry 与目录分层"
 ---
 
 # 架构概览
 
-## 仓库分层（对齐 cherry-studio）
+模板对齐 Cherry Studio 的**精简生产骨架**：进程边界清晰、IPC 契约单一、路径与窗口集中管理。
+
+## 进程模型
+
+```
+═══ Main · Node.js · src/main/ ═══════════════════════════════
+  app/        paths · logging · protocols · window/ · serviceRegistry
+  ipc/        IpcApi 传输 + 各域 handlers
+  features/   plugin-host · capabilities
+  services/   window-state 等轻量模块
+
+              ↕  ipc-api:request / ipc-api:event  ·  src/preload/
+
+═══ Renderer · Chromium · src/renderer/ ══════════════════════
+  app/        bootstrap · providers · routes · contexts
+  shell/      布局 chrome
+  features/   home · plugins · update · settings · about · ocr
+  services/   类型化 IPC 门面
+  ipc/        ipcApi · useIpcOn
+  capabilities/  能力路由/导航聚合
+```
+
+## 典型数据流
+
+```
+用户操作 (React)
+  │
+  ├─ 命令 ──→ @/services ──→ window.api.ipcApi.request
+  │                              │
+  │                              ▼
+  │                         main IpcRouter
+  │                              │
+  │                              ▼
+  │                         handler → 业务模块
+  │                              │
+  │                    broadcast/send 事件
+  │                              │
+  └─ 读状态 ←─ useIpcOn / service.onXxx ←─┘
+
+设置/窗口尺寸 → electron-store（window-state）
+插件安装/运行 → plugin-host → 插件窗口 + window.host
+```
+
+## 五大约定（强制）
+
+| 约定 | 位置 |
+|------|------|
+| IPC 契约 | `packages/shared/src/ipc/routes.ts` |
+| 路径 | `src/main/app/paths.ts` |
+| 窗口 | `windowManager.open(type)`，类型在 `windowRegistry` |
+| 服务 | `registerService` + `bootstrapServices` / `disposeServices` |
+| 边界 | eslint `no-restricted-imports` / `no-restricted-properties` |
+
+## 目录职责
 
 | 目录 | 职责 |
 |------|------|
-| `src/main` | 主进程：窗口、日志、插件宿主、capabilities |
-| `src/preload` | contextBridge |
-| `src/renderer` | 渲染进程（Vite root，含 `index.html` / `public`） |
+| `src/main` | 主进程：窗口、日志、插件宿主、capabilities、IpcApi |
+| `src/preload` | 唯一暴露 `window.api.ipcApi` |
+| `src/renderer` | React UI（含 `index.html` / `public`） |
 | `src/plugins` | 内置插件源码 |
-| `packages/*` | 跨项目契约与类型（`@ert/shared`、`@ert/plugin-api`） |
-| `resources` | 原生库、OCR 等打包资源 |
-| `tests` | 单元测试 + E2E |
+| `packages/shared` | 跨进程类型/契约/纯逻辑 |
+| `packages/plugin-api` | 插件 `window.host` 契约 |
+| `resources` | 原生库等打包资源 |
+| `tests` | 单测 + E2E |
 
-根目录只放构建配置（`package.json`、`vite.config.ts`、`electron-builder.json`、`tsconfig*`）。
-
-## 整体架构
+## 启动时序
 
 ```
-┌─────────────────────────────────────┐
-│            Renderer Process          │
-│  ┌─────────┐  ┌──────────┐         │
-│  │  React   │  │  Vite    │         │
-│  │  App     │  │  HMR     │         │
-│  └────┬────┘  └──────────┘         │
-│       │ contextBridge               │
-│  ┌────▼────┐                        │
-│  │ Preload │                        │
-│  └────┬────┘                        │
-├───────┼─────────────────────────────┤
-│       │ IPC（契约见 @ert/shared）     │
-│  ┌────▼────┐                        │
-│  │  Main   │                        │
-│  │ Process │                        │
-│  └────┬────┘                        │
-│       │                             │
-│  ┌────▼─────────────────────┐       │
-│  │  Plugin Subsystem        │       │
-│  │  window.host + installer │       │
-│  └──────────────────────────┘       │
-└─────────────────────────────────────┘
+initAppRoot → initLogging → protocols → single-instance lock
+app.whenReady
+  → initHostIpc（传输 + handlers）
+  → registerDefaultServices + bootstrapServices
+  → windowManager.openMain()
+before-quit → disposeServices
 ```
 
 ## 技术栈
 
-| 层面 | 技术选型 |
+| 层面 | 选型 |
 |---|---|
-| 前端框架 | React 19 + TypeScript |
-| 构建工具 | Vite 8 |
-| 桌面框架 | Electron 42 |
-| 样式 | Tailwind CSS 4 + 语义化 Token |
-| 路由 | React Router 7 |
+| 前端 | React 19 + TypeScript + React Router 7 |
+| 构建 | Vite 8 + electron-vite 插件 |
+| 桌面 | Electron 42 |
+| 样式 | Tailwind CSS 4 + 语义 Token |
 | 测试 | Vitest + Playwright |
-| 代码质量 | ESLint + Prettier |
-| 共享契约 | `@ert/shared` / `@ert/plugin-api` |
+| 质量 | ESLint + Prettier |
+
+## 相关文档
+
+- [IPC 通信](./ipc.md)
+- [架构边界](../architecture/boundaries.md)
+- [插件子系统](#插件子系统)（见下）
 
 ## 插件子系统
 
-三层插件来源 + 三层后端架构：
-
-### 插件来源
+三层插件来源：
 
 | 来源 | 路径 | 说明 |
 |------|------|------|
 | 内置插件 | `src/plugins/` | 随应用打包，自动注册，不可卸载 |
-| 市场插件 | 在线下载 | 从 Host 市场安装到 `userData/plugins/` |
-| 本地导入 | `.zpx`/`.zip` | 用户手动选择文件导入 |
+| 市场插件 | 在线下载 | 安装到 `userData/plugins/` |
+| 本地导入 | `.zpx`/`.zip` | 用户手动导入 |
 
-### 后端架构
-
-| 模块 | 目录 | 职责 |
-|------|------|------|
-| API | `api/` | 14 个模块，每个自注册 IPC handler，提供 Host 兼容 API |
-| 安装 | `installer/` | 市场下载、本地导入、ZPX 解析、安装回写 |
-| 运行时 | `runtime/` | 注册表、运行器、HTTP 客户端 |
-| 原生 | `api/native/` | 加载 `.node` 原生模块，提供模拟输入/剪贴板监听等能力 |
-
-### 通信流程
-
-```
-插件窗口 (plugin-preload.js)
-  → window.host.xxx()
-  → ipcRenderer.sendSync/invoke('channel-name', args)
-  → 主进程 API 模块处理
-  → 返回结果
-```
-
-## 日志系统
-
-主进程日志通过 `electron-log` hook 实时推送到渲染进程，渲染进程 `console.*` 被拦截后也经主进程广播。前后端日志统一展示，支持 5 级颜色标签、3 类来源标签、多选复制，内存上限 2000 条环形缓冲区。
+宿主模块：`api/`（window.host 能力）· `installer/` · `runtime/`。详见 `src/plugins/README.md` 与 `AGENTS.md`。

@@ -1,8 +1,7 @@
 import path from 'node:path'
-import fs from 'node:fs'
-import { app } from 'electron'
 import { getPluginsRoot } from './shared'
 import { resolveBuiltinPluginsRoot } from './builtin'
+import { paths } from '../../app/paths'
 
 /** 允许 market-icon 代理的远程图床域名 */
 const MARKET_ICON_HOSTS = new Set([
@@ -20,20 +19,8 @@ const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.i
 
 /** 收集允许读取的插件资源根目录（realpath，兼容 macOS 符号链接） */
 function allowedPluginRoots(): string[] {
-  const roots = [getPluginsRoot(), resolveBuiltinPluginsRoot()]
-  try {
-    roots.push(path.join(app.getPath('userData'), 'plugins'))
-  } catch {
-    // app 未就绪时忽略
-  }
-  return roots.map((r) => {
-    const abs = path.resolve(r)
-    try {
-      return fs.realpathSync(abs)
-    } catch {
-      return abs
-    }
-  })
+  const roots = [getPluginsRoot(), resolveBuiltinPluginsRoot(), paths.userPluginsRoot()]
+  return roots.map((r) => paths.realpath(path.resolve(r)))
 }
 
 /**
@@ -56,12 +43,7 @@ export function isSafePluginIconPath(filePath: string): boolean {
   }
 
   // 尝试 realpath，失败（如 asar 内路径）则用 resolve 结果
-  let real = resolved
-  try {
-    real = fs.realpathSync(resolved)
-  } catch {
-    // asar / 尚未落地的路径：保留 resolved
-  }
+  const real = paths.realpath(resolved)
 
   const roots = allowedPluginRoots()
   return roots.some((root) => real === root || real.startsWith(root + path.sep))

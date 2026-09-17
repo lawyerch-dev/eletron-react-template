@@ -2,6 +2,7 @@ import os from 'os'
 import path from 'path'
 import { execSync, fork, spawnSync } from 'child_process'
 import { app, clipboard } from 'electron'
+import { paths } from '../../../../app/paths'
 
 // 根据平台加载对应的原生模块
 const platform = os.platform()
@@ -15,20 +16,7 @@ function nativeLibDir(): string {
 
 /** 解析原生模块 .node 文件路径 */
 function resolveNativeModulePath(): string | null {
-  const moduleName = 'ztools_native.node'
-  const libDir = nativeLibDir()
-  // 打包后：resources/lib/{libDir}/ztools_native.node
-  if (app.isPackaged && process.resourcesPath) {
-    const p = path.join(process.resourcesPath, 'lib', libDir, moduleName)
-    if (require('fs').existsSync(p)) return p
-  }
-  // 开发/构建环境：APP_ROOT = 根目录，原生库在 resources/lib
-  const root = process.env.APP_ROOT
-  if (root) {
-    const devPath = path.join(root, 'resources', 'lib', libDir, moduleName)
-    if (require('fs').existsSync(devPath)) return devPath
-  }
-  return null
+  return paths.nativeModule(nativeLibDir(), 'ztools_native.node')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

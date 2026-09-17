@@ -1,6 +1,6 @@
 import type { RouteObject } from 'react-router-dom'
 import { isCapabilityEnabled } from './config'
-import { getPluginRoutes, getPluginNavItems } from '@/features/plugins/routes'
+import { getPluginRoutes, getPluginNavItems } from '@/features/plugins'
 
 /** 聚合各能力提供的子路由（挂载在 AppLayout children 下） */
 export function getCapabilityRoutes(): RouteObject[] {

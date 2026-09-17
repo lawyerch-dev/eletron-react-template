@@ -1,8 +1,8 @@
 import { createHashRouter } from 'react-router-dom'
 import { AppLayout } from '@/shell/layout/AppLayout'
-import { Home } from '@/features/home/Home'
-import { Settings } from '@/features/settings/Settings'
-import { About } from '@/features/about/About'
+import { Home } from '@/features/home'
+import { Settings } from '@/features/settings'
+import { About } from '@/features/about'
 import { getCapabilityRoutes } from '@/capabilities'
 
 export const router = createHashRouter([

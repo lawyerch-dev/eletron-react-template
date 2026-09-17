@@ -86,7 +86,8 @@ export default defineConfig(({ command }) => {
         },
         preload: {
           input: path.join(repoRoot, 'src/preload/index.ts'),
-          plugins: [notBundle()],
+          // 不用 notBundle：它会把 electron 外部化成 require()，
+          // 在 package.json "type":"module" 下 .mjs 预加载会报 require is not defined。
           options: {
             publicDir: false,
             build: {
@@ -94,7 +95,11 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: path.join(repoRoot, 'out/electron/preload'),
               rolldownOptions: {
-                external,
+                external: ['electron'],
+                output: {
+                  format: 'cjs',
+                  entryFileNames: 'index.cjs',
+                },
               },
             },
           },

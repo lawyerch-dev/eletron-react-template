@@ -1,30 +1,40 @@
-import type { PluginDownloadProgress } from '@ert/shared/types'
-import { IpcChannel } from '@ert/shared/ipc'
+import type {
+  InstalledPluginInfo,
+  MarketListResult,
+  MarketPlugin,
+  PluginDownloadProgress,
+} from '@ert/shared/types'
+import { ipcApi } from '@/ipc'
 
-/** 插件市场 / 安装运行 —— 渲染进程 service（经 preload window.plugin） */
+async function asArray<T>(promise: Promise<T[]>): Promise<T[]> {
+  const value = await promise
+  return Array.isArray(value) ? value : []
+}
+
+/** 插件市场 / 安装运行 —— 渲染进程 service（经 IpcApi） */
 export const pluginService = {
-  marketList: () => window.plugin.marketList(),
-  marketRecommendations: (limit?: number) => window.plugin.marketRecommendations(limit),
-  marketReadme: (pluginName: string) => window.plugin.marketReadme(pluginName),
-  marketClearCache: () => window.plugin.marketClearCache(),
+  marketList: (): Promise<MarketListResult> =>
+    ipcApi.request('plugin.market.list', undefined as void),
+  marketRecommendations: (limit?: number): Promise<MarketPlugin[]> =>
+    asArray(ipcApi.request('plugin.market.recommendations', { limit })),
+  marketReadme: (pluginName: string) => ipcApi.request('plugin.market.readme', { pluginName }),
+  marketClearCache: () => ipcApi.request('plugin.market.clear_cache', undefined as void),
   installFromMarket: (plugin: { name: string; downloadUrl?: string }) =>
-    window.plugin.installFromMarket(plugin),
-  installFromFile: () => window.plugin.installFromFile(),
-  cancelDownload: (name: string) => window.plugin.cancelDownload(name),
-  listInstalled: () => window.plugin.listInstalled(),
-  deletePlugin: (pluginPath: string) => window.plugin.deletePlugin(pluginPath),
-  launch: (pluginPath: string) => window.plugin.launch(pluginPath),
-  closePlugin: (pluginPath: string) => window.plugin.closePlugin(pluginPath),
-  runningPlugins: () => window.plugin.runningPlugins(),
-  onPluginsChanged: (cb: () => void) => window.plugin.onPluginsChanged(cb),
+    ipcApi.request('plugin.market.install', plugin),
+  installFromFile: () => ipcApi.request('plugin.import_from_file', undefined as void),
+  cancelDownload: (name: string) => ipcApi.request('plugin.market.cancel', { name }),
+  listInstalled: (): Promise<InstalledPluginInfo[]> =>
+    asArray(ipcApi.request('plugin.list', undefined as void)),
+  deletePlugin: (pluginPath: string) => ipcApi.request('plugin.delete', { pluginPath }),
+  launch: (pluginPath: string) => ipcApi.request('plugin.launch', { pluginPath }),
+  closePlugin: (pluginPath: string) => ipcApi.request('plugin.close', { pluginPath }),
+  runningPlugins: () => asArray(ipcApi.request('plugin.running', undefined as void)),
+  onPluginsChanged: (cb: () => void) =>
+    ipcApi.on('plugin.changed', () => {
+      cb()
+    }),
   onDownloadProgress: (cb: (payload: PluginDownloadProgress) => void) =>
-    window.plugin.onDownloadProgress(cb as (payload: unknown) => void),
+    ipcApi.on('plugin.download.progress', cb),
   onToast: (cb: (payload: { message: string; type?: string }) => void) =>
-    window.plugin.onToast(cb as (payload: unknown) => void),
-} as const
-
-/** 与 IpcChannel 对齐，便于排查通道名 */
-export const pluginChannels = {
-  marketList: IpcChannel.PluginMarketList,
-  listInstalled: IpcChannel.PluginList,
-} as const
+    ipcApi.on('plugin.toast', cb),
+}

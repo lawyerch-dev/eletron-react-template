@@ -69,9 +69,9 @@
 | 要做的事 | 放哪 |
 |----------|------|
 | 新业务 UI | `src/renderer/features/<name>/` |
-| 渲染层 IPC 封装 | `src/renderer/services/`（禁止页面里裸 `window.ipcRenderer`） |
+| 渲染层 IPC 调用 | `src/renderer/services/` + `src/renderer/ipc/`（禁止直接 `window.api`） |
 | 主进程能力 | `src/main/features/<name>/` 或 `src/main/services/` |
-| IPC 通道常量 | `packages/shared/src/ipc/channels.ts`（`kebab-case`） |
+| IPC 通道契约 | `packages/shared/src/ipc/routes.ts`（request/event map） |
 | 跨进程类型/工具 | `packages/shared/src/` |
 | 插件 API 类型 | `packages/plugin-api/src/`（`window.host`） |
 | 能力开关 | `packages/shared/src/capabilities/config.ts`（唯一真源） |
@@ -82,9 +82,11 @@
 
 禁止：
 
-- 渲染层散落 `window.ipcRenderer`
+- 渲染层散落 `window.ipcRenderer` / `window.plugin` / `window.logEvents`
 - `@ert/shared` import electron / React
-- 主进程 import React
+- 主进程 import React 或 `@/`（渲染层别名）
+- 渲染层 import `src/main/**`
+- 主进程业务直接 `app.getPath`（走 `src/main/app/paths.ts`）
 - 组件硬编码颜色（必须用语义 Token）
 - 组件硬编码用户可见文案（必须走 i18n）
 
@@ -116,11 +118,12 @@ electron-react-template/
   src/
     main/                     # 主进程
       main.ts
-      app/                    # 协议、主窗、日志
-      services/               # window-state、update
+      app/                    # 协议、主窗、日志、paths、window/、serviceRegistry
+      services/               # window-state 等轻量模块
       features/
         plugin-host/          # 插件宿主（window.host）
         capabilities/         # 能力注册（读 @ert/shared 开关）
+      ipc/                    # IpcApi 路由与 handlers
     preload/                  # contextBridge
     renderer/                 # 渲染进程源码（index.html / public 在此）
       index.html / public/
@@ -144,6 +147,53 @@ electron-react-template/
 
 ---
 
+## 路径约定
+
+主进程路径一律经 `src/main/app/paths.ts`（`initAppRoot` + `paths.*`）。禁止业务代码直接 `app.getPath` / 手拼 `process.resourcesPath`（eslint 已拦；`paths.ts` 与插件 API 透传除外）。详见 `docs/architecture/boundaries.md`。
+
+---
+
+## 窗口与服务
+
+### WindowManager
+
+所有 `BrowserWindow` 经 `windowManager.open(type, options)`：
+
+| type | mode | 说明 |
+|------|------|------|
+| `main` | singleton | 全局唯一，persist bounds |
+| `subWindow` | default | 每次新建，hash 路由 |
+
+```ts
+// 业务禁止 new BrowserWindow
+await windowManager.openMain()
+await windowManager.open('subWindow', { hash: '/settings' })
+windowManager.focusMain()
+```
+
+类型在 `src/main/app/window/windowRegistry.ts` 登记。
+
+### serviceRegistry
+
+有长资源 / 持久副作用的服务实现 `MainService` 并注册：
+
+```ts
+import { registerService, bootstrapServices, disposeServices } from './app'
+
+registerService({
+  name: 'myService',
+  init() { /* 注册协议、定时器… */ },
+  dispose() { /* 清理 */ },
+})
+await bootstrapServices() // 按序 init，失败会逆序 dispose
+```
+
+启动顺序（`main.ts`）：preboot → `initHostIpc` → `registerDefaultServices` + `bootstrapServices` → `windowManager.openMain()`。退出时 `before-quit` 调 `disposeServices()`。
+
+无状态工具仍用具名导出，不必注册。
+
+---
+
 ## 运行时环境边界
 
 | 角色 | 需要什么 | 说明 |
@@ -163,22 +213,25 @@ electron-react-template/
 
 ## IPC 约定
 
-通道名集中在 `packages/shared/src/ipc/channels.ts`。新能力顺序：
+通道契约集中在 `packages/shared/src/ipc/`（`IpcRequestMap` / `IpcEventMap`）。新能力顺序：
 
-1. 加通道常量
-2. preload 暴露
-3. `src/renderer/services/` 封装
-4. 主进程 handler
+1. 在 `packages/shared/src/ipc/routes.ts` 补 request/event 类型
+2. 在 `src/main/ipc/handlers/<domain>.ts` `registerIpcHandler`
+3. 渲染层经 `src/renderer/ipc` 的 `ipcApi.request` / `ipcApi.on`（或 `@/services` 封装）
 
 ```ts
-// 渲染进程（经 service，勿在页面裸调）
-const result = await window.ipcRenderer.invoke(IpcChannel.PluginList)
+// 渲染进程（经 service 或 ipcApi，勿碰 window.api 底层）
+const result = await ipcApi.request('plugin.list', undefined as void)
+const off = ipcApi.on('plugin.changed', () => {})
 
 // 主进程
-ipcMain.handle(IpcChannel.PluginList, (event, ...args) => { ... })
+registerIpcHandler('plugin.list', () => registry.list())
+broadcastIpcEvent('plugin.changed', undefined as void)
 ```
 
-参考：`src/main/services/update.ts`、`src/preload/index.ts`、`src/renderer/services/`。
+**禁止**：渲染层使用 `window.ipcRenderer` / `window.plugin` / `window.logEvents`（eslint 已拦）。插件沙箱内的 `plugin-preload.js` 通道不在本约定范围。
+
+参考：`src/main/ipc/`、`src/preload/index.ts`、`src/renderer/ipc/`。
 
 ---
 

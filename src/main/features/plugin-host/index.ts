@@ -1,24 +1,21 @@
-import { ipcMain, protocol, net, dialog } from 'electron'
+import { protocol, net } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { pathToFileURL } from 'node:url'
 import { pluginMarket } from './installer/market'
 import { installer } from './installer/installer'
 import { registry } from './runtime/registry'
 import { runner } from './runtime/runner'
 import { initPluginRuntime, bindRunningContext } from './api/services'
 import { getRuntimePreloadPath } from './shared'
-import { scanBuiltinPlugins } from './builtin'
 import {
   isSafePluginIconPath,
   isAllowedMarketIconUrl,
   MARKET_ICON_MAX_BYTES,
   parsePluginIconPath,
 } from './security'
-import { IpcChannel } from '@ert/shared/ipc'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const CHANGED_EVENT = 'plugins-changed'
+import { scanBuiltinPlugins } from './builtin'
+import { paths } from '../../app/paths'
 
 /** 根据文件头字节推断图片 MIME，兼容扩展名与实际内容不一致的资源 */
 function sniffImageContentType(buffer: Buffer): string {
@@ -46,15 +43,7 @@ function sniffImageContentType(buffer: Buffer): string {
 
 /** 仓库内置插件 preload 源文件（随源码一起分发，打包后经 extraResources 置于 resources） */
 function resolveRuntimePreloadSource(): string {
-  // 打包后：resources/plugin-preload.js
-  if (process.resourcesPath) {
-    const packaged = path.join(process.resourcesPath, 'plugin-preload.js')
-    if (fs.existsSync(packaged)) return packaged
-  }
-  // 开发/构建期间：项目源码目录
-  const root = process.env.APP_ROOT || path.join(__dirname, '../..')
-  const source = path.join(root, 'src/main/features/plugin-host/plugin-preload.js')
-  return fs.existsSync(source) ? source : path.join(root, 'resources/plugin-preload.js')
+  return paths.pluginPreloadSource()
 }
 
 /**
@@ -73,12 +62,10 @@ function ensureRuntimePreload(): void {
 }
 
 /**
- * 初始化插件子系统：写入运行时、注册 plugin.api 分发、绑定运行上下文、注册 IPC。
- * @param notifyWeb 宿主侧变更通知回调（通常向主窗口发送 events）
+ * 初始化插件子系统：写入运行时、注册 plugin.api 分发、绑定运行上下文、注册协议。
+ * 宿主渲染层 IPC 路由由 `main/ipc/handlers/plugin.ts` 注册，本文件不再处理。
  */
-export function initPluginSubsystem(
-  notifyWeb?: (channel: string, ...args: unknown[]) => void,
-): void {
+export function initPluginSubsystem(notifyWeb?: () => void): void {
   ensureRuntimePreload()
   // 注册内置插件（来自 plugins/ 目录）
   const builtinPlugins = scanBuiltinPlugins()
@@ -132,60 +119,8 @@ export function initPluginSubsystem(
     }
   })
 
-  const notify = (): void => {
-    notifyWeb?.(CHANGED_EVENT)
-  }
-  registry.setOnPluginsChanged(notify)
-  runner.setOnRunningChanged(() => notify)
-
-  // ── 插件市场 ──
-  ipcMain.handle(IpcChannel.PluginMarketList, () => pluginMarket.fetchPluginMarket())
-  ipcMain.handle(IpcChannel.PluginMarketRecommendations, (_e, limit?: number) =>
-    pluginMarket.fetchRecommendations(limit),
-  )
-  ipcMain.handle(
-    IpcChannel.PluginMarketInstall,
-    (_e, plugin: { name: string; downloadUrl?: string }) => installer.installFromMarket(plugin),
-  )
-  ipcMain.handle(IpcChannel.PluginMarketCancel, (_e, name: string) =>
-    installer.cancelDownload(name),
-  )
-  ipcMain.handle(IpcChannel.PluginMarketReadme, (_e, pluginName: string) =>
-    pluginMarket.fetchReadme(pluginName),
-  )
-  ipcMain.handle(IpcChannel.PluginMarketClearCache, () => {
-    pluginMarket.clearCache()
-  })
-
-  // ── 已安装插件 ──
-  ipcMain.handle(IpcChannel.PluginList, () => registry.list())
-  ipcMain.handle(IpcChannel.PluginDelete, async (_e, pluginPath: string) => {
-    // 卸载前强制关闭运行中窗口，避免文件占用导致删除失败
-    await runner.forceClose(pluginPath)
-    return registry.delete(pluginPath)
-  })
-
-  // ── 本地导入 ──
-  ipcMain.handle(IpcChannel.PluginImportFromFile, async () => {
-    const result = await dialog.showOpenDialog({
-      title: '导入插件',
-      filters: [{ name: 'Host 插件', extensions: ['zpx', 'zip'] }],
-      properties: ['openFile'],
-    })
-    if (result.canceled || result.filePaths.length === 0) {
-      return { success: false, cancelled: true }
-    }
-    return installer.installFromPath(result.filePaths[0])
-  })
-
-  // ── 插件运行 ──
-  ipcMain.handle(IpcChannel.PluginLaunch, (_e, pluginPath: string) => {
-    const plugin = registry.list().find((p) => p.path === pluginPath)
-    if (!plugin) return { success: false, error: '插件不存在' }
-    return runner.launch(plugin)
-  })
-  ipcMain.handle(IpcChannel.PluginClose, (_e, pluginPath: string) => runner.closePlugin(pluginPath))
-  ipcMain.handle(IpcChannel.PluginRunning, () => runner.getRunningPlugins())
+  registry.setOnPluginsChanged(() => notifyWeb?.())
+  runner.setOnRunningChanged(() => notifyWeb?.())
 }
 
 export { runner, registry, installer, pluginMarket }

@@ -1,7 +1,8 @@
 /**
  * 渲染进程日志捕获
- * 拦截 console 方法，将日志发送到主进程统一管理
+ * 拦截 console 方法，经 IpcApi 发送到主进程统一管理
  */
+import { logsService } from '@/services'
 
 const LOG_LEVEL_MAP: Record<string, string> = {
   log: 'info',
@@ -18,14 +19,12 @@ function captureConsole(level: string): void {
   originalConsole[method] = console[method] as (...args: unknown[]) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(console as any)[method] = (...args: unknown[]) => {
-    // 仍然输出到控制台
     originalConsole[method]?.(...args)
-    // 发送到主进程
     try {
       const message = args
         .map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)))
         .join(' ')
-      window.logEvents?.sendLog({
+      void logsService.send({
         level: LOG_LEVEL_MAP[level] || 'info',
         message,
         data: args.length > 1 ? args.slice(1) : undefined,
@@ -38,7 +37,7 @@ function captureConsole(level: string): void {
 
 /** 初始化日志捕获（在应用启动时调用） */
 export function initLogger(): void {
-  if (typeof window === 'undefined' || !window.logEvents) return
+  if (typeof window === 'undefined' || !window.api?.ipcApi) return
   captureConsole('log')
   captureConsole('info')
   captureConsole('warn')
