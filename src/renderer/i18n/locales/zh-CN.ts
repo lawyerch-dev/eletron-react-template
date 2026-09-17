@@ -28,6 +28,46 @@ const zhCN = {
   // 侧边栏（插件）
   'sidebar.plugin-market': '解决方案',
   'sidebar.my-plugins': '我的产品',
+  'sidebar.ocr': 'OCR 识别',
+  'sidebar.mcp': 'MCP 服务',
+
+  // OCR
+  'ocr.title': 'OCR 文字识别',
+  'ocr.subtitle': '主进程 RapidOCR sidecar，无需打开插件窗口',
+  'ocr.status': '引擎状态',
+  'ocr.available': '可用',
+  'ocr.unavailable': '不可用',
+  'ocr.kind': '启动方式',
+  'ocr.pick_image': '点击选择图片',
+  'ocr.working': '识别中…',
+  'ocr.result': '识别结果',
+  'ocr.copy': '复制',
+  'ocr.copied': '已复制',
+  'ocr.done': '识别完成',
+  'ocr.failed': '识别失败',
+
+  // MCP
+  'mcp.title': 'MCP 服务',
+  'mcp.subtitle': 'Cherry 风格运行时：inMemory 进程内工具 + stdio（国内镜像）',
+  'mcp.config_hint':
+    '配置：userData/mcp-servers.json。默认 seed 进程内 Memory/Fetch；stdio 走 npmmirror + 清华 PyPI。',
+  'mcp.refresh': '刷新',
+  'mcp.empty': '尚未配置 MCP 服务器。可从下方预设一键添加。',
+  'mcp.online': '已连接',
+  'mcp.offline': '未连接',
+  'mcp.connect': '连接',
+  'mcp.disconnect': '断开',
+  'mcp.connected': '已连接',
+  'mcp.call': '调用',
+  'mcp.call_failed': '工具调用失败',
+  'mcp.bad_json': '参数 JSON 无效',
+  'mcp.args': '工具参数（JSON）',
+  'mcp.presets': '常用 MCP 预设',
+  'mcp.add': '添加',
+  'mcp.added': '已添加',
+  'mcp.ready': '免密钥',
+  'mcp.need_key': '需密钥',
+  'mcp.preset_added': '已写入配置',
 
   // 插件市场
   'market.title': '解决方案',

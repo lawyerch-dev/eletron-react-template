@@ -35,6 +35,7 @@ app.whenReady().then(async () => {
   initHostIpc({
     pluginsEnabled: isCapabilityEnabled('plugins'),
     ocrEnabled: isCapabilityEnabled('ocr'),
+    mcpEnabled: isCapabilityEnabled('mcp'),
   })
 
   // 2) 注册并启动主进程服务

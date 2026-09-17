@@ -13,3 +13,15 @@ export type {
   UpdateProgressInfo,
   CheckUpdateResult,
 } from './update'
+export type { OcrLine, OcrRecognizeInput, OcrRecognizeResult, OcrStatus } from './ocr'
+export type {
+  McpCallToolResult,
+  McpInstallSource,
+  McpRuntimeState,
+  McpServerConfig,
+  McpServerLogEntry,
+  McpServerPreset,
+  McpServerStatus,
+  McpServerType,
+  McpToolInfo,
+} from './mcp'

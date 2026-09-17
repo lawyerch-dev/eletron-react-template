@@ -11,6 +11,15 @@ import type {
   UpdateProgressInfo,
   UpdateVersionInfo,
 } from '../types/update'
+import type { OcrRecognizeInput, OcrRecognizeResult, OcrStatus } from '../types/ocr'
+import type {
+  McpCallToolResult,
+  McpServerConfig,
+  McpServerLogEntry,
+  McpServerPreset,
+  McpServerStatus,
+  McpToolInfo,
+} from '../types/mcp'
 
 /**
  * 请求路由契约：route 为 resource.verb 点分 snake_case。
@@ -78,8 +87,40 @@ export interface IpcRequestMap {
   // window
   'window.open': { input: { route: string }; output: void }
 
-  // capabilities
-  'ocr.status': { input: void; output: { enabled: boolean; engine: string } }
+  // capabilities: ocr
+  'ocr.status': { input: void; output: OcrStatus }
+  'ocr.recognize': { input: OcrRecognizeInput; output: OcrRecognizeResult }
+
+  // capabilities: mcp
+  'mcp.list_servers': { input: void; output: McpServerStatus[] }
+  'mcp.connect': { input: { serverId: string }; output: McpServerStatus }
+  'mcp.disconnect': { input: { serverId: string }; output: McpServerStatus }
+  'mcp.list_tools': {
+    input: { serverId?: string } | undefined
+    output: McpToolInfo[]
+  }
+  'mcp.call_tool': {
+    input: { serverId: string; toolName: string; args?: Record<string, unknown> }
+    output: McpCallToolResult
+  }
+  'mcp.save_servers': { input: { servers: McpServerConfig[] }; output: McpServerConfig[] }
+  'mcp.list_presets': { input: void; output: McpServerPreset[] }
+  'mcp.add_preset': {
+    input: {
+      presetId: string
+      args?: string[]
+      env?: Record<string, string>
+    }
+    output: { config: McpServerConfig; servers: McpServerConfig[] }
+  }
+  'mcp.set_active': {
+    input: { serverId: string; active: boolean }
+    output: McpServerStatus
+  }
+  'mcp.get_logs': {
+    input: { serverId: string }
+    output: McpServerLogEntry[]
+  }
 }
 
 export type IpcRoute = keyof IpcRequestMap

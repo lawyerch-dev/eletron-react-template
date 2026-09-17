@@ -25,6 +25,10 @@
     "./capabilities": {
       "types": "./src/capabilities/config.ts",
       "default": "./src/capabilities/config.ts"
+    },
+    "./mcp/presets": {
+      "types": "./src/mcp/presets.ts",
+      "default": "./src/mcp/presets.ts"
     }
   },
   "scripts": {

@@ -78,6 +78,14 @@
 | 内置插件 | `src/plugins/<name>/` |
 | 静态/二进制资源 | `resources/` |
 
+**能力集成约定**（`ocr` / `mcp` / `agent`）：
+
+- 主进程实现放在 `src/main/features/capabilities/<id>/`（目录 + `index.ts`，勿与同名 `.ts` 并存）
+- IPC 契约进 `packages/shared` types + `routes.ts`，handler 在 `src/main/ipc/handlers/<id>.ts`
+- 渲染层页面在 `src/renderer/features/<id>/`，经 `renderer/capabilities` 挂路由/导航
+- OCR 与 `src/plugins/ocr-service` **共用** `scripts/rapidocr_runner.py`；MCP 配置在 `userData/mcp-servers.json`（样例 `resources/mcp-servers.example.json`）
+- MCP 预设默认走 **npmmirror + 清华 PyPI**（`chinaMirrorEnv()`），保证国内可 `npx`/`uvx` 拉包
+
 **依赖方向**：`renderer/features` → `renderer/services` → `@ert/shared/ipc` ← `main/*`
 
 禁止：

@@ -5,7 +5,7 @@
  */
 export const capabilities = {
   ocr: true,
-  mcp: false,
+  mcp: true,
   agent: false,
   plugins: true,
 } as const

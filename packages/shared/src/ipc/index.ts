@@ -11,3 +11,12 @@ export type {
   IpcRoute,
 } from './routes'
 export type { HostApi, IpcApiBridge } from './bridge'
+export {
+  CHINA_NPM_REGISTRY,
+  CHINA_PYPI_INDEX,
+  MCP_SERVER_PRESETS,
+  chinaMirrorEnv,
+  findMcpPreset,
+  seedDefaultMcpServers,
+} from '../mcp/presets'
+export { buildMcpToolWireId } from '../mcp/toolId'

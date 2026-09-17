@@ -1,5 +1,6 @@
 import { initPluginSubsystem } from '../features/plugin-host'
 import { initCapabilities, isCapabilityEnabled } from '../features/capabilities'
+import { mcpRuntimeService } from '../features/capabilities/mcp'
 import { broadcastIpcEvent } from '../ipc'
 import { registerService, type MainService } from './serviceRegistry'
 
@@ -21,6 +22,9 @@ export function createCapabilitiesService(): MainService {
     name: 'capabilities',
     async init() {
       await initCapabilities()
+    },
+    dispose() {
+      mcpRuntimeService.dispose()
     },
   }
 }

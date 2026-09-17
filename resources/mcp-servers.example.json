@@ -1,0 +1,34 @@
+[
+  {
+    "id": "filesystem",
+    "name": "Filesystem",
+    "command": "npx",
+    "args": [
+      "-y",
+      "--registry",
+      "https://registry.npmmirror.com",
+      "@modelcontextprotocol/server-filesystem",
+      "${HOME}/Documents"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "memory",
+    "name": "Memory",
+    "command": "npx",
+    "args": [
+      "-y",
+      "--registry",
+      "https://registry.npmmirror.com",
+      "@modelcontextprotocol/server-memory"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "fetch",
+    "name": "Fetch",
+    "command": "uvx",
+    "args": ["mcp-server-fetch"],
+    "enabled": false
+  }
+]

@@ -5,6 +5,8 @@ import {
   Info,
   Store,
   Package,
+  ScanText,
+  Cable,
   ChevronLeft,
   ChevronRight,
   Sun,
@@ -20,7 +22,7 @@ interface SidebarProps {
   onToggle: () => void
 }
 
-const ICONS = { store: Store, package: Package } as const
+const ICONS = { store: Store, package: Package, scan: ScanText, cable: Cable } as const
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { theme, setTheme } = useTheme()

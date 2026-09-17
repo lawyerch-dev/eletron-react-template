@@ -60,6 +60,10 @@ export default defineConfig(({ command }) => {
           find: /^@ert\/shared\/capabilities$/,
           replacement: path.join(sharedSrc, 'capabilities/config.ts'),
         },
+        {
+          find: /^@ert\/shared\/mcp\/presets$/,
+          replacement: path.join(sharedSrc, 'mcp/presets.ts'),
+        },
         { find: /^@ert\/shared$/, replacement: path.join(sharedSrc, 'index.ts') },
         { find: /^@ert\/plugin-api$/, replacement: path.join(pluginApiSrc, 'index.ts') },
         { find: '@', replacement: rendererDir },

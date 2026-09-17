@@ -28,6 +28,46 @@ const enUS = {
   // Sidebar (plugins)
   'sidebar.plugin-market': 'Solutions',
   'sidebar.my-plugins': 'My Products',
+  'sidebar.ocr': 'OCR',
+  'sidebar.mcp': 'MCP',
+
+  // OCR
+  'ocr.title': 'OCR Recognition',
+  'ocr.subtitle': 'Main-process RapidOCR sidecar — no plugin window required',
+  'ocr.status': 'Engine',
+  'ocr.available': 'Available',
+  'ocr.unavailable': 'Unavailable',
+  'ocr.kind': 'Launch',
+  'ocr.pick_image': 'Click to choose an image',
+  'ocr.working': 'Recognizing…',
+  'ocr.result': 'Result',
+  'ocr.copy': 'Copy',
+  'ocr.copied': 'Copied',
+  'ocr.done': 'Done',
+  'ocr.failed': 'Recognition failed',
+
+  // MCP
+  'mcp.title': 'MCP Servers',
+  'mcp.subtitle': 'Cherry-style runtime: in-process tools + stdio (CN mirrors)',
+  'mcp.config_hint':
+    'Config: userData/mcp-servers.json. Seeds in-process Memory/Fetch; stdio uses npmmirror + Tsinghua PyPI.',
+  'mcp.refresh': 'Refresh',
+  'mcp.empty': 'No MCP servers configured. Add one from the presets below.',
+  'mcp.online': 'Online',
+  'mcp.offline': 'Offline',
+  'mcp.connect': 'Connect',
+  'mcp.disconnect': 'Disconnect',
+  'mcp.connected': 'Connected',
+  'mcp.call': 'Call',
+  'mcp.call_failed': 'Tool call failed',
+  'mcp.bad_json': 'Invalid arguments JSON',
+  'mcp.args': 'Tool arguments (JSON)',
+  'mcp.presets': 'Common MCP presets',
+  'mcp.add': 'Add',
+  'mcp.added': 'Added',
+  'mcp.ready': 'No key',
+  'mcp.need_key': 'Needs key',
+  'mcp.preset_added': 'Saved to config',
 
   // Plugin Market
   'market.title': 'Solutions',
