@@ -17,6 +17,7 @@ const PLUGIN_DIR = __dirname
 const isMac = process.platform === 'darwin'
 const isWin = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
+console.log('[OCR] preload PLUGIN_DIR=', PLUGIN_DIR)
 
 // ==================== 引擎注册表 ====================
 
@@ -407,8 +408,15 @@ function resolveUvBinary() {
   return 'uv'
 }
 
-/** 是否存在本地可选 venv（用户自建，非内置） */
-function resolveOptionalVenvPython() {
+/** 解析 scripts/.venv 下的 Python（setup_rapidocr.sh / uv 预建环境） */
+function resolveScriptsVenvPython() {
+  const bin = isWin ? 'Scripts/python.exe' : 'bin/python'
+  const p = path.join(RAPIDOCR_SCRIPTS_DIR, '.venv', bin)
+  return fs.existsSync(p) ? p : null
+}
+
+/** 兼容旧路径：插件根目录 .venv */
+function resolveRootVenvPython() {
   const bin = isWin ? 'Scripts/python.exe' : 'bin/python'
   const p = path.join(PLUGIN_DIR, '.venv', bin)
   return fs.existsSync(p) ? p : null
@@ -416,28 +424,29 @@ function resolveOptionalVenvPython() {
 
 /**
  * 构造 sidecar 启动命令。
- * 优先级（Cherry Studio 风格）：
- * 1. uv run --directory scripts（自动建隔离环境并安装 pyproject 依赖）
- * 2. 插件目录自建 .venv（可选，离线/钉死版本）
- * 3. 系统 Python（需已装 rapidocr）
+ * 优先级：
+ * 1. scripts/.venv（已装 rapidocr，离线最快，避免 uv 每次解析）
+ * 2. uv run --directory scripts（按需建环境）
+ * 3. RAPIDOCR_PYTHON / 系统 Python
  */
-function resolveRapidOcrLaunch() {
+function resolveRapidOcrLaunchCandidates() {
+  const list = []
+  const scriptsPy = resolveScriptsVenvPython()
+  if (scriptsPy) {
+    list.push({ kind: 'scripts-venv', bin: scriptsPy, argsPrefix: [] })
+  }
+  const rootPy = resolveRootVenvPython()
+  if (rootPy) {
+    list.push({ kind: 'root-venv', bin: rootPy, argsPrefix: [] })
+  }
   const uv = resolveUvBinary()
-  // uv 配置存在即可用 uv 路径；实际能否跑通由 probe 验证
-  return {
+  list.push({
     kind: 'uv',
     bin: uv,
     argsPrefix: ['run', '--directory', RAPIDOCR_SCRIPTS_DIR, '--quiet', 'python'],
-  }
-}
-
-function resolveRapidOcrLaunchFallback() {
-  const venvPy = resolveOptionalVenvPython()
-  if (venvPy) {
-    return { kind: 'venv', bin: venvPy, argsPrefix: [] }
-  }
+  })
   if (process.env.RAPIDOCR_PYTHON && fs.existsSync(process.env.RAPIDOCR_PYTHON)) {
-    return { kind: 'python', bin: process.env.RAPIDOCR_PYTHON, argsPrefix: [] }
+    list.push({ kind: 'python', bin: process.env.RAPIDOCR_PYTHON, argsPrefix: [] })
   }
   const sysPy =
     ['/opt/homebrew/bin/python3', '/usr/local/bin/python3', 'python3'].find((c) => {
@@ -447,12 +456,18 @@ function resolveRapidOcrLaunchFallback() {
         return false
       }
     }) || 'python3'
-  return { kind: 'python', bin: sysPy, argsPrefix: [] }
+  list.push({ kind: 'python', bin: sysPy, argsPrefix: [] })
+  return list
 }
 
+/**
+ * 请求体走 stdin，避免大图 base64 塞 argv 触发 E2BIG / 参数截断。
+ * runner 支持 argv 或 stdin 读 JSON。
+ */
 function runRapidOcrProcess(launch, requestJson, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
-    const args = [...launch.argsPrefix, RAPIDOCR_RUNNER, requestJson]
+    const args = [...launch.argsPrefix, RAPIDOCR_RUNNER]
+    console.log(`[RapidOCR] spawn kind=${launch.kind} bin=${launch.bin} timeout=${timeoutMs}ms`)
     const child = spawn(launch.bin, args, {
       cwd: RAPIDOCR_SCRIPTS_DIR,
       env: {
@@ -461,17 +476,33 @@ function runRapidOcrProcess(launch, requestJson, timeoutMs = 180000) {
         UV_CACHE_DIR: process.env.UV_CACHE_DIR || path.join(os.homedir(), '.cache', 'uv'),
       },
       windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
     })
     let stdout = ''
     let stderr = ''
+    let settled = false
     const timer = setTimeout(() => {
+      if (settled) return
+      settled = true
       try {
         child.kill('SIGKILL')
       } catch {
         /* ignore */
       }
-      reject(new Error('RapidOCR 超时'))
+      reject(
+        new Error(
+          `RapidOCR 超时（${Math.round(timeoutMs / 1000)}s）。首次运行可能需下载模型；` +
+            `也可先执行 scripts/setup_rapidocr.sh 预装环境。kind=${launch.kind}`,
+        ),
+      )
     }, timeoutMs)
+
+    const finish = (fn) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      fn()
+    }
 
     child.stdout.on('data', (chunk) => {
       stdout += String(chunk)
@@ -480,29 +511,43 @@ function runRapidOcrProcess(launch, requestJson, timeoutMs = 180000) {
       stderr += String(chunk)
     })
     child.on('error', (err) => {
-      clearTimeout(timer)
-      reject(err)
+      finish(() =>
+        reject(
+          new Error(
+            `RapidOCR 启动失败（kind=${launch.kind} bin=${launch.bin}）: ${err.message}`,
+          ),
+        ),
+      )
     })
     child.on('close', (code) => {
-      clearTimeout(timer)
-      const line = stdout
-        .trim()
-        .split('\n')
-        .filter(Boolean)
-        .pop()
-      if (!line) {
-        const hint = stderr.includes('uv')
-          ? '（请安装 uv：https://docs.astral.sh/uv/）'
-          : ''
-        reject(new Error((stderr.trim() || `RapidOCR 退出码 ${code}`) + hint))
-        return
-      }
-      try {
-        resolve(JSON.parse(line))
-      } catch (e) {
-        reject(new Error(`RapidOCR 输出解析失败: ${e.message}`))
-      }
+      finish(() => {
+        const line = stdout
+          .trim()
+          .split('\n')
+          .filter(Boolean)
+          .pop()
+        if (!line) {
+          const hint = stderr.includes('uv')
+            ? '（请安装 uv：https://docs.astral.sh/uv/）'
+            : ''
+          const tail = stderr.trim().split('\n').slice(-8).join('\n')
+          reject(new Error((tail || `RapidOCR 退出码 ${code}`) + hint))
+          return
+        }
+        try {
+          resolve(JSON.parse(line))
+        } catch (e) {
+          reject(new Error(`RapidOCR 输出解析失败: ${e.message}`))
+        }
+      })
     })
+
+    try {
+      child.stdin.write(requestJson)
+      child.stdin.end()
+    } catch (e) {
+      finish(() => reject(new Error(`RapidOCR 写入 stdin 失败: ${e.message}`)))
+    }
   })
 }
 
@@ -515,29 +560,38 @@ registry.register('rapidocr', {
   runtime: 'local',
   isSupported: () => {
     if (!fs.existsSync(RAPIDOCR_RUNNER)) return false
-    // 列表展示乐观可用；真正可用性由 handlerFactory probe 决定
+    // scripts/.venv 存在时更可信；仅有 runner 时仍展示，由 probe 定成败
     return true
   },
   capabilities: ['image_to_text'],
   supportedLanguages: ['chi_sim', 'eng', 'chi_tra', 'jpn', 'kor'],
   handlerFactory: async () => {
-    let launch = resolveRapidOcrLaunch()
-    let probe = await runRapidOcrProcess(launch, JSON.stringify({ probe: true }), 90000).catch(
-      (e) => ({ ok: false, error: e.message }),
-    )
+    const candidates = resolveRapidOcrLaunchCandidates()
+    let launch = null
+    let probe = null
+    const errors = []
 
-    // uv 不可用时回退 venv / 系统 Python
-    if (!probe || probe.ok !== true) {
-      launch = resolveRapidOcrLaunchFallback()
-      probe = await runRapidOcrProcess(launch, JSON.stringify({ probe: true }), 30000).catch(
-        (e) => ({ ok: false, error: e.message }),
-      )
+    for (const candidate of candidates) {
+      // 本地 venv 通常已就绪，短超时；uv 首次可能拉依赖，给更长窗口
+      const timeoutMs = candidate.kind === 'uv' ? 90000 : 20000
+      console.log(`[RapidOCR] probe candidate kind=${candidate.kind} bin=${candidate.bin}`)
+      const result = await runRapidOcrProcess(
+        candidate,
+        JSON.stringify({ probe: true }),
+        timeoutMs,
+      ).catch((e) => ({ ok: false, error: e.message }))
+      if (result && result.ok === true) {
+        launch = candidate
+        probe = result
+        break
+      }
+      errors.push(`${candidate.kind}: ${(result && result.error) || 'probe failed'}`)
     }
 
-    if (!probe || probe.ok !== true) {
+    if (!launch || !probe || probe.ok !== true) {
       throw new Error(
-        `RapidOCR 环境不可用: ${(probe && probe.error) || '未找到 uv / Python + rapidocr'}。` +
-          `请安装 uv（https://docs.astral.sh/uv/）或设置 RAPIDOCR_PYTHON`,
+        `RapidOCR 环境不可用：\n${errors.join('\n')}\n` +
+          `请安装 uv（https://docs.astral.sh/uv/）、运行 scripts/setup_rapidocr.sh，或设置 RAPIDOCR_PYTHON`,
       )
     }
     console.log(`[RapidOCR] 就绪 kind=${launch.kind} bin=${launch.bin} python=${probe.python}`)
