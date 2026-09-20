@@ -8,6 +8,10 @@ import {
   ScanText,
   Cable,
   Cpu,
+  BookMarked,
+  Puzzle,
+  Wrench,
+  Bot,
   ChevronLeft,
   ChevronRight,
   Sun,
@@ -29,6 +33,10 @@ const ICONS = {
   scan: ScanText,
   cable: Cable,
   cpu: Cpu,
+  book: BookMarked,
+  puzzle: Puzzle,
+  wrench: Wrench,
+  bot: Bot,
 } as const
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {

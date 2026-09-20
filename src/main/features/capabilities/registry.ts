@@ -1,6 +1,11 @@
 import { initOcrCapability } from './ocr'
 import { initMcpCapability } from './mcp'
 import { initModelsCapability } from './models'
+import { initPromptsCapability } from './prompts'
+import { initSkillsCapability } from './skills'
+import { initWebSearchCapability } from './webSearch'
+import { initDocsCapability } from './docs'
+import { initEnvCapability } from './env'
 import { initAgentCapability } from './agent'
 import { isCapabilityEnabled } from './config'
 
@@ -17,6 +22,21 @@ export async function initCapabilities(): Promise<void> {
   }
   if (isCapabilityEnabled('models')) {
     initModelsCapability()
+  }
+  if (isCapabilityEnabled('prompts')) {
+    initPromptsCapability()
+  }
+  if (isCapabilityEnabled('skills')) {
+    initSkillsCapability()
+  }
+  if (isCapabilityEnabled('webSearch')) {
+    initWebSearchCapability()
+  }
+  if (isCapabilityEnabled('docs')) {
+    initDocsCapability()
+  }
+  if (isCapabilityEnabled('env')) {
+    initEnvCapability()
   }
   if (isCapabilityEnabled('agent')) {
     initAgentCapability()

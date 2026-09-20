@@ -7,7 +7,13 @@ export const capabilities = {
   ocr: true,
   mcp: true,
   models: true,
-  agent: false,
+  prompts: true,
+  skills: true,
+  webSearch: true,
+  docs: true,
+  embedding: true,
+  env: true,
+  agent: true,
   plugins: true,
 } as const
 

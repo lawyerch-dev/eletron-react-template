@@ -22,6 +22,10 @@ export function AppLayout() {
     '/plugin-market': t('page.plugin-market'),
     '/my-plugins': t('page.my-plugins'),
     '/models': t('page.models'),
+    '/prompts': t('page.prompts'),
+    '/skills': t('page.skills'),
+    '/tools': t('page.tools'),
+    '/agent': t('page.agent'),
     '/settings': t('page.settings'),
     '/about': t('page.about'),
   }

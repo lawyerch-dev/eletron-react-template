@@ -12,6 +12,7 @@ import type {
   ModelsConfig,
   PublicModelProvider,
 } from '@ert/shared/types'
+import type { ChatMessage, EmbedResult, LlmCompleteResult } from '@ert/shared/types'
 import { MODEL_PROVIDER_PRESETS, findModelProviderPreset } from '@ert/shared/models/presets'
 import { paths } from '../../../app/paths'
 
@@ -318,6 +319,293 @@ class ModelService {
       const message = e instanceof Error ? e.message : String(e)
       log.warn(`[models] test failed provider=${providerId}`, message)
       return { ok: false, latencyMs: Date.now() - started, error: message }
+    }
+  }
+
+  /** 解析补全目标：显式 provider/model，或按角色映射 */
+  private resolveCompleteTarget(input: {
+    role?: ModelRole
+    providerId?: string
+    modelId?: string
+  }): { provider: ModelProviderConfig; modelId: string } {
+    const cfg = this.loadConfig()
+    let providerId = input.providerId
+    let modelId = input.modelId
+    if (!providerId || !modelId) {
+      const role = input.role || 'default-assistant'
+      const assignment = cfg.roles[role]
+      if (!assignment) {
+        throw new Error(`未配置模型角色: ${role}（请先在模型服务中设置）`)
+      }
+      providerId = assignment.providerId
+      modelId = assignment.modelId
+    }
+    const provider = cfg.providers.find((p) => p.id === providerId)
+    if (!provider) throw new Error('供应商不存在: ' + providerId)
+    if (!provider.isActive) throw new Error('供应商已停用: ' + provider.name)
+    return { provider, modelId: modelId as string }
+  }
+
+  /** 轻量非流式补全（OpenAI-compatible / Anthropic / Ollama / Gemini） */
+  async completeChat(input: {
+    role?: ModelRole
+    providerId?: string
+    modelId?: string
+    messages: ChatMessage[]
+    temperature?: number
+    maxTokens?: number
+  }): Promise<LlmCompleteResult> {
+    const started = Date.now()
+    try {
+      if (!input.messages?.length) throw new Error('messages 不能为空')
+      const { provider, modelId } = this.resolveCompleteTarget(input)
+      const base = resolveBaseUrl(provider)
+      const key = decryptSecret(provider.apiKey)
+      const temperature = input.temperature ?? 0.7
+      const maxTokens = input.maxTokens
+
+      if (provider.type === 'ollama') {
+        const res = await fetch(`${base}/api/chat`, {
+          method: 'POST',
+          headers: authHeaders(provider),
+          body: JSON.stringify({
+            model: modelId,
+            messages: input.messages,
+            stream: false,
+            options: { temperature, ...(maxTokens ? { num_predict: maxTokens } : {}) },
+          }),
+        })
+        if (!res.ok) throw new Error(`Ollama /api/chat HTTP ${res.status}`)
+        const data = (await res.json()) as {
+          message?: { content?: string }
+          prompt_eval_count?: number
+          eval_count?: number
+        }
+        const content = data.message?.content ?? ''
+        return {
+          ok: true,
+          content,
+          providerId: provider.id,
+          modelId,
+          latencyMs: Date.now() - started,
+          usage: {
+            promptTokens: data.prompt_eval_count,
+            completionTokens: data.eval_count,
+          },
+        }
+      }
+
+      if (provider.type === 'anthropic') {
+        const system = input.messages
+          .filter((m) => m.role === 'system')
+          .map((m) => m.content)
+          .join('\n')
+        const rest = input.messages.filter((m) => m.role !== 'system')
+        const res = await fetch(`${base}/v1/messages`, {
+          method: 'POST',
+          headers: authHeaders(provider),
+          body: JSON.stringify({
+            model: modelId,
+            max_tokens: maxTokens ?? 1024,
+            temperature,
+            ...(system ? { system } : {}),
+            messages: rest.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          }),
+        })
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          throw new Error(`Anthropic HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ''}`)
+        }
+        const data = (await res.json()) as {
+          content?: Array<{ type?: string; text?: string }>
+          usage?: { input_tokens?: number; output_tokens?: number }
+        }
+        const content = (data.content || [])
+          .filter((c) => c.type === 'text' && c.text)
+          .map((c) => c.text)
+          .join('')
+        return {
+          ok: true,
+          content,
+          providerId: provider.id,
+          modelId,
+          latencyMs: Date.now() - started,
+          usage: {
+            promptTokens: data.usage?.input_tokens,
+            completionTokens: data.usage?.output_tokens,
+          },
+        }
+      }
+
+      if (provider.type === 'gemini') {
+        const url = `${base}/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(key)}`
+        const contents = input.messages
+          .filter((m) => m.role !== 'system')
+          .map((m) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          }))
+        const systemInstruction = input.messages
+          .filter((m) => m.role === 'system')
+          .map((m) => m.content)
+          .join('\n')
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            contents,
+            ...(systemInstruction
+              ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
+              : {}),
+            generationConfig: {
+              temperature,
+              ...(maxTokens ? { maxOutputTokens: maxTokens } : {}),
+            },
+          }),
+        })
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          throw new Error(`Gemini HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ''}`)
+        }
+        const data = (await res.json()) as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ text?: string }> }
+          }>
+          usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number }
+        }
+        const content = (data.candidates?.[0]?.content?.parts || [])
+          .map((p) => p.text || '')
+          .join('')
+        return {
+          ok: true,
+          content,
+          providerId: provider.id,
+          modelId,
+          latencyMs: Date.now() - started,
+          usage: {
+            promptTokens: data.usageMetadata?.promptTokenCount,
+            completionTokens: data.usageMetadata?.candidatesTokenCount,
+          },
+        }
+      }
+
+      // openai / openai-compatible / custom
+      const res = await fetch(`${base}/chat/completions`, {
+        method: 'POST',
+        headers: authHeaders(provider),
+        body: JSON.stringify({
+          model: modelId,
+          messages: input.messages,
+          temperature,
+          ...(maxTokens ? { max_tokens: maxTokens } : {}),
+        }),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(
+          `chat/completions HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ''}`,
+        )
+      }
+      const data = (await res.json()) as {
+        choices?: Array<{ message?: { content?: string } }>
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
+      }
+      const content = data.choices?.[0]?.message?.content ?? ''
+      return {
+        ok: true,
+        content,
+        providerId: provider.id,
+        modelId,
+        latencyMs: Date.now() - started,
+        usage: {
+          promptTokens: data.usage?.prompt_tokens,
+          completionTokens: data.usage?.completion_tokens,
+          totalTokens: data.usage?.total_tokens,
+        },
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      log.warn('[models] completeChat failed', message)
+      return { ok: false, error: message, latencyMs: Date.now() - started }
+    }
+  }
+
+  /** 远程 embedding（OpenAI-compatible / Ollama） */
+  async embedTexts(input: {
+    texts: string[]
+    providerId?: string
+    modelId?: string
+  }): Promise<EmbedResult> {
+    const started = Date.now()
+    try {
+      if (!input.texts?.length) throw new Error('texts 不能为空')
+      const { provider, modelId } = this.resolveCompleteTarget({
+        providerId: input.providerId,
+        modelId: input.modelId,
+        role: 'embedding',
+      })
+      const base = resolveBaseUrl(provider)
+
+      if (provider.type === 'ollama') {
+        const vectors: number[][] = []
+        for (const text of input.texts) {
+          const res = await fetch(`${base}/api/embeddings`, {
+            method: 'POST',
+            headers: authHeaders(provider),
+            body: JSON.stringify({ model: modelId, prompt: text }),
+          })
+          if (!res.ok) throw new Error(`Ollama embeddings HTTP ${res.status}`)
+          const data = (await res.json()) as { embedding?: number[] }
+          if (!data.embedding) throw new Error('Ollama 未返回 embedding')
+          vectors.push(data.embedding)
+        }
+        return {
+          ok: true,
+          vectors,
+          dimensions: vectors[0]?.length,
+          providerId: provider.id,
+          modelId,
+          latencyMs: Date.now() - started,
+        }
+      }
+
+      if (
+        provider.type !== 'openai' &&
+        provider.type !== 'openai-compatible' &&
+        provider.type !== 'custom'
+      ) {
+        throw new Error(`供应商类型 ${provider.type} 暂不支持 embedding`)
+      }
+
+      const res = await fetch(`${base}/embeddings`, {
+        method: 'POST',
+        headers: authHeaders(provider),
+        body: JSON.stringify({ model: modelId, input: input.texts }),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`embeddings HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ''}`)
+      }
+      const data = (await res.json()) as {
+        data?: Array<{ embedding?: number[]; index?: number }>
+      }
+      const sorted = [...(data.data || [])].sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+      const vectors = sorted.map((d) => d.embedding || [])
+      return {
+        ok: true,
+        vectors,
+        dimensions: vectors[0]?.length,
+        providerId: provider.id,
+        modelId,
+        latencyMs: Date.now() - started,
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      log.warn('[models] embed failed', message)
+      return { ok: false, error: message, latencyMs: Date.now() - started }
     }
   }
 }

@@ -28,6 +28,18 @@ import type {
   ModelTestResult,
   PublicModelProvider,
 } from '../types/models'
+import type { LlmCompleteInput, LlmCompleteResult, PromptTemplate } from '../types/prompts'
+import type {
+  AgentChatInput,
+  AgentChatResult,
+  DocExtractInput,
+  DocExtractResult,
+  EmbedResult,
+  EnvStatus,
+  SkillPack,
+  WebSearchConfig,
+  WebSearchResult,
+} from '../types/tools'
 
 /**
  * 请求路由契约：route 为 resource.verb 点分 snake_case。
@@ -167,6 +179,52 @@ export interface IpcRequestMap {
   }
   /** 插件宿主 / 其它能力读取可用模型供应商（无密钥） */
   'models.list_public_providers': { input: void; output: PublicModelProvider[] }
+
+  // capabilities: llm（依赖 models 能力的供应商/角色）
+  'llm.complete': { input: LlmCompleteInput; output: LlmCompleteResult }
+
+  // capabilities: prompts
+  'prompts.list': { input: void; output: PromptTemplate[] }
+  'prompts.save': { input: { prompt: PromptTemplate }; output: PromptTemplate }
+  'prompts.delete': { input: { id: string }; output: void }
+  'prompts.get': { input: { id: string }; output: PromptTemplate | null }
+
+  // capabilities: skills
+  'skills.list': { input: void; output: SkillPack[] }
+  'skills.save': { input: { skill: SkillPack }; output: SkillPack }
+  'skills.delete': { input: { id: string }; output: void }
+  'skills.get': { input: { id: string }; output: SkillPack | null }
+
+  // capabilities: web-search
+  'web_search.get_config': { input: void; output: WebSearchConfig }
+  'web_search.save_config': { input: { config: WebSearchConfig }; output: WebSearchConfig }
+  'web_search.search': {
+    input: { query: string; limit?: number }
+    output: WebSearchResult
+  }
+
+  // capabilities: docs
+  'docs.extract': { input: DocExtractInput; output: DocExtractResult }
+  'docs.pick_and_extract': {
+    input: { maxLength?: number } | undefined
+    output: DocExtractResult & { cancelled?: boolean }
+  }
+
+  // capabilities: embedding
+  'embedding.embed': {
+    input: {
+      texts: string[]
+      providerId?: string
+      modelId?: string
+    }
+    output: EmbedResult
+  }
+
+  // capabilities: env
+  'env.status': { input: void; output: EnvStatus }
+
+  // capabilities: agent
+  'agent.chat': { input: AgentChatInput; output: AgentChatResult }
 }
 
 export type IpcRoute = keyof IpcRequestMap

@@ -38,3 +38,29 @@ export type {
   PublicModelProvider,
 } from './models'
 export { MODEL_ROLES } from './models'
+export type {
+  ChatMessage,
+  ChatRole,
+  LlmCompleteInput,
+  LlmCompleteResult,
+  LlmUsage,
+  PromptTemplate,
+  PromptTemplates,
+} from './prompts'
+export type {
+  AgentChatInput,
+  AgentChatResult,
+  AgentChatTurn,
+  DocExtractInput,
+  DocExtractResult,
+  DocFormat,
+  EmbedResult,
+  EnvStatus,
+  EnvToolId,
+  EnvToolStatus,
+  SkillPack,
+  WebSearchConfig,
+  WebSearchHit,
+  WebSearchProviderType,
+  WebSearchResult,
+} from './tools'

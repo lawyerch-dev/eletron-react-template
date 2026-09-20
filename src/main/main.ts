@@ -31,13 +31,8 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 app.whenReady().then(async () => {
-  // 1) IpcApi 传输 + 各域 handler
-  initHostIpc({
-    pluginsEnabled: isCapabilityEnabled('plugins'),
-    ocrEnabled: isCapabilityEnabled('ocr'),
-    mcpEnabled: isCapabilityEnabled('mcp'),
-    modelsEnabled: isCapabilityEnabled('models'),
-  })
+  // 1) IpcApi 传输 + 各域 handler（按 capabilities 开关）
+  initHostIpc()
 
   // 2) 注册并启动主进程服务
   registerDefaultServices({ pluginsEnabled: isCapabilityEnabled('plugins') })
