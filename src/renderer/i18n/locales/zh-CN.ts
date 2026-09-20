@@ -1,4 +1,10 @@
 const zhCN = {
+  // 导航分组
+  'nav.group.main': '主要',
+  'nav.group.ai': 'AI 能力',
+  'nav.group.tools': '工具',
+  'nav.group.system': '系统',
+
   // 侧边栏
   'sidebar.home': '首页',
   'sidebar.settings': '设置',
@@ -40,6 +46,29 @@ const zhCN = {
   'sidebar.skills': '技能',
   'sidebar.tools': '工具箱',
   'sidebar.agent': '对话',
+
+  'models.search_ph': '搜索模型平台...',
+  'models.tab.providers': '模型服务',
+  'models.tab.roles': '默认模型',
+  'models.api_key': 'API 密钥',
+  'models.get_key': '获取密钥',
+  'models.api_base': 'API 地址',
+  'models.models_section': '模型',
+  'models.filter_models': '筛选模型',
+  'models.sync_models': '同步模型',
+  'models.sync_ok': '已同步 {n} 个模型',
+  'models.add_model_ph': '输入模型 ID',
+  'models.add_custom': '自定义服务商',
+
+  // 设置分区
+  'settings.nav.general': '通用',
+  'settings.nav.logs': '日志',
+  'settings.nav.about': '关于',
+  'settings.caps': '能力裁剪',
+  'settings.caps_hint': '在 packages/shared capabilities config 中开关',
+  'settings.appearance': '外观与语言',
+  'settings.appearance_hint': '主题与界面语言',
+  'settings.appearance_loc': '请在左侧菜单底部切换',
 
   // OCR
   'ocr.title': 'OCR 文字识别',
@@ -84,8 +113,12 @@ const zhCN = {
   'models.subtitle': '配置供应商与默认模型角色（助手 / 快捷 / 翻译 / 视觉…）',
   'models.config_hint': '配置：userData/models.json。API Key 优先经 safeStorage 加密存储。',
   'models.refresh': '刷新',
-  'models.add_provider': '添加供应商',
-  'models.edit_provider': '编辑供应商',
+  'models.add_provider': '添加服务商',
+  'models.not_configured': '未配置',
+  'models.add_endpoint': '添加端点',
+  'models.no_models': '暂无模型，可点「同步模型」拉取',
+  'models.no_models_unconfigured': '填入密钥并检测/同步后，将显示可用模型',
+  'models.edit_provider': '编辑服务商',
   'models.providers': '供应商',
   'models.empty': '尚未配置供应商。可从下方预设一键添加，或手动新建。',
   'models.active': '启用',
@@ -150,6 +183,7 @@ const zhCN = {
   'prompts.err_id_name': '请填写 ID 与名称',
   'prompts.try': '试跑补全',
   'prompts.try_hint': '使用「默认助手」角色对应的模型；请先在模型服务中配置。',
+  'prompts.search_ph': '搜索提示词…',
   'prompts.try_input_ph': '用户输入…',
   'prompts.run': '运行',
   'prompts.try_ok': '完成 {ms}ms',
@@ -162,6 +196,7 @@ const zhCN = {
   'skills.title': '技能包',
   'skills.subtitle': '系统提示词 + 可选 MCP 工具引用，可在对话中挂载',
   'skills.config_hint': '配置：userData/skills.json',
+  'skills.search_ph': '搜索技能…',
   'skills.refresh': '刷新',
   'skills.add': '新建技能',
   'skills.edit': '编辑',

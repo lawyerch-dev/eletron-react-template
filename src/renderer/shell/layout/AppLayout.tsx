@@ -1,36 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { Sidebar } from './Sidebar'
-import { TopBar } from './TopBar'
-import { useLanguage } from '@/app/contexts/LanguageContext'
 import { useIpcOn } from '@/ipc/useIpcOn'
 
 const SIDEBAR_KEY = 'sidebar-collapsed'
 
+/** 壳层：侧栏（含主题/语言）+ 内容区。主题/语言固定在侧栏底部，不进各页面。 */
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(() => {
     return localStorage.getItem(SIDEBAR_KEY) === 'true'
   })
 
-  const location = useLocation()
   const navigate = useNavigate()
-  const { t } = useLanguage()
-
-  const pageTitles: Record<string, string> = {
-    '/': t('page.home'),
-    '/plugin-market': t('page.plugin-market'),
-    '/my-plugins': t('page.my-plugins'),
-    '/models': t('page.models'),
-    '/prompts': t('page.prompts'),
-    '/skills': t('page.skills'),
-    '/tools': t('page.tools'),
-    '/agent': t('page.agent'),
-    '/settings': t('page.settings'),
-    '/about': t('page.about'),
-  }
-
-  const title = pageTitles[location.pathname] || t('page.home')
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(collapsed))
@@ -48,20 +30,16 @@ export function AppLayout() {
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar title={title} />
-
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
-        </main>
-      </div>
+      <main className="min-w-0 flex-1 overflow-y-auto bg-background px-6 py-5">
+        <Outlet />
+      </main>
 
       <Toaster
         position="top-right"
         richColors
         closeButton
         toastOptions={{
-          className: 'bg-surface text-foreground',
+          className: 'bg-surface text-foreground border border-border-default',
         }}
       />
     </div>

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UI 重设计预览 — Cherry 风格页面布局</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #fff;
+      --surface-2: #f0f2f5;
+      --sidebar: #fafbfc;
+      --text: #1f2329;
+      --text-2: #5c6370;
+      --muted: #8b919a;
+      --border: #e4e7ec;
+      --accent: #2b5ced;
+      --accent-subtle: #e8efff;
+      --success: #12a150;
+      --warning: #d97706;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .app { display: flex; height: 100vh; overflow: hidden; }
+    /* Sidebar */
+    .sidebar {
+      width: 220px; background: var(--sidebar); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; flex-shrink: 0;
+    }
+    .logo {
+      height: 48px; display: flex; align-items: center; gap: 8px;
+      padding: 0 12px; border-bottom: 1px solid var(--border); font-weight: 600;
+    }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 8px; background: var(--accent);
+      color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+    }
+    .nav { flex: 1; overflow: auto; padding: 12px 8px; }
+    .nav-group { margin-bottom: 12px; }
+    .nav-label {
+      font-size: 11px; color: var(--muted); padding: 0 8px 4px;
+      text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      border-radius: 8px; color: var(--text-2); cursor: pointer; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--surface-2); }
+    .nav-item.active { background: var(--accent-subtle); color: var(--accent); font-weight: 500; }
+    .sidebar-foot { border-top: 1px solid var(--border); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .seg { display: flex; gap: 4px; }
+    .seg-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+      padding: 6px 4px; border-radius: 8px; font-size: 11px; color: var(--muted); cursor: pointer;
+    }
+    .seg-btn:hover { background: var(--surface-2); color: var(--text); }
+    .seg-btn.on { background: var(--accent-subtle); color: var(--accent); font-weight: 500; }
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .content { flex: 1; overflow: auto; padding: 20px 24px 32px; }
+    .page { display: none; max-width: 960px; margin: 0 auto; }
+    .page.show { display: block; }
+    .page-head { margin-bottom: 16px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .page-title { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .page-desc { margin-top: 4px; color: var(--text-2); font-size: 12.5px; }
+    .page-hint { margin-top: 2px; color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+    .actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-2); font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { filter: brightness(0.95); }
+    .badge {
+      display: inline-flex; padding: 1px 6px; border-radius: 5px; font-size: 10.5px;
+      font-weight: 500; background: var(--surface-2); color: var(--muted);
+    }
+    .badge.accent { background: var(--accent-subtle); color: var(--accent); }
+    .badge.ok { background: rgba(18,161,80,.12); color: var(--success); }
+    .badge.warn { background: rgba(217,119,6,.12); color: var(--warning); }
+
+    /* Master-detail models */
+    .master-detail {
+      display: grid; grid-template-columns: 240px 1fr; min-height: 440px;
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+      background: var(--surface);
+    }
+    .master { border-right: 1px solid var(--border); background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); display: flex; flex-direction: column; }
+    .master-search { padding: 8px; border-bottom: 1px solid var(--border); }
+    .master-search input {
+      width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); font-size: 12px; color: var(--text); outline: none;
+    }
+    .master-list { flex: 1; overflow: auto; padding: 6px; }
+    .master-item {
+      display: flex; gap: 8px; align-items: center; padding: 8px 10px;
+      border-radius: 8px; cursor: pointer; margin-bottom: 2px;
+    }
+    .master-item:hover { background: var(--surface-2); }
+    .master-item.active { background: var(--accent-subtle); color: var(--accent); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    .status-dot.off { background: var(--muted); opacity: 0.5; }
+    .detail { display: flex; flex-direction: column; min-width: 0; }
+    .detail-head {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    }
+    .detail-body { flex: 1; overflow: auto; padding: 14px 16px; }
+    .section-label { font-size: 11.5px; font-weight: 500; color: var(--text-2); margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .chip-model {
+      font-family: ui-monospace, monospace; font-size: 11px; padding: 4px 8px;
+      border-radius: 6px; background: rgba(43,92,237,.1); color: var(--accent);
+    }
+    .role-table { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .role-row {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .role-row:last-child { border-bottom: none; }
+    .role-row select {
+      width: 220px; padding: 5px 8px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--surface); font-size: 12px; color: var(--text);
+    }
+
+    /* MCP list */
+    .list-card {
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+      overflow: hidden; margin-bottom: 12px;
+    }
+    .list-row {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .list-row:last-child { border-bottom: none; }
+    .expand {
+      margin-left: 28px; background: color-mix(in srgb, var(--surface-2) 50%, var(--surface));
+      border-top: 1px solid var(--border); padding: 8px 12px;
+    }
+    .tool-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--surface); border-radius: 6px; padding: 6px 10px; margin-bottom: 4px;
+    }
+
+    /* Prompt / skill cards */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .card {
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+      padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+    .card-title { font-weight: 600; font-size: 13px; }
+    .card-mono { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); }
+    .card-body {
+      font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-2);
+      line-height: 1.45; flex: 1; display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-actions { display: flex; gap: 4px; }
+
+    /* Settings two-col */
+    .settings-box {
+      display: flex; height: calc(100vh - 140px); min-height: 420px;
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+      background: var(--surface);
+    }
+    .settings-nav {
+      width: 160px; border-right: 1px solid var(--border); padding: 10px 8px;
+      background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+    }
+    .settings-nav-item {
+      padding: 8px 10px; border-radius: 8px; margin-bottom: 2px; cursor: pointer; color: var(--text-2);
+    }
+    .settings-nav-item.active { background: var(--accent-subtle); color: var(--accent); font-weight: 500; }
+    .settings-content { flex: 1; overflow: auto; padding: 20px; }
+    .setting-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-table { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+    /* Tools panels */
+    .panel {
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+      margin-bottom: 10px; overflow: hidden;
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+    }
+    .panel-body { padding: 12px 14px; }
+    .input {
+      width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg); font-size: 12px; color: var(--text); outline: none;
+    }
+    .search-bar { position: relative; margin-bottom: 12px; }
+    .search-bar input { padding-left: 32px; }
+    .search-bar::before {
+      content: "⌕"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 14px;
+    }
+    .env-row {
+      display: flex; justify-content: space-between; padding: 8px 14px;
+      border-bottom: 1px solid var(--border); align-items: center;
+    }
+    .env-row:last-child { border-bottom: none; }
+
+    /* Chat */
+    .chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 140px); max-width: 720px; margin: 0 auto; }
+    .chat-log {
+      flex: 1; border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 8px;
+    }
+    .bubble {
+      max-width: 85%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5;
+    }
+    .bubble.user { margin-left: auto; background: var(--accent); color: #fff; }
+    .bubble.bot { background: var(--surface-2); border: 1px solid var(--border); }
+    .chat-input { display: flex; gap: 8px; margin-top: 12px; align-items: flex-end; }
+    .chat-input textarea {
+      flex: 1; min-height: 56px; resize: none; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface); font: inherit; outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo"><div class="logo-mark">T</div> Template</div>
+      <nav class="nav">
+        <div class="nav-group">
+          <div class="nav-label">主要</div>
+          <div class="nav-item" data-page="home">首页</div>
+          <div class="nav-item" data-page="agent">对话</div>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">AI 能力</div>
+          <div class="nav-item" data-page="ocr">OCR 识别</div>
+          <div class="nav-item active" data-page="mcp">MCP 服务</div>
+          <div class="nav-item" data-page="models">模型服务</div>
+          <div class="nav-item" data-page="prompts">提示词</div>
+          <div class="nav-item" data-page="skills">技能</div>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">工具</div>
+          <div class="nav-item" data-page="tools">工具箱</div>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">系统</div>
+          <div class="nav-item" data-page="settings">设置</div>
+          <div class="nav-item" data-page="about">关于</div>
+        </div>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="seg">
+          <div class="seg-btn" title="浅色">☀ 浅色</div>
+          <div class="seg-btn" title="暗色">☾ 暗色</div>
+          <div class="seg-btn on" title="系统">▣ 系统</div>
+        </div>
+        <div class="seg">
+          <div class="seg-btn on">中文</div>
+          <div class="seg-btn">English</div>
+        </div>
+        <div class="seg-btn" style="justify-content:center">‹ 折叠</div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="content">
+        <!-- MODELS — Cherry：预设平台目录常驻 + 右配置 -->
+        <section class="page" id="page-models">
+          <div class="page-head" style="margin-bottom:8px">
+            <div style="display:flex;gap:4px;align-items:center">
+              <span class="chip on" style="font-weight:600">模型服务</span>
+              <span class="chip">默认模型</span>
+            </div>
+            <div class="actions"><button class="btn">↻</button></div>
+          </div>
+          <div class="master-detail" style="grid-template-columns:280px 1fr;height:calc(100vh - 160px)">
+            <div class="master">
+              <div class="master-search"><input placeholder="搜索模型平台..." /></div>
+              <div class="master-list" style="padding:4px 0">
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#2563eb">深</div><div style="flex:1"><div style="font-weight:500">深度求索 DeepSeek</div></div><span class="status-dot off"></span></div>
+                <div class="master-item active" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#7c3aed">硅</div><div style="flex:1"><div style="font-weight:500">硅基流动 SiliconFlow</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#0ea5e9">智</div><div style="flex:1"><div style="font-weight:500">智谱开放平台</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#111827">月</div><div style="flex:1"><div style="font-weight:500">月之暗面 Kimi</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#7c3aed">O</div><div style="flex:1"><div style="font-weight:500">Ollama 本地</div></div><span class="status-dot"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#059669">O</div><div style="flex:1"><div style="font-weight:500">OpenAI</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#ea580c">A</div><div style="flex:1"><div style="font-weight:500">Anthropic</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#2563eb">A</div><div style="flex:1"><div style="font-weight:500">AiHubMix</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#4f46e5">3</div><div style="flex:1"><div style="font-weight:500">302.AI</div></div><span class="status-dot off"></span></div>
+                <div class="master-item" style="border-radius:0;padding:10px 12px"><div class="logo-mark" style="width:28px;height:28px;font-size:11px;background:#db2777">D</div><div style="flex:1"><div style="font-weight:500">DMXAPI</div></div><span class="status-dot off"></span></div>
+              </div>
+              <div style="padding:8px;border-top:1px solid var(--border)"><button class="btn" style="width:100%;justify-content:center">+ 添加服务商</button></div>
+            </div>
+            <div class="detail">
+              <div class="detail-head" style="padding:14px 20px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <strong style="font-size:16px">硅基流动 SiliconFlow</strong>
+                  <span style="color:var(--muted)">⚙</span>
+                  <span class="badge">未配置</span>
+                </div>
+                <div style="width:44px;height:24px;border-radius:12px;background:#9ca3af;position:relative"><span style="position:absolute;left:3px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></div>
+              </div>
+              <div class="detail-body" style="padding:20px 24px">
+                <div class="section-label" style="font-size:14px;font-weight:600;margin-bottom:8px">API 密钥 <a style="color:var(--accent);font-weight:400;font-size:13px">获取密钥</a></div>
+                <div style="display:flex;gap:8px;margin-bottom:22px">
+                  <input class="input" style="flex:1;padding:10px 12px;font-family:monospace" placeholder="sk-..." />
+                  <button class="btn" style="width:40px;justify-content:center">🔑</button>
+                  <button class="btn primary" style="padding:0 16px">检测</button>
+                </div>
+                <div class="section-label" style="font-size:14px;font-weight:600;margin-bottom:8px">API 地址 <a style="color:var(--accent);font-weight:400;font-size:13px">添加端点</a></div>
+                <input class="input" style="padding:10px 12px;font-family:monospace;margin-bottom:22px" value="https://api.siliconflow.cn/v1" />
+                <div class="section-label" style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:8px">模型
+                  <input class="input" style="width:140px;padding:6px 8px;font-size:12px" placeholder="筛选模型" />
+                  <span style="flex:1"></span>
+                  <button class="btn">同步模型</button>
+                  <button class="btn">+</button>
+                </div>
+                <div style="border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--muted);font-size:13px">
+                  填入密钥并检测/同步后，将显示可用模型
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MCP -->
+        <section class="page show" id="page-mcp">
+          <div class="page-head">
+            <div>
+              <div class="page-title">MCP 服务</div>
+              <div class="page-desc">Cherry 风格运行时：inMemory + stdio</div>
+              <div class="page-hint">userData/mcp-servers.json</div>
+            </div>
+            <div class="actions">
+              <button class="btn">预设</button>
+              <button class="btn">刷新</button>
+            </div>
+          </div>
+          <div class="list-card">
+            <div class="list-row">
+              <span style="color:var(--muted)">▾</span>
+              <span class="status-dot"></span>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                  <strong style="font-size:13px">Memory</strong>
+                  <span class="badge accent">inMemory</span>
+                  <span class="badge ok">ready</span>
+                  <span style="font-size:11px;color:var(--muted)">4 tools</span>
+                </div>
+                <div style="font-family:monospace;font-size:11px;color:var(--muted)">builtin memory tools</div>
+              </div>
+              <button class="btn">断开</button>
+            </div>
+            <div class="expand">
+              <div class="tool-row"><div><div style="font-weight:500;font-size:12px">create_entities</div><div style="font-size:11px;color:var(--muted)">创建记忆实体</div></div><button class="btn">调用</button></div>
+              <div class="tool-row"><div><div style="font-weight:500;font-size:12px">search_nodes</div><div style="font-size:11px;color:var(--muted)">搜索节点</div></div><button class="btn">调用</button></div>
+            </div>
+            <div class="list-row">
+              <span style="color:var(--muted)">▸</span>
+              <span class="status-dot off"></span>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;gap:6px;align-items:center">
+                  <strong style="font-size:13px">Filesystem</strong>
+                  <span class="badge accent">stdio</span>
+                  <span class="badge">idle</span>
+                </div>
+                <div style="font-family:monospace;font-size:11px;color:var(--muted)">npx @modelcontextprotocol/server-filesystem</div>
+              </div>
+              <button class="btn primary">连接</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span style="font-weight:500;font-size:12px">工具参数（JSON）</span><button class="btn">Clear</button></div>
+            <div class="panel-body"><textarea class="input" rows="3">{}</textarea></div>
+          </div>
+        </section>
+
+        <!-- PROMPTS -->
+        <section class="page" id="page-prompts">
+          <div class="page-head">
+            <div>
+              <div class="page-title">提示词库</div>
+              <div class="page-desc">本地模板 + 按角色试跑</div>
+            </div>
+            <div class="actions">
+              <button class="btn">↻</button>
+              <button class="btn primary">+ 新建</button>
+            </div>
+          </div>
+          <div class="search-bar"><input class="input" placeholder="搜索提示词…" /></div>
+          <div class="grid-2">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between"><div class="card-title">正式翻译</div><span class="badge accent">translate</span></div>
+              <div class="card-mono">translate-formal</div>
+              <div class="card-body">You are a professional translator. Translate the user text into natural Chinese while preserving tone and terminology…</div>
+              <div class="card-actions"><button class="btn">试跑</button><button class="btn">编辑</button></div>
+            </div>
+            <div class="card">
+              <div style="display:flex;justify-content:space-between"><div class="card-title">摘要助手</div><span class="badge accent">summary</span></div>
+              <div class="card-mono">summarize-brief</div>
+              <div class="card-body">Summarize the following content in 3 bullet points. Be concise and factual.</div>
+              <div class="card-actions"><button class="btn">试跑</button><button class="btn">编辑</button></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span style="font-weight:500;font-size:12px">试跑补全</span></div>
+            <div class="panel-body">
+              <div style="display:flex;gap:8px">
+                <select class="input" style="flex:1"><option>正式翻译</option></select>
+                <input class="input" style="flex:2" placeholder="用户输入…" />
+                <button class="btn primary">运行</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SKILLS -->
+        <section class="page" id="page-skills">
+          <div class="page-head">
+            <div>
+              <div class="page-title">技能包</div>
+              <div class="page-desc">System Prompt + MCP 工具引用</div>
+            </div>
+            <div class="actions">
+              <button class="btn primary">+ 新建技能</button>
+            </div>
+          </div>
+          <div class="search-bar"><input class="input" placeholder="搜索技能…" /></div>
+          <div class="grid-3">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between"><div class="card-title">代码审查</div><span class="badge ok">启用</span></div>
+              <div class="card-mono">code-review</div>
+              <div class="card-body">You are a senior engineer. Review diffs for bugs, security, and maintainability.</div>
+              <div class="card-actions"><button class="btn">编辑</button></div>
+            </div>
+            <div class="card">
+              <div style="display:flex;justify-content:space-between"><div class="card-title">研究助手</div><span class="badge ok">启用</span></div>
+              <div class="card-mono">research</div>
+              <div class="card-body">Gather sources, compare claims, and produce a structured brief.</div>
+              <div class="card-actions"><button class="btn">编辑</button></div>
+            </div>
+            <div class="card">
+              <div style="display:flex;justify-content:space-between"><div class="card-title">翻译专家</div><span class="badge">停用</span></div>
+              <div class="card-mono">translator</div>
+              <div class="card-body">Domain-aware translation with glossary support.</div>
+              <div class="card-actions"><button class="btn">编辑</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TOOLS -->
+        <section class="page" id="page-tools">
+          <div class="page-head">
+            <div>
+              <div class="page-title">工具箱</div>
+              <div class="page-desc">网络搜索 · 文档 · 嵌入 · 环境</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div><div style="font-weight:500">网络搜索</div><div style="font-size:11px;color:var(--muted)">SearXNG / Brave / Tavily</div></div>
+              <div style="display:flex;gap:6px"><button class="btn">保存配置</button><button class="btn primary">搜索</button></div>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+                <select class="input"><option>SearXNG</option></select>
+                <input class="input" placeholder="https://searx.be" />
+                <input class="input" type="password" placeholder="API Key" />
+              </div>
+              <input class="input" placeholder="搜索关键词…" />
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div><div style="font-weight:500">环境依赖</div><div style="font-size:11px;color:var(--muted)">uv / Python / Node / ffmpeg</div></div>
+              <button class="btn">重新探测</button>
+            </div>
+            <div>
+              <div class="env-row"><div><span class="badge ok">OK</span> <span style="font-family:monospace;margin-left:6px">uv</span></div><span style="font-family:monospace;font-size:11px;color:var(--text-2)">uv 0.5.0</span></div>
+              <div class="env-row"><div><span class="badge ok">OK</span> <span style="font-family:monospace;margin-left:6px">python3</span></div><span style="font-family:monospace;font-size:11px;color:var(--text-2)">Python 3.12.3</span></div>
+              <div class="env-row"><div><span class="badge">—</span> <span style="font-family:monospace;margin-left:6px">ffmpeg</span></div><span style="font-size:11px;color:var(--muted)">未安装</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="page" id="page-settings">
+          <div class="page-head"><div><div class="page-title">设置</div></div></div>
+          <div class="settings-box">
+            <div class="settings-nav">
+              <div class="settings-nav-item active">通用</div>
+              <div class="settings-nav-item">日志</div>
+              <div class="settings-nav-item">关于</div>
+            </div>
+            <div class="settings-content">
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px">通用</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:14px">外观与语言</div>
+              <div class="setting-table">
+                <div class="setting-row">
+                  <div><div style="font-weight:500">主题</div><div style="font-size:11px;color:var(--muted)">浅色 / 暗色 / 跟随系统</div></div>
+                  <div style="display:flex;gap:4px"><span class="chip">☀</span><span class="chip">☾</span><span class="chip on">▣</span></div>
+                </div>
+                <div class="setting-row">
+                  <div><div style="font-weight:500">语言</div><div style="font-size:11px;color:var(--muted)">界面显示语言</div></div>
+                  <div style="display:flex;gap:4px"><span class="chip on">中文</span><span class="chip">English</span></div>
+                </div>
+                <div class="setting-row">
+                  <div><div style="font-weight:500">能力裁剪</div><div style="font-size:11px;color:var(--muted)">packages/shared capabilities config</div></div>
+                  <span class="badge accent">@ert/shared</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AGENT -->
+        <section class="page" id="page-agent">
+          <div class="page-head">
+            <div>
+              <div class="page-title">助手对话</div>
+              <div class="page-desc">默认助手 · 可挂载技能</div>
+            </div>
+            <div class="actions">
+              <select class="input" style="width:140px"><option>不使用技能</option><option>代码审查</option></select>
+              <button class="btn">清空</button>
+            </div>
+          </div>
+          <div class="chat-wrap">
+            <div class="chat-log">
+              <div class="bubble user">帮我总结这段 MCP 配置说明</div>
+              <div class="bubble bot">好的。MCP 服务器配置支持 inMemory 与 stdio 两种：进程内工具零依赖启动；stdio 会在首次调用时通过 npx 拉起，并已配置国内镜像。</div>
+            </div>
+            <div class="chat-input">
+              <textarea placeholder="输入消息，Enter 发送"></textarea>
+              <button class="btn primary" style="height:36px">发送</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-home">
+          <div class="page-head"><div class="page-title">首页</div></div>
+          <div class="panel"><div class="panel-body">点击左侧菜单查看各页面重设计后的布局。</div></div>
+        </section>
+        <section class="page" id="page-ocr">
+          <div class="page-head"><div><div class="page-title">OCR 识别</div><div class="page-desc">RapidOCR sidecar</div></div></div>
+          <div class="panel"><div class="panel-head"><span>引擎状态</span><span class="badge ok">可用</span></div><div class="panel-body" style="text-align:center;padding:36px;border:1px dashed var(--border);margin:12px;border-radius:10px;color:var(--muted)">点击选择图片</div></div>
+        </section>
+        <section class="page" id="page-about">
+          <div class="page-head"><div class="page-title">关于</div></div>
+          <div class="panel"><div class="panel-body">electron-react-template · Electron + React + Vite</div></div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.querySelectorAll('.nav-item').forEach((el) => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+        el.classList.add('active');
+        const id = el.getAttribute('data-page');
+        document.querySelectorAll('.page').forEach((p) => p.classList.remove('show'));
+        const target = document.getElementById('page-' + id);
+        if (target) target.classList.add('show');
+      });
+    });
+  </script>
+</body>
+</html>

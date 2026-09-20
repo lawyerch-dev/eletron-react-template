@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Plus, RefreshCw, Trash2, X } from 'lucide-react'
+import { Loader2, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { skillsService } from '@/services'
 import type { SkillPack } from '@ert/shared/types'
+import {
+  Badge,
+  Btn,
+  EmptyState,
+  Field,
+  PageShell,
+  SectionCard,
+  inputCls,
+  textareaCls,
+} from '@/shell/ui'
 
 const emptyDraft = (): SkillPack => ({
   id: '',
@@ -17,9 +27,11 @@ const emptyDraft = (): SkillPack => ({
   updatedAt: 0,
 })
 
+/** 技能：搜索 + 卡片墙 */
 export function SkillsPage() {
   const { t } = useLanguage()
   const [items, setItems] = useState<SkillPack[]>([])
+  const [search, setSearch] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [draft, setDraft] = useState<SkillPack | null>(null)
   const [toolsText, setToolsText] = useState('')
@@ -37,233 +49,212 @@ export function SkillsPage() {
     void refresh()
   }, [refresh])
 
-  const openCreate = () => {
-    setDraft(emptyDraft())
-    setToolsText('')
-  }
-
-  const openEdit = (s: SkillPack) => {
-    setDraft({ ...s, mcpTools: [...(s.mcpTools || [])] })
-    setToolsText((s.mcpTools || []).join('\n'))
-  }
-
-  const saveDraft = async () => {
-    if (!draft) return
-    if (!draft.id.trim() || !draft.name.trim()) {
-      toast.error(t('skills.err_id_name'))
-      return
-    }
-    setBusyId('draft')
-    try {
-      await skillsService.save({
-        ...draft,
-        id: draft.id.trim(),
-        name: draft.name.trim(),
-        mcpTools: toolsText
-          .split(/[\n,]/)
-          .map((s) => s.trim())
-          .filter(Boolean),
-      })
-      toast.success(t('skills.saved'))
-      setDraft(null)
-      await refresh()
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const remove = async (id: string) => {
-    setBusyId('del:' + id)
-    try {
-      await skillsService.delete(id)
-      toast.success(t('skills.deleted'))
-      await refresh()
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusyId(null)
-    }
-  }
+  const filtered = items.filter((s) => {
+    const q = search.trim().toLowerCase()
+    if (!q) return true
+    return (
+      s.name.toLowerCase().includes(q) ||
+      s.id.toLowerCase().includes(q) ||
+      (s.category || '').toLowerCase().includes(q)
+    )
+  })
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">{t('skills.title')}</h1>
-          <p className="mt-1 text-sm text-foreground-secondary">{t('skills.subtitle')}</p>
-          <p className="mt-1 text-xs text-foreground-muted">{t('skills.config_hint')}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="rounded-xl border border-border-default px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-hover"
+    <PageShell
+      title={t('skills.title')}
+      description={t('skills.subtitle')}
+      hint={t('skills.config_hint')}
+      width="max-w-4xl"
+      actions={
+        <>
+          <Btn onClick={() => void refresh()}>
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Btn>
+          <Btn
+            variant="primary"
+            onClick={() => {
+              setDraft(emptyDraft())
+              setToolsText('')
+            }}
           >
-            <RefreshCw className="mr-1 inline h-4 w-4" />
-            {t('skills.refresh')}
-          </button>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            <Plus className="mr-1 inline h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             {t('skills.add')}
-          </button>
-        </div>
-      </header>
+          </Btn>
+        </>
+      }
+    >
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+        <input
+          className={`${inputCls} py-2 pl-9`}
+          placeholder={t('skills.search_ph')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       {draft && (
-        <section className="space-y-3 rounded-2xl border border-border-default bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-foreground">
-              {draft.createdAt ? t('skills.edit') : t('skills.add')}
-            </div>
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-lg p-1 text-foreground-muted hover:bg-surface-hover"
-              aria-label={t('skills.cancel')}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+        <SectionCard title={draft.createdAt ? t('skills.edit') : t('skills.add')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('skills.field_id')}</span>
+            <Field label={t('skills.field_id')}>
               <input
+                className={inputCls}
                 value={draft.id}
-                onChange={(e) => setDraft({ ...draft, id: e.target.value })}
                 disabled={Boolean(draft.createdAt)}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
+                onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('skills.field_name')}</span>
+            </Field>
+            <Field label={t('skills.field_name')}>
               <input
+                className={inputCls}
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
               />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('skills.field_category')}</span>
+            </Field>
+            <Field label={t('skills.field_category')}>
               <input
+                className={inputCls}
                 value={draft.category || ''}
                 onChange={(e) => setDraft({ ...draft, category: e.target.value })}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
               />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('skills.field_desc')}</span>
+            </Field>
+            <Field label={t('skills.field_desc')}>
               <input
+                className={inputCls}
                 value={draft.description || ''}
                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
               />
-            </label>
-            <label className="space-y-1 text-sm sm:col-span-2">
-              <span className="text-foreground-secondary">{t('skills.field_system')}</span>
+            </Field>
+            <Field label={t('skills.field_system')} className="sm:col-span-2">
               <textarea
+                className={textareaCls}
+                rows={5}
                 value={draft.systemPrompt}
                 onChange={(e) => setDraft({ ...draft, systemPrompt: e.target.value })}
-                rows={5}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-accent"
               />
-            </label>
-            <label className="space-y-1 text-sm sm:col-span-2">
-              <span className="text-foreground-secondary">{t('skills.field_tools')}</span>
+            </Field>
+            <Field label={t('skills.field_tools')} className="sm:col-span-2">
               <textarea
+                className={textareaCls}
+                rows={2}
                 value={toolsText}
                 onChange={(e) => setToolsText(e.target.value)}
-                rows={3}
-                placeholder="mcp__memory__create_entities"
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-accent"
               />
-            </label>
+            </Field>
           </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-xl border border-border-default px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-hover"
-            >
-              {t('skills.cancel')}
-            </button>
-            <button
-              type="button"
-              onClick={() => void saveDraft()}
+          <div className="mt-3 flex justify-end gap-2">
+            <Btn onClick={() => setDraft(null)}>{t('skills.cancel')}</Btn>
+            <Btn
+              variant="primary"
               disabled={busyId === 'draft'}
-              className="rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
+              onClick={() => {
+                if (!draft.id.trim() || !draft.name.trim()) {
+                  toast.error(t('skills.err_id_name'))
+                  return
+                }
+                setBusyId('draft')
+                void skillsService
+                  .save({
+                    ...draft,
+                    id: draft.id.trim(),
+                    name: draft.name.trim(),
+                    mcpTools: toolsText
+                      .split(/[\n,]/)
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                  .then(() => {
+                    toast.success(t('skills.saved'))
+                    setDraft(null)
+                    return refresh()
+                  })
+                  .catch((e) => toast.error((e as Error).message))
+                  .finally(() => setBusyId(null))
+              }}
             >
-              {busyId === 'draft' && <Loader2 className="mr-1 inline h-4 w-4 animate-spin" />}
+              {busyId === 'draft' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               {t('skills.save')}
-            </button>
+            </Btn>
           </div>
-        </section>
+        </SectionCard>
       )}
 
-      <section className="space-y-2">
-        {items.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-border-default px-4 py-6 text-sm text-foreground-muted">
-            {t('skills.empty')}
-          </p>
-        )}
-        <div className="space-y-2">
-          {items.map((s) => (
-            <div key={s.id} className="rounded-2xl border border-border-default bg-surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+      {filtered.length === 0 ? (
+        <EmptyState title={t('skills.empty')} />
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((s) => (
+            <div
+              key={s.id}
+              className="flex flex-col rounded-xl border border-border-default bg-surface p-3 transition hover:border-accent/40"
+            >
+              <div className="mb-1 flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-foreground">{s.name}</span>
-                    {s.category && (
-                      <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-600">
-                        {s.category}
-                      </span>
-                    )}
+                  <div className="text-[13px] font-semibold text-foreground">{s.name}</div>
+                  <div className="font-mono text-[10px] text-foreground-muted">{s.id}</div>
+                </div>
+                <Badge tone={s.isActive ? 'success' : 'neutral'}>
+                  {s.isActive ? t('skills.active') : t('skills.inactive')}
+                </Badge>
+              </div>
+              {s.category && (
+                <div className="mb-1">
+                  <Badge tone="accent">{s.category}</Badge>
+                </div>
+              )}
+              {s.description && (
+                <p className="mb-1.5 text-[11px] text-foreground-muted">{s.description}</p>
+              )}
+              <p className="mb-2 line-clamp-3 flex-1 font-mono text-[11px] leading-relaxed text-foreground-secondary">
+                {s.systemPrompt}
+              </p>
+              {s.mcpTools?.length ? (
+                <div className="mb-2 flex flex-wrap gap-1">
+                  {s.mcpTools.slice(0, 3).map((tool) => (
                     <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                        s.isActive
-                          ? 'bg-emerald-500/15 text-emerald-600'
-                          : 'bg-zinc-500/15 text-zinc-500'
-                      }`}
+                      key={tool}
+                      className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-foreground-muted"
                     >
-                      {s.isActive ? t('skills.active') : t('skills.inactive')}
+                      {tool}
                     </span>
-                  </div>
-                  {s.description && (
-                    <p className="mt-1 text-xs text-foreground-muted">{s.description}</p>
+                  ))}
+                  {s.mcpTools.length > 3 && (
+                    <span className="text-[10px] text-foreground-muted">
+                      +{s.mcpTools.length - 3}
+                    </span>
                   )}
-                  {s.mcpTools?.length ? (
-                    <p className="mt-1 font-mono text-[11px] text-foreground-muted">
-                      {s.mcpTools.join(' · ')}
-                    </p>
-                  ) : null}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(s)}
-                    className="rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-foreground-secondary hover:bg-surface-hover"
-                  >
-                    {t('skills.edit')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void remove(s.id)}
-                    disabled={busyId === 'del:' + s.id}
-                    className="rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10 disabled:opacity-50"
-                  >
-                    <Trash2 className="inline h-3 w-3" />
-                  </button>
-                </div>
+              ) : null}
+              <div className="flex items-center gap-1">
+                <Btn
+                  onClick={() => {
+                    setDraft({ ...s, mcpTools: [...(s.mcpTools || [])] })
+                    setToolsText((s.mcpTools || []).join('\n'))
+                  }}
+                >
+                  {t('skills.edit')}
+                </Btn>
+                <Btn
+                  variant="danger"
+                  onClick={() => {
+                    setBusyId('del:' + s.id)
+                    void skillsService
+                      .delete(s.id)
+                      .then(() => {
+                        toast.success(t('skills.deleted'))
+                        return refresh()
+                      })
+                      .catch((e) => toast.error((e as Error).message))
+                      .finally(() => setBusyId(null))
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Btn>
               </div>
             </div>
           ))}
         </div>
-      </section>
-    </div>
+      )}
+    </PageShell>
   )
 }

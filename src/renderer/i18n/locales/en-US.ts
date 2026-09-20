@@ -1,4 +1,10 @@
 const enUS = {
+  // Nav groups
+  'nav.group.main': 'Main',
+  'nav.group.ai': 'AI',
+  'nav.group.tools': 'Tools',
+  'nav.group.system': 'System',
+
   // Sidebar
   'sidebar.home': 'Home',
   'sidebar.settings': 'Settings',
@@ -40,6 +46,28 @@ const enUS = {
   'sidebar.skills': 'Skills',
   'sidebar.tools': 'Tools',
   'sidebar.agent': 'Chat',
+
+  'models.search_ph': 'Search platforms...',
+  'models.tab.providers': 'Providers',
+  'models.tab.roles': 'Default models',
+  'models.api_key': 'API Key',
+  'models.get_key': 'Get key',
+  'models.api_base': 'API Base URL',
+  'models.models_section': 'Models',
+  'models.filter_models': 'Filter models',
+  'models.sync_models': 'Sync models',
+  'models.sync_ok': 'Synced {n} models',
+  'models.add_model_ph': 'Model ID',
+  'models.add_custom': 'Custom provider',
+
+  'settings.nav.general': 'General',
+  'settings.nav.logs': 'Logs',
+  'settings.nav.about': 'About',
+  'settings.caps': 'Capabilities',
+  'settings.caps_hint': 'Toggle in packages/shared capabilities config',
+  'settings.appearance': 'Appearance & Language',
+  'settings.appearance_hint': 'Theme and UI language',
+  'settings.appearance_loc': 'Use the sidebar footer',
 
   // OCR
   'ocr.title': 'OCR Recognition',
@@ -86,6 +114,10 @@ const enUS = {
     'Config: userData/models.json. API keys are encrypted via safeStorage when available.',
   'models.refresh': 'Refresh',
   'models.add_provider': 'Add provider',
+  'models.not_configured': 'Not set',
+  'models.add_endpoint': 'Add endpoint',
+  'models.no_models': 'No models yet. Use Sync models.',
+  'models.no_models_unconfigured': 'Set API key, then test or sync to list models.',
   'models.edit_provider': 'Edit provider',
   'models.providers': 'Providers',
   'models.empty': 'No providers yet. Add from presets below or create one.',
@@ -151,6 +183,7 @@ const enUS = {
   'prompts.err_id_name': 'ID and name are required',
   'prompts.try': 'Try complete',
   'prompts.try_hint': 'Uses the default-assistant role model. Configure it under Models first.',
+  'prompts.search_ph': 'Search prompts…',
   'prompts.try_input_ph': 'User input…',
   'prompts.run': 'Run',
   'prompts.try_ok': 'Done in {ms}ms',
@@ -163,6 +196,7 @@ const enUS = {
   'skills.title': 'Skill Packs',
   'skills.subtitle': 'System prompts + optional MCP tool refs; mount in chat',
   'skills.config_hint': 'Config: userData/skills.json',
+  'skills.search_ph': 'Search skills…',
   'skills.refresh': 'Refresh',
   'skills.add': 'New skill',
   'skills.edit': 'Edit',

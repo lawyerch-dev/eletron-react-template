@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Bot, Loader2, Send, Trash2 } from 'lucide-react'
+import { Loader2, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { agentService, skillsService } from '@/services'
 import type { AgentChatTurn, SkillPack } from '@ert/shared/types'
+import { Btn, inputCls } from '@/shell/ui'
 
 export function AgentPage() {
   const { t } = useLanguage()
@@ -40,13 +41,7 @@ export function AgentPage() {
         ])
         return
       }
-      setMessages([
-        ...nextMessages,
-        {
-          role: 'assistant',
-          content: result.content || '',
-        },
-      ])
+      setMessages([...nextMessages, { role: 'assistant', content: result.content || '' }])
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -55,20 +50,19 @@ export function AgentPage() {
   }, [busy, input, messages, skillId, t])
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col space-y-4">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-            <Bot className="h-6 w-6 text-accent" />
+    <div className="mx-auto flex h-[calc(100vh-2.5rem)] max-w-3xl flex-col">
+      <header className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {t('agent.title')}
           </h1>
-          <p className="mt-1 text-sm text-foreground-secondary">{t('agent.subtitle')}</p>
+          <p className="text-[13px] text-foreground-secondary">{t('agent.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <select
+            className={`${inputCls} w-40`}
             value={skillId}
             onChange={(e) => setSkillId(e.target.value)}
-            className="rounded-xl border border-border-default bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           >
             <option value="">{t('agent.no_skill')}</option>
             {skills.map((s) => (
@@ -77,47 +71,48 @@ export function AgentPage() {
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={() => setMessages([])}
-            className="rounded-xl border border-border-default px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-hover"
-          >
-            <Trash2 className="mr-1 inline h-4 w-4" />
+          <Btn onClick={() => setMessages([])}>
+            <Trash2 className="h-3.5 w-3.5" />
             {t('agent.clear')}
-          </button>
+          </Btn>
         </div>
       </header>
 
-      <div className="flex-1 space-y-3 overflow-auto rounded-2xl border border-border-default bg-surface p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-xl border border-border-default bg-surface p-4">
         {messages.length === 0 && (
-          <p className="text-sm text-foreground-muted">{t('agent.empty')}</p>
+          <div className="m-auto max-w-xs text-center text-[13px] text-foreground-muted">
+            {t('agent.empty')}
+          </div>
         )}
         {messages.map((m, i) => (
           <div
             key={i}
-            className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+            className={`max-w-[88%] rounded-xl px-3 py-2 text-[13px] leading-relaxed ${
               m.role === 'user'
                 ? 'ml-auto bg-accent text-accent-foreground'
-                : 'bg-background text-foreground border border-border-default'
+                : 'border border-border-default bg-surface-2 text-foreground'
             }`}
           >
-            <div className="mb-1 text-[10px] uppercase tracking-wider opacity-70">
+            <div className="mb-0.5 text-[10px] font-medium uppercase tracking-wider opacity-65">
               {m.role === 'user' ? t('agent.you') : t('agent.assistant')}
             </div>
             <div className="whitespace-pre-wrap">{m.content}</div>
           </div>
         ))}
         {busy && (
-          <div className="flex items-center gap-2 text-sm text-foreground-muted">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="flex items-center gap-2 text-[13px] text-foreground-muted">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
             {t('agent.thinking')}
           </div>
         )}
       </div>
 
-      <div className="flex gap-2">
+      <div className="mt-3 flex items-end gap-2">
         <textarea
+          className={`${inputCls} min-h-[64px] flex-1 resize-none py-2`}
+          rows={2}
           value={input}
+          placeholder={t('agent.input_ph')}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -125,18 +120,15 @@ export function AgentPage() {
               void send()
             }
           }}
-          rows={2}
-          placeholder={t('agent.input_ph')}
-          className="min-h-[72px] flex-1 resize-none rounded-xl border border-border-default bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
         />
-        <button
-          type="button"
-          onClick={() => void send()}
+        <Btn
+          variant="primary"
           disabled={busy || !input.trim()}
-          className="self-end rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
+          className="h-9 w-9 !px-0"
+          onClick={() => void send()}
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        </button>
+        </Btn>
       </div>
     </div>
   )

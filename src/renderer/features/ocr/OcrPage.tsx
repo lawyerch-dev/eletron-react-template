@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ScanText, Upload, Loader2, Copy } from 'lucide-react'
+import { Upload, Loader2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { ocrService } from '@/services'
 import type { OcrStatus } from '@ert/shared/types'
+import { Badge, Btn, PageShell, SectionCard } from '@/shell/ui'
 
 export function OcrPage() {
   const { t } = useLanguage()
@@ -60,27 +61,12 @@ export function OcrPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-          <ScanText className="h-6 w-6 text-accent" />
-          {t('ocr.title')}
-        </h1>
-        <p className="text-sm text-foreground-secondary">{t('ocr.subtitle')}</p>
-      </header>
-
-      <section className="rounded-2xl border border-border-default bg-surface p-4">
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="font-medium text-foreground">{t('ocr.status')}</span>
-          {status?.available ? (
-            <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-emerald-600">
-              {t('ocr.available')}
-            </span>
-          ) : (
-            <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-amber-600">
-              {t('ocr.unavailable')}
-            </span>
-          )}
+    <PageShell title={t('ocr.title')} description={t('ocr.subtitle')}>
+      <SectionCard title={t('ocr.status')}>
+        <div className="flex flex-wrap items-center gap-2 text-[13px]">
+          <Badge tone={status?.available ? 'success' : 'warning'}>
+            {status?.available ? t('ocr.available') : t('ocr.unavailable')}
+          </Badge>
           {status?.kind && (
             <span className="text-foreground-muted">
               {t('ocr.kind')}: {status.kind}
@@ -88,16 +74,16 @@ export function OcrPage() {
           )}
           {status?.python && <span className="text-foreground-muted">Python {status.python}</span>}
         </div>
-        {status?.error && <p className="mt-2 text-xs text-red-500">{status.error}</p>}
-      </section>
+        {status?.error && <p className="mt-2 text-xs text-danger">{status.error}</p>}
+      </SectionCard>
 
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border-default bg-surface/50 px-6 py-10 transition hover:border-accent/50">
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border-default bg-surface-2/50 px-6 py-10 transition hover:border-accent/50">
         {busy ? (
           <Loader2 className="h-8 w-8 animate-spin text-accent" />
         ) : (
           <Upload className="h-8 w-8 text-foreground-muted" />
         )}
-        <span className="text-sm font-medium text-foreground-secondary">
+        <span className="text-[13px] font-medium text-foreground-secondary">
           {busy ? t('ocr.working') : t('ocr.pick_image')}
         </span>
         <input
@@ -110,30 +96,29 @@ export function OcrPage() {
       </label>
 
       {text && (
-        <section className="rounded-2xl border border-border-default bg-surface p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">{t('ocr.result')}</span>
-            <div className="flex items-center gap-2">
-              {meta && <span className="text-xs text-foreground-muted">{meta}</span>}
-              <button
-                type="button"
-                className="rounded-lg border border-border-default px-2 py-1 text-xs text-foreground-secondary hover:bg-surface-hover"
+        <SectionCard
+          title={t('ocr.result')}
+          actions={
+            <>
+              {meta && <span className="text-[11px] text-foreground-muted">{meta}</span>}
+              <Btn
                 onClick={() => {
                   void navigator.clipboard.writeText(text)
                   toast.success(t('ocr.copied'))
                 }}
               >
-                <Copy className="mr-1 inline h-3 w-3" />
+                <Copy className="h-3.5 w-3.5" />
                 {t('ocr.copy')}
-              </button>
-            </div>
-          </div>
-          <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-sm leading-6 text-foreground">
+              </Btn>
+            </>
+          }
+        >
+          <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-[13px] leading-6 text-foreground">
             {text}
           </pre>
-        </section>
+        </SectionCard>
       )}
-    </div>
+    </PageShell>
   )
 }
 

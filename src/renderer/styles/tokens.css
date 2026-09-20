@@ -1,40 +1,48 @@
 /*
- * 主题 token 定义
- * 新增主题只需添加一个 class 块，覆盖 --token-* 变量即可
+ * 主题 token — 对齐 Cherry Studio 的冷中性色 + 蓝强调
+ * 组件只用语义类名，新增主题只覆盖 --token-*
  */
 
 :root {
-  /* ── 浅色主题（暖石 Warm Stone）── */
-  --token-bg: #f5f2ed;
+  /* ── 浅色（Cherry Studio 风格冷灰）── */
+  --token-bg: #f5f6f8;
   --token-surface: #ffffff;
-  --token-surface-hover: #ede7de;
-  --token-text: #1a1a1a;
-  --token-text-secondary: #4a3f35;
-  --token-text-muted: #8a7f6f;
-  --token-border: #e8e2d8;
-  --token-accent: #1a1a1a;
-  --token-accent-text: #f0ebe3;
-  --token-accent-subtle: #f0ebe3;
+  --token-surface-2: #f0f2f5;
+  --token-surface-hover: #ebedf0;
+  --token-text: #1f2329;
+  --token-text-secondary: #5c6370;
+  --token-text-muted: #8b919a;
+  --token-border: #e4e7ec;
+  --token-border-strong: #d0d5dd;
+  --token-accent: #2b5ced;
+  --token-accent-text: #ffffff;
+  --token-accent-subtle: #e8efff;
+  --token-accent-hover: #1f4dd4;
+  --token-success: #12a150;
+  --token-warning: #d97706;
+  --token-danger: #e5484d;
+  --token-sidebar: #fafbfc;
+  --token-sidebar-active: #e8efff;
 }
 
 html.dark {
-  /* ── 暗色主题（纯黑 Pure Black）── */
-  --token-bg: #000000;
-  --token-surface: #0a0a0a;
-  --token-surface-hover: #1a1a1a;
-  --token-text: #ffffff;
-  --token-text-secondary: #e0e0e0;
-  --token-text-muted: #888888;
-  --token-border: #222222;
-  --token-accent: #ffffff;
-  --token-accent-text: #000000;
-  --token-accent-subtle: #1a1a1a;
+  /* ── 暗色（Cherry 近黑灰，非纯黑）── */
+  --token-bg: #17181c;
+  --token-surface: #1f2128;
+  --token-surface-2: #262830;
+  --token-surface-hover: #2c2f38;
+  --token-text: #f2f3f5;
+  --token-text-secondary: #a8adb8;
+  --token-text-muted: #6d7380;
+  --token-border: #2e323c;
+  --token-border-strong: #3d424e;
+  --token-accent: #4b7cff;
+  --token-accent-text: #ffffff;
+  --token-accent-subtle: #1c2a4a;
+  --token-accent-hover: #6b93ff;
+  --token-success: #30a46c;
+  --token-warning: #f5a524;
+  --token-danger: #f2555a;
+  --token-sidebar: #141519;
+  --token-sidebar-active: #1c2a4a;
 }
-
-/* 示例：新增主题只需这样
-html.sepia {
-  --token-bg: #f5f0e8;
-  --token-text: #433422;
-  ...
-}
-*/

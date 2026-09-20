@@ -1,9 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
-import { BookMarked, Loader2, Play, Plus, RefreshCw, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Loader2, Play, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { llmService, promptsService } from '@/services'
 import type { PromptTemplate } from '@ert/shared/types'
+import {
+  Badge,
+  Btn,
+  EmptyState,
+  Field,
+  PageShell,
+  SectionCard,
+  inputCls,
+  textareaCls,
+} from '@/shell/ui'
 
 const emptyDraft = (): PromptTemplate => ({
   id: '',
@@ -15,9 +25,11 @@ const emptyDraft = (): PromptTemplate => ({
   updatedAt: 0,
 })
 
+/** 提示词：搜索 + 卡片网格 + 侧边试跑 */
 export function PromptsPage() {
   const { t } = useLanguage()
   const [items, setItems] = useState<PromptTemplate[]>([])
+  const [search, setSearch] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [draft, setDraft] = useState<PromptTemplate | null>(null)
   const [tryInput, setTryInput] = useState('')
@@ -38,213 +50,194 @@ export function PromptsPage() {
     void refresh()
   }, [refresh])
 
-  const openCreate = () => {
-    setDraft(emptyDraft())
-  }
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return items
+    return items.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        p.content.toLowerCase().includes(q),
+    )
+  }, [items, search])
 
-  const openEdit = (p: PromptTemplate) => {
-    setDraft({ ...p })
-  }
-
-  const saveDraft = async () => {
-    if (!draft) return
-    if (!draft.id.trim() || !draft.name.trim()) {
-      toast.error(t('prompts.err_id_name'))
-      return
-    }
-    setBusyId('draft')
-    try {
-      await promptsService.save({
-        ...draft,
-        id: draft.id.trim(),
-        name: draft.name.trim(),
-      })
-      toast.success(t('prompts.saved'))
-      setDraft(null)
-      await refresh()
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const remove = async (id: string) => {
-    setBusyId('del:' + id)
-    try {
-      await promptsService.delete(id)
-      toast.success(t('prompts.deleted'))
-      await refresh()
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const tryComplete = async () => {
-    const template = items.find((x) => x.id === tryPromptId)
-    if (!template) {
-      toast.error(t('prompts.pick_template'))
-      return
-    }
-    if (!tryInput.trim()) {
-      toast.error(t('prompts.need_input'))
-      return
-    }
-    setTrying(true)
-    setTryResult('')
-    try {
-      const result = await llmService.complete({
-        role: 'default-assistant',
-        messages: [
-          { role: 'system', content: template.content },
-          { role: 'user', content: tryInput },
-        ],
-      })
-      if (!result.ok) {
-        setTryResult(result.error || t('prompts.try_fail'))
-        toast.error(result.error || t('prompts.try_fail'))
-        return
-      }
-      setTryResult(result.content || '')
-      toast.success(
-        t('prompts.try_ok').replace('{ms}', String(result.latencyMs ?? 0)) +
-          (result.modelId ? ` · ${result.modelId}` : ''),
-      )
-    } catch (e) {
-      const msg = (e as Error).message
-      setTryResult(msg)
-      toast.error(msg)
-    } finally {
-      setTrying(false)
-    }
-  }
+  const categories = useMemo(() => {
+    const set = new Set(items.map((p) => p.category || '').filter(Boolean))
+    return [...set] as string[]
+  }, [items])
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-            <BookMarked className="h-6 w-6 text-accent" />
-            {t('prompts.title')}
-          </h1>
-          <p className="mt-1 text-sm text-foreground-secondary">{t('prompts.subtitle')}</p>
-          <p className="mt-1 text-xs text-foreground-muted">{t('prompts.config_hint')}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="rounded-xl border border-border-default px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-hover"
-          >
-            <RefreshCw className="mr-1 inline h-4 w-4" />
-            {t('prompts.refresh')}
-          </button>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            <Plus className="mr-1 inline h-4 w-4" />
+    <PageShell
+      title={t('prompts.title')}
+      description={t('prompts.subtitle')}
+      hint={t('prompts.config_hint')}
+      width="max-w-4xl"
+      actions={
+        <>
+          <Btn onClick={() => void refresh()}>
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Btn>
+          <Btn variant="primary" onClick={() => setDraft(emptyDraft())}>
+            <Plus className="h-3.5 w-3.5" />
             {t('prompts.add')}
-          </button>
-        </div>
-      </header>
+          </Btn>
+        </>
+      }
+    >
+      {/* 搜索栏 */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+        <input
+          className={`${inputCls} py-2 pl-9`}
+          placeholder={t('prompts.search_ph')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
-      {draft && (
-        <section className="space-y-3 rounded-2xl border border-border-default bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-foreground">
-              {draft.createdAt ? t('prompts.edit') : t('prompts.add')}
-            </div>
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-lg p-1 text-foreground-muted hover:bg-surface-hover"
-              aria-label={t('prompts.cancel')}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('prompts.field_id')}</span>
-              <input
-                value={draft.id}
-                onChange={(e) => setDraft({ ...draft, id: e.target.value })}
-                disabled={Boolean(draft.createdAt)}
-                placeholder="translate-formal"
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
-              />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('prompts.field_name')}</span>
-              <input
-                value={draft.name}
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                placeholder={t('prompts.field_name')}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
-              />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('prompts.field_category')}</span>
-              <input
-                value={draft.category || ''}
-                onChange={(e) => setDraft({ ...draft, category: e.target.value })}
-                placeholder="translate"
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
-              />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-foreground-secondary">{t('prompts.field_desc')}</span>
-              <input
-                value={draft.description || ''}
-                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 text-foreground outline-none focus:border-accent"
-              />
-            </label>
-            <label className="space-y-1 text-sm sm:col-span-2">
-              <span className="text-foreground-secondary">{t('prompts.field_content')}</span>
-              <textarea
-                value={draft.content}
-                onChange={(e) => setDraft({ ...draft, content: e.target.value })}
-                rows={6}
-                placeholder={t('prompts.content_ph')}
-                className="w-full rounded-xl border border-border-default bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-accent"
-              />
-            </label>
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-xl border border-border-default px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-hover"
-            >
-              {t('prompts.cancel')}
-            </button>
-            <button
-              type="button"
-              onClick={() => void saveDraft()}
-              disabled={busyId === 'draft'}
-              className="rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
-            >
-              {busyId === 'draft' && <Loader2 className="mr-1 inline h-4 w-4 animate-spin" />}
-              {t('prompts.save')}
-            </button>
-          </div>
-        </section>
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map((c) => (
+            <Badge key={c} tone="accent">
+              {c}
+            </Badge>
+          ))}
+        </div>
       )}
 
-      {/* 试跑 */}
-      <section className="space-y-3 rounded-2xl border border-border-default bg-surface p-4">
-        <div className="text-sm font-medium text-foreground">{t('prompts.try')}</div>
-        <p className="text-xs text-foreground-muted">{t('prompts.try_hint')}</p>
-        <div className="grid gap-3 sm:grid-cols-2">
+      {draft && (
+        <SectionCard title={draft.createdAt ? t('prompts.edit') : t('prompts.add')}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label={t('prompts.field_id')}>
+              <input
+                className={inputCls}
+                value={draft.id}
+                disabled={Boolean(draft.createdAt)}
+                onChange={(e) => setDraft({ ...draft, id: e.target.value })}
+              />
+            </Field>
+            <Field label={t('prompts.field_name')}>
+              <input
+                className={inputCls}
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              />
+            </Field>
+            <Field label={t('prompts.field_category')}>
+              <input
+                className={inputCls}
+                value={draft.category || ''}
+                onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+              />
+            </Field>
+            <Field label={t('prompts.field_desc')}>
+              <input
+                className={inputCls}
+                value={draft.description || ''}
+                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+              />
+            </Field>
+            <Field label={t('prompts.field_content')} className="sm:col-span-2">
+              <textarea
+                className={textareaCls}
+                rows={5}
+                value={draft.content}
+                onChange={(e) => setDraft({ ...draft, content: e.target.value })}
+              />
+            </Field>
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <Btn onClick={() => setDraft(null)}>{t('prompts.cancel')}</Btn>
+            <Btn
+              variant="primary"
+              disabled={busyId === 'draft'}
+              onClick={() => {
+                if (!draft.id.trim() || !draft.name.trim()) {
+                  toast.error(t('prompts.err_id_name'))
+                  return
+                }
+                setBusyId('draft')
+                void promptsService
+                  .save({ ...draft, id: draft.id.trim(), name: draft.name.trim() })
+                  .then(() => {
+                    toast.success(t('prompts.saved'))
+                    setDraft(null)
+                    return refresh()
+                  })
+                  .catch((e) => toast.error((e as Error).message))
+                  .finally(() => setBusyId(null))
+              }}
+            >
+              {busyId === 'draft' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {t('prompts.save')}
+            </Btn>
+          </div>
+        </SectionCard>
+      )}
+
+      {/* 卡片网格 */}
+      {filtered.length === 0 ? (
+        <EmptyState title={t('prompts.empty')} />
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {filtered.map((p) => (
+            <div
+              key={p.id}
+              className="flex flex-col rounded-xl border border-border-default bg-surface p-3 transition hover:border-accent/40"
+            >
+              <div className="mb-1 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold text-foreground">{p.name}</div>
+                  <div className="font-mono text-[10px] text-foreground-muted">{p.id}</div>
+                </div>
+                {p.category && <Badge tone="accent">{p.category}</Badge>}
+              </div>
+              {p.description && (
+                <p className="mb-1.5 text-[11px] text-foreground-muted">{p.description}</p>
+              )}
+              <p className="mb-3 line-clamp-3 flex-1 font-mono text-[11px] leading-relaxed text-foreground-secondary">
+                {p.content}
+              </p>
+              <div className="flex items-center gap-1">
+                <Btn
+                  onClick={() => {
+                    setTryPromptId(p.id)
+                  }}
+                >
+                  <Play className="h-3 w-3" />
+                  {t('prompts.use')}
+                </Btn>
+                <Btn onClick={() => setDraft({ ...p })}>{t('prompts.edit')}</Btn>
+                <Btn
+                  variant="danger"
+                  onClick={() => {
+                    setBusyId('del:' + p.id)
+                    void promptsService
+                      .delete(p.id)
+                      .then(() => {
+                        toast.success(t('prompts.deleted'))
+                        return refresh()
+                      })
+                      .catch((e) => toast.error((e as Error).message))
+                      .finally(() => setBusyId(null))
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Btn>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 试跑台 */}
+      <SectionCard title={t('prompts.try')} description={t('prompts.try_hint')}>
+        <div className="flex flex-col gap-2 sm:flex-row">
           <select
+            className={inputCls}
             value={tryPromptId}
             onChange={(e) => setTryPromptId(e.target.value)}
-            className="rounded-xl border border-border-default bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           >
             <option value="">{t('prompts.pick_template')}</option>
             {items.map((p) => (
@@ -254,92 +247,57 @@ export function PromptsPage() {
             ))}
           </select>
           <input
+            className={`${inputCls} flex-1`}
             value={tryInput}
-            onChange={(e) => setTryInput(e.target.value)}
             placeholder={t('prompts.try_input_ph')}
-            className="rounded-xl border border-border-default bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            onChange={(e) => setTryInput(e.target.value)}
           />
+          <Btn
+            variant="primary"
+            disabled={trying || !tryPromptId}
+            onClick={() => {
+              const template = items.find((x) => x.id === tryPromptId)
+              if (!template || !tryInput.trim()) {
+                toast.error(t('prompts.need_input'))
+                return
+              }
+              setTrying(true)
+              setTryResult('')
+              void llmService
+                .complete({
+                  role: 'default-assistant',
+                  messages: [
+                    { role: 'system', content: template.content },
+                    { role: 'user', content: tryInput },
+                  ],
+                })
+                .then((result) => {
+                  if (!result.ok) {
+                    setTryResult(result.error || t('prompts.try_fail'))
+                    toast.error(result.error || t('prompts.try_fail'))
+                    return
+                  }
+                  setTryResult(result.content || '')
+                  toast.success(t('prompts.try_ok').replace('{ms}', String(result.latencyMs ?? 0)))
+                })
+                .catch((e) => toast.error((e as Error).message))
+                .finally(() => setTrying(false))
+            }}
+          >
+            {trying ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
+            {t('prompts.run')}
+          </Btn>
         </div>
-        <button
-          type="button"
-          onClick={() => void tryComplete()}
-          disabled={trying || !tryPromptId}
-          className="rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
-        >
-          {trying ? (
-            <Loader2 className="mr-1 inline h-4 w-4 animate-spin" />
-          ) : (
-            <Play className="mr-1 inline h-4 w-4" />
-          )}
-          {t('prompts.run')}
-        </button>
         {tryResult && (
-          <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-xl border border-border-default bg-background p-3 text-sm text-foreground">
+          <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-surface-2 p-2.5 text-[12px] text-foreground">
             {tryResult}
           </pre>
         )}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-foreground">{t('prompts.list')}</h2>
-        {items.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-border-default px-4 py-6 text-sm text-foreground-muted">
-            {t('prompts.empty')}
-          </p>
-        )}
-        <div className="space-y-2">
-          {items.map((p) => (
-            <div key={p.id} className="rounded-2xl border border-border-default bg-surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-foreground">{p.name}</span>
-                    {p.category && (
-                      <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-600">
-                        {p.category}
-                      </span>
-                    )}
-                    <span className="font-mono text-[10px] text-foreground-muted">{p.id}</span>
-                  </div>
-                  {p.description && (
-                    <p className="mt-1 text-xs text-foreground-muted">{p.description}</p>
-                  )}
-                  <p className="mt-2 line-clamp-2 font-mono text-xs text-foreground-secondary">
-                    {p.content}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTryPromptId(p.id)
-                      setDraft(null)
-                    }}
-                    className="rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-foreground-secondary hover:bg-surface-hover"
-                  >
-                    {t('prompts.use')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openEdit(p)}
-                    className="rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-foreground-secondary hover:bg-surface-hover"
-                  >
-                    {t('prompts.edit')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void remove(p.id)}
-                    disabled={busyId === 'del:' + p.id}
-                    className="rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10 disabled:opacity-50"
-                  >
-                    <Trash2 className="inline h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+      </SectionCard>
+    </PageShell>
   )
 }
