@@ -246,7 +246,7 @@
         <div class="nav-group">
           <div class="nav-label">AI 能力</div>
           <div class="nav-item" data-page="ocr">OCR 识别</div>
-          <div class="nav-item active" data-page="mcp">MCP 服务</div>
+          <div class="nav-item" data-page="mcp">MCP</div>
           <div class="nav-item" data-page="models">模型服务</div>
           <div class="nav-item" data-page="prompts">提示词</div>
           <div class="nav-item" data-page="skills">技能</div>
@@ -335,55 +335,62 @@
           </div>
         </section>
 
-        <!-- MCP -->
+        <!-- MCP — Cherry 布局：左分区 + 右服务器列表 -->
         <section class="page show" id="page-mcp">
-          <div class="page-head">
-            <div>
-              <div class="page-title">MCP 服务</div>
-              <div class="page-desc">Cherry 风格运行时：inMemory + stdio</div>
-              <div class="page-hint">userData/mcp-servers.json</div>
-            </div>
-            <div class="actions">
-              <button class="btn">预设</button>
-              <button class="btn">刷新</button>
-            </div>
-          </div>
-          <div class="list-card">
-            <div class="list-row">
-              <span style="color:var(--muted)">▾</span>
-              <span class="status-dot"></span>
-              <div style="flex:1;min-width:0">
-                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                  <strong style="font-size:13px">Memory</strong>
-                  <span class="badge accent">inMemory</span>
-                  <span class="badge ok">ready</span>
-                  <span style="font-size:11px;color:var(--muted)">4 tools</span>
-                </div>
-                <div style="font-family:monospace;font-size:11px;color:var(--muted)">builtin memory tools</div>
+          <div class="master-detail" style="grid-template-columns:220px 1fr;height:calc(100vh - 90px)">
+            <div class="master" style="background:color-mix(in srgb, var(--surface-2) 30%, var(--surface))">
+              <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:15px">MCP</div>
+              <div style="padding:8px">
+                <div class="nav-item active" style="margin-bottom:2px">📦 已安装 MCP</div>
+                <div style="margin:12px 0 4px;padding:0 8px;font-size:11px;color:var(--muted)">发现</div>
+                <div class="nav-item">内置服务器</div>
+                <div class="nav-item">市场</div>
+                <div style="margin:12px 0 4px;padding:0 8px;font-size:11px;color:var(--muted)">提供商</div>
+                <div style="padding:6px 8px;font-size:12px;color:var(--muted)">可扩展第三方提供商</div>
               </div>
-              <button class="btn">断开</button>
             </div>
-            <div class="expand">
-              <div class="tool-row"><div><div style="font-weight:500;font-size:12px">create_entities</div><div style="font-size:11px;color:var(--muted)">创建记忆实体</div></div><button class="btn">调用</button></div>
-              <div class="tool-row"><div><div style="font-weight:500;font-size:12px">search_nodes</div><div style="font-size:11px;color:var(--muted)">搜索节点</div></div><button class="btn">调用</button></div>
-            </div>
-            <div class="list-row">
-              <span style="color:var(--muted)">▸</span>
-              <span class="status-dot off"></span>
-              <div style="flex:1;min-width:0">
-                <div style="display:flex;gap:6px;align-items:center">
-                  <strong style="font-size:13px">Filesystem</strong>
+            <div class="detail">
+              <div class="detail-head" style="padding:12px 16px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <strong style="font-size:15px">已安装 MCP</strong>
+                  <input class="input" style="width:180px;padding:6px 8px;font-size:12px" placeholder="搜索已安装 MCP…" />
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button class="btn">↻</button>
+                  <button class="btn primary">+ 添加 ▾</button>
+                </div>
+              </div>
+              <div style="padding:0">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border)">
+                  <span class="status-dot"></span>
+                  <div style="flex:1;font-weight:500">@ert/filesystem</div>
+                  <span style="width:70px;text-align:right;font-family:monospace;font-size:12px;color:var(--muted)">3 tools</span>
+                  <span class="badge">内置</span>
+                  <div style="width:44px;height:24px;border-radius:12px;background:var(--success);position:relative"><span style="position:absolute;right:3px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border)">
+                  <span class="status-dot"></span>
+                  <div style="flex:1;font-weight:500">@ert/memory</div>
+                  <span style="width:70px;text-align:right;font-family:monospace;font-size:12px;color:var(--muted)">4 tools</span>
+                  <span class="badge">内置</span>
+                  <div style="width:44px;height:24px;border-radius:12px;background:var(--success);position:relative"><span style="position:absolute;right:3px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border)">
+                  <span class="status-dot off"></span>
+                  <div style="flex:1;font-weight:500">Filesystem</div>
+                  <span style="width:70px;text-align:right;font-family:monospace;font-size:12px;color:var(--muted)">—</span>
                   <span class="badge accent">stdio</span>
-                  <span class="badge">idle</span>
+                  <div style="width:44px;height:24px;border-radius:12px;background:#9ca3af;position:relative"><span style="position:absolute;left:3px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></div>
                 </div>
-                <div style="font-family:monospace;font-size:11px;color:var(--muted)">npx @modelcontextprotocol/server-filesystem</div>
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 20px">
+                  <span class="status-dot off"></span>
+                  <div style="flex:1;font-weight:500">Memory</div>
+                  <span style="width:70px;text-align:right;font-family:monospace;font-size:12px;color:var(--muted)">—</span>
+                  <span class="badge accent">stdio</span>
+                  <div style="width:44px;height:24px;border-radius:12px;background:#9ca3af;position:relative"><span style="position:absolute;left:3px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></div>
+                </div>
               </div>
-              <button class="btn primary">连接</button>
             </div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><span style="font-weight:500;font-size:12px">工具参数（JSON）</span><button class="btn">Clear</button></div>
-            <div class="panel-body"><textarea class="input" rows="3">{}</textarea></div>
           </div>
         </section>
 
