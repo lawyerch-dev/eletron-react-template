@@ -1,6 +1,24 @@
 ---
 name: high-end-visual-design
-description: Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a website feel expensive. Blocks all the common defaults that make AI designs look cheap or generic.
+description: Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a website feel expensive. **Only load for marketing/brand/agency landing pages — NOT for product UI, dashboards, settings panels, or Electron desktop tool interfaces.** Blocks all the common defaults that make AI designs look cheap or generic.
+---
+
+## When to Load / When NOT to Load
+
+**Load this skill ONLY when the task is:**
+- A marketing landing page (SaaS / consumer / agency / event)
+- A brand site or redesign
+- A designer's portfolio or agency showcase
+- An editorial / campaign page with cinematic intent
+
+**Do NOT load this skill for:**
+- Product UI (settings, dashboards, multi-step flows)
+- Data tables, OCR batch result pages, plugin managers
+- Electron desktop application interfaces (this template)
+- Anywhere dense information or task efficiency is the primary goal
+
+If unsure: prefer `AGENTS.md`「主题系统」+「国际化」generic rules and skip this skill. This skill's persona (`Vanguard_UI_Architect`, "$150k+ agency-tier") adds heavy context overhead — wrong-fit use wastes tokens and produces over-designed tool UI.
+
 ---
 
 # Agent Skill: Principal UI/UX Architect & Motion Choreographer (Awwwards-Tier)

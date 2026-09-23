@@ -1,6 +1,22 @@
 ---
 name: gpt-taste
-description: Elite UX/UI & Advanced GSAP Motion Engineer. Enforces explicit candidate-vs-rejected layout selection, strict AIDA page structure, wide editorial typography (bans 6-line wraps), gapless bento grids, strict GSAP ScrollTriggers (pinning, stacking, scrubbing), inline micro-images, and massive section spacing.
+description: Elite UX/UI & Advanced GSAP Motion Engineer. Enforces explicit candidate-vs-rejected layout selection, strict AIDA page structure, wide editorial typography (bans 6-line wraps), gapless bento grids, strict GSAP ScrollTriggers (pinning, stacking, scrubbing), inline micro-images, and massive section spacing. **Only load for Awwwards-tier marketing/landing pages — NOT for Electron desktop tool UI, dashboards, or product interfaces.**
+---
+
+## When to Load / When NOT to Load
+
+**Load this skill ONLY when the task is:**
+- Awwwards-tier marketing / portfolio / campaign page
+- GSAP ScrollTrigger pinning, scrubbing, or horizontal scroll is explicitly requested
+- A landing page that benefits from AIDA structure + bento grid + massive section spacing
+
+**Do NOT load this skill for:**
+- Electron desktop application interfaces (this template) — pinning ScrollTriggers inside a desktop window is a UX regression
+- Dashboards, data tables, settings panels, plugin managers
+- Any UI where the user is trying to *complete a task*, not *experience a brand*
+
+If the task mixes a marketing hero with a tool section, load this skill for the hero only and apply `AGENTS.md` generic rules for the tool section.
+
 ---
 
 # CORE DIRECTIVE: AWWWARDS-LEVEL DESIGN ENGINEERING

@@ -45,22 +45,33 @@
 
 ### 2. 设计
 
-前端页面/组件开发前，**必须先用设计技能生成设计系统**，禁止直接写代码。
+前端页面/组件开发前，先按下方"页面分类"决策是否触发设计技能；不是所有 UI 都套设计 skill。
 
-**技能优先级**（`.agents/skills/`）：
+**页面分类决策表**：
 
-1. **`high-end-visual-design`** — 高端视觉与设计系统
-2. **`gpt-taste`** — Awwwards 级设计工程（GSAP、AIDA、Bento）
-3. **`design-taste-frontend`** — 反模板化前端设计
+| 类别 | 例子 | 是否触发设计 skill | 走谁 |
+|---|---|---|---|
+| **营销/品牌/作品集** | landing、产品官网、活动页、设计师作品集、品牌重设计 | ✅ 必须 | 三个 design skill 按场景挑 1 个 |
+| **工具型/数据型** | 设置面板、表单列表、OCR 跑批结果、capability 开关、plugin 管理 | ❌ 不触发 | 直接按本文件「主题系统」与「国际化」实现 |
+| **混合** | 主页（hero + 设置入口）| 按子区 | hero 区按营销、设置区按工具 |
 
-**设计红线**：
+**三个 design skill 的适用边界**（`.agents/skills/`）：
+
+| Skill | 适用 | 不适用 |
+|---|---|---|
+| `high-end-visual-design` | 品牌站、agency-style 落地页 | 工具 UI、密集数据表、多步流程 |
+| `gpt-taste` | Awwwards 级营销页（AIDA / Bento / GSAP）| 同上；且避免在 Electron 桌面应用塞 ScrollTrigger pin |
+| `design-taste-frontend` | landing / portfolio / redesign（自带此场景自检） | dashboard、data table、product UI |
+
+**通用设计红线**（所有 UI 都遵守，与是否触发设计 skill 无关）：
 
 - ❌ 禁止默认模板样式（无设计感的卡片、无聊的布局）
-- ❌ 禁止 Emoji 作为图标（用 SVG）
+- ❌ 禁止 Emoji 作为图标（用 SVG / Phosphor Line）
 - ❌ 禁止硬编码颜色值（用语义化 Token）
-- ❌ 禁止 6 行以上的标题文字墙
-- ✅ 必须有视觉层次、间距节奏、微交互动效
-- ✅ 必须遵循 AIDA 结构（Attention → Interest → Desire → Action）
+- ✅ 必须有视觉层次、间距节奏
+- ✅ 必须用语义 Token + i18n 走文案
+
+> **为什么去掉"AIDA 结构"与"6 行标题墙"？** 这两条是营销站专属约束，对工具型 UI 是反模式（settings 页 hero 区塞 AIDA 漏斗会让用户找不到设置项）。同样，"必须有微交互动效"在 OCR 跑批结果页反而是干扰，已从强制红线改为上表工具类「按需」。
 
 架构与约定的出错信息、实战示例、跨项目复用步骤见 `.agents/skills/template-architecture/SKILL.md`（本文件为唯一权威，SKILL 是 reference 附录）。
 
