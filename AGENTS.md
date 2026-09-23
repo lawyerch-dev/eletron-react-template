@@ -62,7 +62,7 @@
 - ✅ 必须有视觉层次、间距节奏、微交互动效
 - ✅ 必须遵循 AIDA 结构（Attention → Interest → Desire → Action）
 
-架构与约定类改动可直接读 `.agents/skills/template-architecture/SKILL.md`。
+架构与约定的出错信息、实战示例、跨项目复用步骤见 `.agents/skills/template-architecture/SKILL.md`（本文件为唯一权威，SKILL 是 reference 附录）。
 
 ### 3. 实现
 
@@ -152,6 +152,24 @@ electron-react-template/
 ```
 
 **裁剪方式**：只改 `packages/shared/src/capabilities/config.ts`。跨项目复用的契约优先 `packages/*`，业务工具优先 `src/plugins/*`。
+
+---
+
+## Vite root 与别名
+
+`vite.config.ts` 的 `root` **必须是仓库根**。`vite-plugin-electron` 以 `config.root` 作为 Electron 进程的 `cwd` 与 `package.json` 查找根；若设成 `src/renderer` 会报 `Unable to find Electron app at .../src/renderer`。Renderer 入口通过 `build.rollupOptions.input = src/renderer/index.html` + dev middleware 映射 `/`；打包后路径见 `src/main/app/window.ts` 的 `getIndexHtmlPath`。
+
+别名（`vite.config.ts` / `tsconfig.json` / `vitest.config.ts` 三者必须同步）：
+
+```ts
+import { IpcChannel } from '@ert/shared/ipc'
+import { formatT } from '@ert/shared/utils/plugin'
+import { isCapabilityEnabled } from '@ert/shared/capabilities'
+import type { HostApi } from '@ert/plugin-api'
+import { Foo } from '@/features/foo'
+```
+
+出错信息与排查细节见 `.agents/skills/template-architecture/SKILL.md`。
 
 ---
 
@@ -254,6 +272,10 @@ broadcastIpcEvent('plugin.changed', undefined as void)
 3. **安装列表**统一由 `registry` 写入，installer 不得双写。
 4. 卸载/覆盖安装前必须 `runner.forceClose` 运行中实例。
 5. 插件作者可用类型：`@ert/plugin-api`（`window.host`）。
+6. **插件扫描根**：
+   - 开发态内置插件扫描：`src/plugins/`
+   - 打包后内置插件：`resources/plugins/`（经 `extraResources` 分发）
+   - 用户运行时安装：`userData/plugins/`（运行时落盘，不入库）
 
 ---
 
